@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
 
     const { amountNGN } = parsed.data
     const reference     = generateReference('FUND')
-    const callbackUrl   = `${process.env.NEXT_PUBLIC_APP_URL}/api/wallet/verify?ref=${reference}`
+    const origin        = req.nextUrl.origin
+    const callbackUrl   = `${origin}/api/wallet/verify?ref=${reference}`
 
     const result = await initializePayment({
       email: session.email,
