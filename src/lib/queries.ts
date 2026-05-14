@@ -402,7 +402,7 @@ function businessRowToUser(b: BusinessRow, user?: UserRow): User {
     city: b.state,
     bio: b.description,
     avatarUrl: b.businessLogo ? `/uploads/${b.businessLogo}` : undefined,
-    skills: [b.category],
+    skills: b.category ? [b.category] : [],
     rating: b.rating,
     reviewCount: b.reviews,
     isVerified: b.verified === 1,
