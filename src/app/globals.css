@@ -2,19 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design Tokens ──────────────────────────────────── */
-:root {
-  --green:        #0F4F4A;
-  --green-hover:  #1F6F68;
-  --green-active: #0a3835;
-  --green-light:  #E3ECEA;
-  --bg:           #E3ECEA;
-  --card:         #FFFFFF;
-  --border:       #C2D4D2;
-  --text-primary: #0a2422;
-  --text-muted:   #4a6866;
-}
-
 /* ─── Base ────────────────────────────────────────────── */
 @layer base {
   html {
@@ -25,19 +12,29 @@
   body {
     min-height: 100dvh;
     overflow-x: hidden;
+    overscroll-behavior: none;
+    background: #FAFBFC;
+    color: #0f172a;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  * {
-    -webkit-tap-highlight-color: transparent;
+  * { -webkit-tap-highlight-color: transparent; }
+  input, textarea, select { font-size: 16px; }
+
+  ::selection {
+    background: #0F4F4A;
+    color: #fff;
   }
 }
 
+/* ─── Custom Scrollbar ────────────────────────────────── */
 @layer utilities {
-  .bg-grid-fade {
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 }
 
 /* ─── Reusable Component Classes ─────────────────────── */
@@ -45,318 +42,119 @@
 
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2
-           bg-brand-primary hover:bg-brand-hover active:bg-brand-active
-           text-white font-medium text-sm
-           px-4 py-2.5 rounded-xl min-h-[44px]
-           transition-colors duration-150
+           bg-brand-500 hover:bg-brand-600 active:bg-brand-700
+           text-white font-semibold text-sm
+           px-5 py-3 rounded-xl min-h-[48px]
+           transition-all duration-200
+           disabled:opacity-50 disabled:pointer-events-none
+           select-none;
+  }
+
+  .btn-primary-sm {
+    @apply inline-flex items-center justify-center gap-1.5
+           bg-brand-500 hover:bg-brand-600 active:bg-brand-700
+           text-white font-semibold text-xs
+           px-4 py-2 rounded-lg min-h-[36px]
+           transition-all duration-200
            disabled:opacity-50 disabled:pointer-events-none
            select-none;
   }
 
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2
-           border border-brand-primary text-brand-primary
-           hover:bg-brand-light active:bg-brand-light
-           font-medium text-sm
-           px-4 py-2.5 rounded-xl min-h-[44px]
-           transition-colors duration-150
+           border-2 border-brand-500 text-brand-500
+           hover:bg-brand-50 active:bg-brand-100
+           font-semibold text-sm
+           px-5 py-3 rounded-xl min-h-[48px]
+           transition-all duration-200
            disabled:opacity-50 disabled:pointer-events-none
            select-none;
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2
-           border border-ui-border text-text-secondary
-           hover:border-brand-primary hover:text-brand-primary
-           active:bg-brand-light
+           border border-slate-200 text-slate-600
+           hover:border-slate-300 hover:text-slate-800 hover:bg-slate-50
            font-medium text-sm
            px-4 py-2.5 rounded-xl min-h-[44px]
-           transition-colors duration-150
+           transition-all duration-200
            select-none;
   }
 
   .input-field {
-    @apply w-full px-3.5 py-3
-           text-sm text-text-primary
-           bg-white border border-ui-border rounded-xl
-           outline-none placeholder:text-text-secondary
-           focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10
-           transition-all duration-150
-           min-h-[44px];
+    @apply w-full px-4 py-3.5
+           text-sm text-slate-900
+           bg-white border-2 border-slate-200 rounded-xl
+           outline-none placeholder:text-slate-400
+           focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10
+           transition-all duration-200
+           min-h-[48px];
+  }
+
+  .input-label {
+    @apply block text-sm font-semibold text-slate-700 mb-2;
   }
 
   .card {
-    @apply bg-ui-card border border-ui-border rounded-2xl p-4 sm:p-6;
+    @apply bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-card;
   }
 
   .card-sm {
-    @apply bg-ui-card border border-ui-border rounded-xl p-3 sm:p-4;
+    @apply bg-white border border-slate-200 rounded-xl p-4 shadow-card;
   }
 
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
   }
 
-  .badge-green {
-    @apply badge bg-brand-light text-brand-active;
+  .badge-brand {
+    @apply badge bg-brand-500 text-white;
   }
 
-  .badge-gray {
-    @apply badge bg-gray-100 text-text-secondary;
+  .badge-success {
+    @apply badge bg-emerald-50 text-emerald-700 border border-emerald-200;
   }
 
-  .badge-blue {
-    @apply badge bg-blue-50 text-blue-700;
+  .badge-warning {
+    @apply badge bg-amber-50 text-amber-700 border border-amber-200;
   }
 
-  .badge-red {
-    @apply badge bg-red-50 text-red-600;
+  .badge-error {
+    @apply badge bg-red-50 text-red-600 border border-red-200;
   }
 
-  .label {
-    @apply block text-sm font-medium text-text-primary mb-1.5;
+  .badge-neutral {
+    @apply badge bg-slate-100 text-slate-600;
   }
 
-  .form-group {
-    @apply mb-4;
-  }
-
-  .section-title {
-    @apply font-display text-xl sm:text-2xl font-semibold text-text-primary;
-  }
-
-  .section-subtitle {
-    @apply text-sm text-text-secondary mt-1 mb-6 sm:mb-8;
-  }
+  .form-group { @apply mb-5; }
 
   /* Mobile bottom nav safe area */
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-slate-100;
   }
 
-  /* ─── Custom Animations ────────────────────────────── */
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+  /* Status dot */
+  .status-dot {
+    @apply w-2 h-2 rounded-full inline-block;
   }
-  
-  @keyframes float-reverse {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(10px); }
-  }
-  
-  @keyframes slide-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes scale-in {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  
-  @keyframes slide-in-left {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  
-  @keyframes slide-in-right {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .animate-float-reverse {
-    animation: float-reverse 6s ease-in-out infinite;
-  }
-  
-  .animate-slide-up {
-    animation: slide-up 0.6s ease-out forwards;
-  }
-  
-  .animate-fade-in {
-    animation: fade-in 0.6s ease-out forwards;
-  }
-  
-  .animate-scale-in {
-    animation: scale-in 0.5s ease-out forwards;
-  }
-  
-  .animate-slide-left {
-    animation: slide-in-left 0.6s ease-out forwards;
-  }
-  
-  .animate-slide-right {
-    animation: slide-in-right 0.6s ease-out forwards;
-  }
+  .status-dot-online  { @apply bg-emerald-500; }
+  .status-dot-busy   { @apply bg-amber-500; }
+  .status-dot-offline { @apply bg-slate-300; }
 
-  /* ─── New Beautiful Animations ───────────────────────── */
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-  
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(15, 79, 74, 0.2); }
-    50% { box-shadow: 0 0 40px rgba(15, 79, 74, 0.4); }
-  }
-  
-  @keyframes wave {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-  
-  @keyframes bounce-subtle {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-  }
-  
-  @keyframes scale-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-  
-  @keyframes rotate-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  
-  @keyframes stagger-fade-up {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes card-hover {
-    0% { transform: translateY(0) scale(1); }
-    100% { transform: translateY(-8px) scale(1.02); }
-  }
-  
-  @keyframes text-reveal {
-    from { 
-      clip-path: inset(0 100% 0 0);
-      opacity: 0;
-    }
-    to { 
-      clip-path: inset(0 0 0 0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes ripple {
-    0% { transform: scale(1); opacity: 0.5; }
-    100% { transform: scale(2.5); opacity: 0; }
-  }
+  /* Text utilities */
+  .text-balance { text-wrap: balance; }
 
-  .animate-shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
+  /* Avatar initials */
+  .avatar {
+    @apply w-10 h-10 rounded-full bg-brand-500 text-white
+           flex items-center justify-center font-semibold text-sm
+           flex-shrink-0 overflow-hidden;
   }
-  
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-  
-  .animate-wave {
-    animation: wave 2s ease-in-out infinite;
-  }
-  
-  .animate-bounce-subtle {
-    animation: bounce-subtle 2s ease-in-out infinite;
-  }
-  
-  .animate-scale-pulse {
-    animation: scale-pulse 3s ease-in-out infinite;
-  }
-  
-  .animate-rotate-slow {
-    animation: rotate-slow 20s linear infinite;
-  }
-
-  .animate-stagger {
-    animation: stagger-fade-up 0.6s ease-out forwards;
-    opacity: 0;
-  }
-
-  .stagger-1 { animation-delay: 0.1s; }
-  .stagger-2 { animation-delay: 0.2s; }
-  .stagger-3 { animation-delay: 0.3s; }
-  .stagger-4 { animation-delay: 0.4s; }
-  .stagger-5 { animation-delay: 0.5s; }
-  .stagger-6 { animation-delay: 0.6s; }
-
-  /* Mobile touch feedback */
-  @media (max-width: 768px) {
-    .hover-lift:hover,
-    .hover-lift:focus {
-      transform: translateY(-4px) scale(1.01);
-    }
-  }
-
-  .hover-lift {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .hover-lift:hover,
-  .hover-lift:focus {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(15, 79, 74, 0.15);
-  }
-
-  /* Card stagger animation on scroll */
-  .card-animate {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-  
-  .card-animate.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* Gradient text */
-  .text-gradient {
-    background: linear-gradient(135deg, #0F4F4A, #1F6F68);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Animated border */
-  .animate-border {
-    position: relative;
-  }
-  
-  .animate-border::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: inherit;
-    background: linear-gradient(45deg, #0F4F4A, #FFD666, #0F4F4A);
-    background-size: 200% 200%;
-    animation: shimmer 3s linear infinite;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  .animate-border:hover::before {
-    opacity: 1;
-  }
-
-  /* Spin on hover */
-  .hover-spin:hover svg {
-    animation: rotate-slow 0.5s ease-in-out;
-  }
+  .avatar-sm { @apply w-8 h-8 text-xs; }
+  .avatar-lg { @apply w-14 h-14 text-base; }
+  .avatar-xl { @apply w-20 h-20 text-xl; }
 }
-
-

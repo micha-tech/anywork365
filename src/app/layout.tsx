@@ -1,18 +1,19 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Sora } from 'next/font/google'
+import { Plus_Jakarta_Sans, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
 })
 
-const sora = Sora({
+const dm = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-sora',
-  weight: ['400', '500', '600'],
+  variable: '--font-dm',
+  weight: ['400', '500'],
   display: 'swap',
 })
 
@@ -37,8 +38,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${sora.variable}`}>
-      <body className="font-body bg-ui-bg text-text-primary antialiased">
+    <html lang="en" className={`${jakarta.variable} ${dm.variable}`}>
+      <body className="font-body bg-surface-base text-slate-900 antialiased">
         <Navbar />
         <main>{children}</main>
       </body>

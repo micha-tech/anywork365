@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <DashboardSidebar />
 
       {/* Main content */}
-      <main className="flex-1 bg-ui-bg overflow-y-auto px-4 sm:px-8 py-5 sm:py-8 pb-28 sm:pb-8">
+      <main className="flex-1 bg-surface-base overflow-y-auto px-4 sm:px-8 py-5 sm:py-8 pb-28 sm:pb-8">
         {children}
       </main>
 

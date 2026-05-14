@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth'
 import { getUserFullByUid } from '@/lib/queries'
 import type { ApiResponse } from '@/types'
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await getSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
@@ -12,13 +12,8 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const id = req.nextUrl.searchParams.get('id')
-  if (!id) {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'User ID is required' },
-      { status: 400 }
-    )
-  }
+  // Only allow looking up your own user data
+  const id = session.id
 
   const user = await getUserFullByUid(id)
   if (!user) {

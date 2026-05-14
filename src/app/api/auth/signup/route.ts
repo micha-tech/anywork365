@@ -3,6 +3,7 @@ import { setSession, createSessionCookie } from '@/lib/auth'
 import { auth as adminAuth } from '@/lib/firebase/admin'
 import { createUser, createBusiness, getUserByUid } from '@/lib/queries'
 import { signupSchema } from '@/lib/validators/auth'
+import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse, AuthUser } from '@/types'
 
 export const runtime = 'nodejs'
@@ -14,6 +15,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'ID token is required' },
         { status: 400 }
+      )
+    }
+
+    // Rate limiting: 5 signups per IP per minute
+    const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown'
+    const rateLimit = checkRateLimit(`signup:${ip}`, 5, 60 * 1000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: `Too many signup attempts. Please try again in ${rateLimit.retryAfter} seconds.` },
+        { status: 429 }
       )
     }
 
@@ -79,11 +90,8 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const e = err as { code?: string; message?: string }
     console.error('[AUTH SIGNUP]', e)
-    let message = 'Signup failed'
-    if (e?.message) message = e.message
-
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: message },
+      { success: false, error: 'Signup failed' },
       { status: 400 }
     )
   }

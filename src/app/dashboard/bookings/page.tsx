@@ -116,7 +116,7 @@ export default function BookingsPage() {
     <>
       <div className="mb-5 sm:mb-7">
         <h1 className="font-display text-xl sm:text-2xl font-semibold">My Bookings</h1>
-        <p className="text-sm text-text-secondary mt-1">
+        <p className="text-sm text-slate-500 mt-1">
           {isVendor ? 'Manage your incoming job requests' : 'Track your service bookings'}
         </p>
       </div>
@@ -129,10 +129,10 @@ export default function BookingsPage() {
 
       <div className="flex flex-col gap-3 sm:gap-4">
         {fetching ? (
-          <p className="text-sm text-text-secondary py-8 text-center">Loading bookings...</p>
+          <p className="text-sm text-slate-500 py-8 text-center">Loading bookings...</p>
         ) : bookings.length === 0 ? (
           <div className="card text-center py-10">
-            <p className="text-text-secondary mb-3">No bookings yet</p>
+            <p className="text-slate-500 mb-3">No bookings yet</p>
             {!isVendor && (
               <Link href="/professionals" className="btn-primary inline-flex px-6 py-2.5 text-sm">
                 Browse Vendors
@@ -143,12 +143,12 @@ export default function BookingsPage() {
           <div key={b.id} className="card">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-text-secondary mb-1">
+                <p className="text-sm text-slate-500 mb-1">
                   {isVendor ? (b.clientName || 'Client') : (b.businessName || 'Vendor')} &middot; Booking #{b.id} &middot; {new Date(b.createdAt).toLocaleDateString()}
                 </p>
                 <p className="font-medium text-sm leading-snug mb-2">{b.description}</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-secondary">
-                  <span>Budget: <strong className="text-text-primary">₦{b.budget?.toLocaleString()}</strong></span>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                  <span>Budget: <strong className="text-slate-900">₦{b.budget?.toLocaleString()}</strong></span>
                   <span>Date: {b.date}</span>
                   {b.location && <span>Location: {b.location}</span>}
                 </div>
@@ -159,7 +159,7 @@ export default function BookingsPage() {
             </div>
 
             {(b.status === 'pending' || b.status === 'confirmed') && (
-              <div className="flex gap-2 mt-4 pt-3 border-t border-ui-border">
+              <div className="flex gap-2 mt-4 pt-3 border-t border-slate-200">
                 {isVendor && b.status === 'pending' && (
                   <button
                     onClick={() => handleAction(b.id, 'confirm')}
@@ -187,7 +187,7 @@ export default function BookingsPage() {
               </div>
             )}
             {!isVendor && b.status === 'completed' && (
-              <div className="flex gap-2 mt-4 pt-3 border-t border-ui-border">
+              <div className="flex gap-2 mt-4 pt-3 border-t border-slate-200">
                 <button
                   onClick={() => openReview(b)}
                   className="btn-primary text-xs px-4 py-2"
@@ -203,7 +203,7 @@ export default function BookingsPage() {
       <Modal open={reviewBooking !== null} onClose={() => setReviewBooking(null)} title="Leave a Review">
         {reviewBooking && (
           <div>
-            <p className="text-sm text-text-secondary mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               Rate your experience with <strong>{reviewBooking.businessName || 'this vendor'}</strong>
             </p>
 

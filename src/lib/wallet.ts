@@ -279,47 +279,25 @@ export async function getUserWithdrawalsList(userId: string): Promise<Withdrawal
 
 // ─── Confirm withdrawal success ─────────────────────────────────────────
 
-export async function confirmWithdrawalSuccess(_transferCode: string): Promise<void> {
+export async function confirmWithdrawalById(withdrawalId: string): Promise<void> {
   try {
-    const { query, execute } = await import('@/lib/db')
-    const rows = await query(
-      'SELECT id FROM withdrawals WHERE status = ? LIMIT 1',
-      ['pending']
-    ) as { id: number }[]
-    const wd = rows[0]
-    if (wd) {
-      await execute('UPDATE withdrawals SET status = ? WHERE id = ?', ['paid', wd.id])
-    }
+    const { execute } = await import('@/lib/db')
+    await execute('UPDATE withdrawals SET status = ? WHERE id = ? AND status = ?', ['paid', withdrawalId, 'pending'])
   } catch (err) {
     console.error('[CONFIRM WITHDRAWAL ERROR]', err)
   }
 }
 
-// ─── Find pending withdrawal ────────────────────────────────────────────
+// ─── Get withdrawal by id ───────────────────────────────────────────────
 
-export async function findPendingWithdrawal(): Promise<WithdrawalRequest | null> {
+export async function getWithdrawalById(withdrawalId: string): Promise<{ id: number; user_id: number; amount: number } | null> {
   try {
     const { query } = await import('@/lib/db')
     const rows = await query(
-      'SELECT * FROM withdrawals WHERE status = ? ORDER BY created_at DESC LIMIT 1',
-      ['pending']
-    ) as { id: number; user_id: number; amount: number; status: string }[]
-    const wd = rows[0]
-    if (!wd) return null
-
-    return {
-      id: String(wd.id),
-      userId: String(wd.user_id),
-      amount: wd.amount,
-      amountKobo: wd.amount * 100,
-      bankAccountNumber: '',
-      bankCode: '',
-      bankName: '',
-      accountName: '',
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
+      'SELECT id, user_id, amount FROM withdrawals WHERE id = ?',
+      [withdrawalId]
+    ) as { id: number; user_id: number; amount: number }[]
+    return rows[0] || null
   } catch {
     return null
   }

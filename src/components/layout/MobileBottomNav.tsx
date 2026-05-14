@@ -29,7 +29,7 @@ const TABS = [
     href: '/dashboard/post-job',
     label: 'Post Job',
     icon: () => (
-      <div className="w-11 h-11 rounded-full bg-brand-primary flex items-center justify-center shadow-md -mt-5">
+      <div className="w-11 h-11 rounded-full bg-brand-500 flex items-center justify-center shadow-md -mt-5">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
@@ -63,7 +63,7 @@ export function MobileBottomNav() {
 
   return (
     /* Visible only on mobile */
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-ui-border pb-safe">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe">
       <div className="grid grid-cols-5 items-end px-2 h-16">
         {TABS.map((tab) => {
           const active = tab.href === '/dashboard'
@@ -77,12 +77,12 @@ export function MobileBottomNav() {
               className={cn(
                 'flex flex-col items-center justify-center gap-1 h-full transition-colors min-w-0',
                 isPost ? 'relative' : '',
-                active && !isPost ? 'text-brand-primary' : 'text-text-secondary'
+                active && !isPost ? 'text-brand-500' : 'text-slate-500'
               )}
             >
               {tab.icon(active)}
               {!isPost && (
-                <span className={cn('text-[10px] font-medium truncate', active ? 'text-brand-primary' : 'text-text-secondary')}>
+                <span className={cn('text-[10px] font-medium truncate', active ? 'text-brand-500' : 'text-slate-500')}>
                   {tab.label}
                 </span>
               )}

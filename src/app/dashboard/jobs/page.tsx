@@ -28,7 +28,10 @@ export default async function MyJobsPage({
       company_name: string
       company_address: string | null
     }
-    const companies = await query<CompanyRow[]>('SELECT company_id, company_name, company_address FROM companies WHERE company_id IN (' + ids.join(',') + ')')
+    const companies = await query<CompanyRow[]>(
+      `SELECT company_id, company_name, company_address FROM companies WHERE company_id IN (${ids.map(() => '?').join(',')})`,
+      ids
+    )
     for (const c of companies) {
       companyMap[c.company_id] = { name: c.company_name, address: c.company_address || '' }
     }
@@ -65,20 +68,20 @@ export default async function MyJobsPage({
       <div className="flex items-center justify-between gap-4 mb-5 sm:mb-7">
         <div>
           <h1 className="font-display text-xl sm:text-2xl font-semibold">My Jobs</h1>
-          <p className="text-sm text-text-secondary mt-1">Track and manage your posted jobs</p>
+          <p className="text-sm text-slate-500 mt-1">Track and manage your posted jobs</p>
         </div>
         <Link href="/dashboard/post-job" className="btn-primary text-sm flex-shrink-0">+ Post Job</Link>
       </div>
 
-      <div className="flex gap-0 border-b border-ui-border mb-5 overflow-x-auto scrollbar-none">
+      <div className="flex gap-0 border-b border-slate-200 mb-5 overflow-x-auto scrollbar-none">
         {TABS.map((tab) => (
           <Link
             key={tab}
             href={`/dashboard/jobs?tab=${tab}`}
             className={`px-4 sm:px-5 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap flex-shrink-0 capitalize ${
               tab === currentTab
-                ? 'border-brand-primary text-brand-primary'
-                : 'border-transparent text-text-secondary hover:text-text-primary'
+                ? 'border-brand-500 text-brand-600'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
             {tab} ({jobs.filter((j) => tab === 'active' ? j.status === 'open' : j.status === 'completed').length})
@@ -88,7 +91,7 @@ export default async function MyJobsPage({
 
       <div className="flex flex-col gap-3 sm:gap-4">
         {filtered.length === 0 ? (
-          <p className="text-sm text-text-secondary py-8 text-center">No {currentTab} jobs</p>
+          <p className="text-sm text-slate-500 py-8 text-center">No {currentTab} jobs</p>
         ) : filtered.map((job) => (
           <JobCard key={job.id} job={job} showApply={false} />
         ))}

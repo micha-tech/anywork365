@@ -46,7 +46,7 @@ export function CategoryIcon({ category, size = 48 }: CategoryIconProps) {
   if (!svgContent) {
     return (
       <div 
-        className="rounded-xl bg-brand-light flex items-center justify-center"
+        className="rounded-xl bg-brand-50 flex items-center justify-center"
         style={{ width: size, height: size }}
       >
         <span style={{ fontSize: size * 0.5 }}>{emoji || '✨'}</span>

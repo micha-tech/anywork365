@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import { getOrCreateWallet, requestWithdrawal, rollbackWithdrawal } from '@/lib/wallet'
-import { initiateTransfer, generateReference } from '@/lib/paystack'
+import { initiateTransfer } from '@/lib/paystack'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
 
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     const transfer = await initiateTransfer({
       amountNGN,
       recipientCode: wallet.paystackRecipientCode,
-      reference:     generateReference('WD'),
+      reference:     `WD_${withdrawalId}`,
       reason:        `Anywork365 withdrawal — ${session.firstName} ${session.lastName}`,
     })
 

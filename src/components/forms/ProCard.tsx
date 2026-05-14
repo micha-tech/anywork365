@@ -42,7 +42,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
   }
 
   return (
-    <div className="card hover:border-brand-primary transition-all duration-200 hover:-translate-y-0.5 cursor-pointer group">
+    <div className="card hover:border-brand-500 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer group">
       <div className="relative">
         <Avatar
           initials={initials}
@@ -60,14 +60,14 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
       </div>
 
       <div className="mb-1 flex items-center gap-2">
-        <h3 className="font-medium text-text-primary group-hover:text-brand-primary transition-colors">
+        <h3 className="font-medium text-slate-900 group-hover:text-brand-500 transition-colors">
           {pro.firstName} {pro.lastName}
         </h3>
         {pro.isVerified && (
           <span className="text-xs text-blue-500 font-medium">Verified</span>
         )}
       </div>
-      <p className="text-sm text-text-secondary mt-0.5">
+      <p className="text-sm text-slate-500 mt-0.5">
         {pro.skills?.[0]} · {pro.city}
       </p>
 
@@ -86,12 +86,12 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
       )}
 
       {pro.bio && (
-        <p className="text-sm text-text-secondary leading-relaxed line-clamp-2 mb-4">
+        <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-4">
           {pro.bio}
         </p>
       )}
 
-      <div className="flex gap-2 pt-2 border-t border-ui-border">
+      <div className="flex gap-2 pt-2 border-t border-slate-200">
         <Link
           href={`/professionals/${pro.id}`}
           className="btn-primary text-xs px-3 py-1.5 flex-1 text-center"
@@ -104,7 +104,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
           className="btn-ghost text-xs px-3 py-1.5 flex items-center justify-center gap-1 disabled:opacity-50"
         >
           {startingChat ? (
-            <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

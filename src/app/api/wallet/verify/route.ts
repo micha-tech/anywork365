@@ -6,8 +6,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPayment } from '@/lib/paystack'
 import { creditWallet, hasSuccessfulTransactionReference } from '@/lib/wallet'
+import { getSession } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.redirect(
+      new URL('/login', req.url)
+    )
+  }
+
   const ref = req.nextUrl.searchParams.get('ref')
 
   if (!ref) {
@@ -29,7 +37,7 @@ export async function GET(req: NextRequest) {
     const userId     = metadata?.userId
     const amountNGN  = Math.floor(amount / 100) // kobo → NGN
 
-    if (!userId) {
+    if (!userId || userId !== session.id) {
       return NextResponse.redirect(
         new URL('/dashboard/wallet?status=error&msg=Invalid+payment+metadata', req.url)
       )

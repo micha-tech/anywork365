@@ -79,7 +79,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-ui-bg flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-dvh bg-surface-base flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-lg">
         <div className="text-center mb-7">
           <BrandLogo size="lg" priority imageClassName="mx-auto object-contain" />
@@ -87,7 +87,7 @@ export default function SignupPage() {
 
         <div className="card">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Create your account</h1>
-          <p className="text-sm text-text-secondary text-center mb-6">Join Nigeria&apos;s leading work platform</p>
+          <p className="text-sm text-slate-500 text-center mb-6">Join Nigeria&apos;s leading work platform</p>
 
           {serverError && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-5">
@@ -106,8 +106,8 @@ export default function SignupPage() {
                   className={cn(
                     'py-3 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[52px]',
                     role === r
-                      ? 'border-brand-primary bg-brand-light text-brand-primary'
-                      : 'border-ui-border bg-ui-bg text-text-secondary'
+                      ? 'border-brand-500 bg-surface-50 text-brand-600'
+                      : 'border-slate-200 bg-surface-base text-slate-500'
                   )}
                 >
                   {r === 'client' ? '👤 Register as User' : '🛠️ Register as Vendor'}
@@ -171,7 +171,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium px-1 min-h-[44px] flex items-center"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium px-1 min-h-[44px] flex items-center"
                 >
                   {showPw ? 'Hide' : 'Show'}
                 </button>
@@ -199,14 +199,14 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <p className="text-xs text-text-secondary text-center mt-4 leading-relaxed">
+          <p className="text-xs text-slate-500 text-center mt-4 leading-relaxed">
             By signing up you agree to our{' '}
-            <span className="text-brand-primary">Terms of Service</span> and{' '}
-            <span className="text-brand-primary">Privacy Policy</span>
+            <span className="text-brand-500">Terms of Service</span> and{' '}
+            <span className="text-brand-500">Privacy Policy</span>
           </p>
-          <p className="text-sm text-text-secondary text-center mt-4">
+          <p className="text-sm text-slate-500 text-center mt-4">
             Already have an account?{' '}
-            <Link href="/login" className="text-brand-primary font-medium">Log in</Link>
+            <Link href="/login" className="text-brand-500 font-medium">Log in</Link>
           </p>
         </div>
       </div>

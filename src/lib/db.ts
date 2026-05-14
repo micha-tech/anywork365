@@ -45,4 +45,8 @@ export async function execute(
   return result
 }
 
+export async function getConnection(): Promise<mysql.PoolConnection> {
+  return pool.getConnection()
+}
+
 export default pool

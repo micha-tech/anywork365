@@ -22,6 +22,14 @@ const schema = z.object({
 const previewSchema = schema.pick({ accountNumber: true, bankCode: true })
 
 export async function GET(req: NextRequest) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Authentication required' },
+      { status: 401 }
+    )
+  }
+
   const parsed = previewSchema.safeParse({
     accountNumber: req.nextUrl.searchParams.get('accountNumber') ?? '',
     bankCode: req.nextUrl.searchParams.get('bankCode') ?? '',

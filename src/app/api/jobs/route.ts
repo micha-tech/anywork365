@@ -26,7 +26,10 @@ export async function GET(req: NextRequest) {
       company_name: string
       company_address: string | null
     }
-    const companies = await query<CompanyRow[]>('SELECT company_id, company_name, company_address FROM companies WHERE company_id IN (' + ids.join(',') + ')')
+    const companies = await query<CompanyRow[]>(
+      `SELECT company_id, company_name, company_address FROM companies WHERE company_id IN (${ids.map(() => '?').join(',')})`,
+      ids
+    )
     for (const c of companies) {
       companyMap[c.company_id] = { name: c.company_name, address: c.company_address || '' }
     }

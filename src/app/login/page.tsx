@@ -70,7 +70,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-ui-bg flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-dvh bg-surface-base flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-7">
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
         <div className="card">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Welcome back</h1>
-          <p className="text-sm text-text-secondary text-center mb-6 sm:mb-8">Log in to your account to continue</p>
+          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to your account to continue</p>
 
           {serverError && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-5">
@@ -104,7 +104,7 @@ export default function LoginPage() {
             <div className="form-group">
               <div className="flex items-center justify-between mb-1.5">
                 <label className="label mb-0">Password</label>
-                <span className="text-xs text-brand-primary cursor-pointer">Forgot password?</span>
+                <span className="text-xs text-brand-500 cursor-pointer">Forgot password?</span>
               </div>
               <div className="relative">
                 <input
@@ -117,7 +117,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium px-1 py-1 min-h-[44px] flex items-center"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium px-1 py-1 min-h-[44px] flex items-center"
                 >
                   {showPw ? 'Hide' : 'Show'}
                 </button>
@@ -126,8 +126,8 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center gap-2 mb-6">
-              <input type="checkbox" id="remember" className="w-4 h-4 accent-brand-primary" />
-              <label htmlFor="remember" className="text-sm text-text-secondary cursor-pointer" style={{ margin: 0 }}>
+              <input type="checkbox" id="remember" className="w-4 h-4 accent-brand-500" />
+              <label htmlFor="remember" className="text-sm text-slate-500 cursor-pointer" style={{ margin: 0 }}>
                 Remember me
               </label>
             </div>
@@ -137,9 +137,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-sm text-text-secondary text-center mt-6">
+          <p className="text-sm text-slate-500 text-center mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-brand-primary font-medium">Sign up</Link>
+            <Link href="/signup" className="text-brand-500 font-medium">Sign up</Link>
           </p>
         </div>
       </div>

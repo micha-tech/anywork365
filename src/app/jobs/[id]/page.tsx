@@ -39,7 +39,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-      <Link href="/jobs" className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-brand-primary mb-5">
+      <Link href="/jobs" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-500 mb-5">
         ← Back to Jobs
       </Link>
 
@@ -49,10 +49,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         </div>
       )}
 
-      <div className="sm:hidden bg-white border border-ui-border rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
+      <div className="sm:hidden bg-white border border-slate-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs text-text-secondary">Budget</p>
-          <p className="text-xl font-semibold text-brand-primary">{formatCurrency(job.budget)}</p>
+          <p className="text-xs text-slate-500">Budget</p>
+          <p className="text-xl font-semibold text-brand-500">{formatCurrency(job.budget)}</p>
         </div>
         <button
           onClick={() => setApplyOpen(true)}
@@ -67,7 +67,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-5">
           <div className="card">
             <div className="flex items-start justify-between gap-3 mb-4">
-              <h1 className="font-display text-lg sm:text-xl font-semibold text-text-primary leading-snug">
+              <h1 className="font-display text-lg sm:text-xl font-semibold text-slate-900 leading-snug">
                 {job.title}
               </h1>
               <Badge variant={job.status === 'open' ? 'green' : 'gray'} className="flex-shrink-0 capitalize">
@@ -78,16 +78,16 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="gray">{job.category}</Badge>
               {job.timeline === 'urgent' && <Badge variant="red">Urgent</Badge>}
-              <span className="text-xs text-text-secondary flex items-center">{timeAgo(job.createdAt)}</span>
+              <span className="text-xs text-slate-500 flex items-center">{timeAgo(job.createdAt)}</span>
             </div>
 
             <h2 className="font-medium text-sm mb-2">Job Description</h2>
-            <p className="text-sm text-text-secondary leading-relaxed">{job.description}</p>
+            <p className="text-sm text-slate-500 leading-relaxed">{job.description}</p>
           </div>
 
           <div className="card">
             <h2 className="font-medium text-sm mb-3">What we&apos;re looking for</h2>
-            <ul className="space-y-2.5 text-sm text-text-secondary">
+            <ul className="space-y-2.5 text-sm text-slate-500">
               {[
                 'Verified and licensed professional',
                 `Minimum 2 years experience in ${job.category}`,
@@ -95,7 +95,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 job.timeline === 'urgent' ? 'Can start within 48 hours' : 'Reliable and communicative',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">
-                  <span className="text-brand-primary mt-0.5 flex-shrink-0">✓</span>
+                  <span className="text-brand-500 mt-0.5 flex-shrink-0">✓</span>
                   {item}
                 </li>
               ))}
@@ -105,8 +105,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
         <div className="hidden sm:flex flex-col gap-5">
           <div className="card">
-            <p className="text-xs text-text-secondary font-medium uppercase tracking-wide mb-1">Budget</p>
-            <p className="font-display text-2xl font-semibold text-brand-primary mb-4">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Budget</p>
+            <p className="font-display text-2xl font-semibold text-brand-500 mb-4">
               {formatCurrency(job.budget)}
             </p>
             <div className="space-y-2 text-sm mb-5">
@@ -117,7 +117,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 { label: 'Posted by',  value: job.posterName },
               ].map((r) => (
                 <div key={r.label} className="flex justify-between">
-                  <span className="text-text-secondary">{r.label}</span>
+                  <span className="text-slate-500">{r.label}</span>
                   <span className="font-medium capitalize">{r.value}</span>
                 </div>
               ))}
@@ -135,15 +135,15 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           <div className="card">
             <h3 className="font-medium text-sm mb-3">About the Client</h3>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                 {job.posterName[0]}
               </div>
               <div>
                 <p className="text-sm font-medium">{job.posterName}</p>
-                <p className="text-xs text-text-secondary">{job.city}</p>
+                <p className="text-xs text-slate-500">{job.city}</p>
               </div>
             </div>
-            <div className="text-xs text-text-secondary space-y-1.5">
+            <div className="text-xs text-slate-500 space-y-1.5">
               <p>⭐ Verified client</p>
               <p>📋 12 jobs posted</p>
               <p>✅ 10 jobs completed</p>
@@ -173,7 +173,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
               min={1000}
               placeholder={String(Math.round(job.budget * 0.9))}
             />
-            <p className="text-xs text-text-secondary mt-1.5">Client budget: {formatCurrency(job.budget)}</p>
+            <p className="text-xs text-slate-500 mt-1.5">Client budget: {formatCurrency(job.budget)}</p>
           </div>
           <div className="form-group">
             <label className="label">Availability</label>

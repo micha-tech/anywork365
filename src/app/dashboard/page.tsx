@@ -56,16 +56,16 @@ export default function DashboardPage() {
     <>
       <div className="mb-5 sm:mb-7">
         <h1 className="font-display text-xl sm:text-2xl font-semibold">{greeting}</h1>
-        <p className="text-sm text-text-secondary mt-1">Here&apos;s what&apos;s happening with your projects</p>
+        <p className="text-sm text-slate-500 mt-1">Here&apos;s what&apos;s happening with your projects</p>
       </div>
 
       {/* Metrics — 2 cols on all sizes */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-5 sm:mb-7">
         {metrics.map((m) => (
-          <div key={m.label} className="bg-white border border-ui-border rounded-xl p-4 sm:p-5">
-            <p className="text-xs font-medium text-text-secondary uppercase tracking-wide leading-tight">{m.label}</p>
-            <p className="font-display text-2xl sm:text-3xl font-semibold text-text-primary my-1">{m.value}</p>
-            <p className="text-xs text-brand-primary">{m.change}</p>
+          <div key={m.label} className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide leading-tight">{m.label}</p>
+            <p className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 my-1">{m.value}</p>
+            <p className="text-xs text-brand-600">{m.change}</p>
           </div>
         ))}
       </div>
@@ -73,21 +73,21 @@ export default function DashboardPage() {
       {/* Recent Activity — full width */}
       <div className="card">
         <h2 className="font-medium text-base mb-4">Recent Activity</h2>
-        <div className="divide-y divide-ui-border">
+        <div className="divide-y divide-slate-200">
           {dashboardLoading ? (
-            <p className="text-sm text-text-secondary py-4 text-center">Loading activity...</p>
+            <p className="text-sm text-slate-500 py-4 text-center">Loading activity...</p>
           ) : activity.length === 0 ? (
-            <p className="text-sm text-text-secondary py-4 text-center">No recent activity</p>
+            <p className="text-sm text-slate-500 py-4 text-center">No recent activity</p>
           ) : activity.map((a, i) => (
             <div key={i} className="flex items-start gap-3 py-3">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 overflow-hidden ${a.color}`}>
                 <span className="leading-none">{a.initials}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-text-primary leading-snug">{a.text}</p>
-                <p className="text-xs text-text-secondary mt-0.5">{a.sub}</p>
+                <p className="text-sm text-slate-900 leading-snug">{a.text}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{a.sub}</p>
               </div>
-              <p className="text-xs text-text-secondary whitespace-nowrap">{a.time}</p>
+              <p className="text-xs text-slate-500 whitespace-nowrap">{a.time}</p>
             </div>
           ))}
         </div>
@@ -100,10 +100,10 @@ export default function DashboardPage() {
           { href: '/professionals',      emoji: '🔍', label: 'Find Vendors',  sub: 'Browse vendors nearby' },
           { href: '/dashboard/profile',  emoji: '✏️', label: 'Edit Profile',  sub: 'Update your info' },
         ].map((a) => (
-          <Link key={a.href} href={a.href} className="card hover:border-brand-primary transition-colors text-center py-5 sm:py-8">
+          <Link key={a.href} href={a.href} className="card hover:border-brand-500 transition-colors text-center py-5 sm:py-8">
             <div className="text-xl sm:text-2xl mb-2">{a.emoji}</div>
             <p className="font-medium text-xs sm:text-sm">{a.label}</p>
-            <p className="text-xs text-text-secondary mt-1 hidden sm:block">{a.sub}</p>
+            <p className="text-xs text-slate-500 mt-1 hidden sm:block">{a.sub}</p>
           </Link>
         ))}
       </div>

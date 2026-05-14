@@ -29,7 +29,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-        {hint && !error && <p className="mt-1.5 text-xs text-text-secondary">{hint}</p>}
+        {hint && !error && <p className="mt-1.5 text-xs text-slate-500">{hint}</p>}
       </div>
     )
   }

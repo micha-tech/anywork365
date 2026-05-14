@@ -10,7 +10,7 @@ interface JobCardProps {
 
 export function JobCard({ job, showApply = true }: JobCardProps) {
   return (
-    <div className="card hover:border-brand-primary transition-colors">
+    <div className="card hover:border-brand-500 transition-colors">
       <div className="flex items-start justify-end gap-2 mb-2">
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
           job.jobType === 'full-time' 
@@ -23,15 +23,15 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
 
       <div className="flex items-start justify-between gap-3 mb-2">
         <Link href={`/jobs/${job.id}`} className="flex-1 min-w-0">
-          <h3 className="font-medium text-text-primary hover:text-brand-primary transition-colors text-sm sm:text-base leading-snug">
+          <h3 className="font-medium text-slate-900 hover:text-brand-500 transition-colors text-sm sm:text-base leading-snug">
             {job.title}
           </h3>
         </Link>
       </div>
 
-      <p className="text-sm text-text-secondary line-clamp-1 mb-2">{job.businessName}</p>
+      <p className="text-sm text-slate-500 line-clamp-1 mb-2">{job.businessName}</p>
       
-      <div className="flex items-center gap-1 text-xs text-text-secondary mb-3">
+      <div className="flex items-center gap-1 text-xs text-slate-500 mb-3">
         <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -39,20 +39,20 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
         <span className="line-clamp-1">{job.businessAddress}</span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-ui-border">
+      <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-200">
         <Badge variant="green">Open</Badge>
         {job.timeline === 'urgent' && <Badge variant="red">Urgent</Badge>}
-        <span className="text-xs text-text-secondary">
+        <span className="text-xs text-slate-500">
           {job.applicationCount} applicants
         </span>
-        <span className="text-xs text-text-secondary ml-auto">
+        <span className="text-xs text-slate-500 ml-auto">
           Closes: {new Date(job.closingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
         </span>
       </div>
 
       {showApply && (
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-ui-border gap-3">
-          <span className="text-xs text-text-secondary truncate">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200 gap-3">
+          <span className="text-xs text-slate-500 truncate">
             {timeAgo(job.createdAt)}
           </span>
           <Link

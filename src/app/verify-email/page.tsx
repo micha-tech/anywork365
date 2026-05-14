@@ -82,23 +82,23 @@ export default function VerifyEmailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-ui-bg flex items-center justify-center">
-        <p className="text-text-secondary">Loading...</p>
+      <div className="min-h-dvh bg-surface-base flex items-center justify-center">
+        <p className="text-slate-500">Loading...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-dvh bg-ui-bg flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-dvh bg-surface-base flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md text-center">
         <div className="mb-8 text-6xl">✉️</div>
 
         <div className="card">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Verify your email</h1>
-          <p className="text-sm text-text-secondary text-center mt-3 mb-2 leading-relaxed">
-            We sent a verification email to <strong className="text-text-primary">{user?.email}</strong>
+          <p className="text-sm text-slate-500 text-center mt-3 mb-2 leading-relaxed">
+            We sent a verification email to <strong className="text-slate-900">{user?.email}</strong>
           </p>
-          <p className="text-sm text-text-secondary text-center mb-6">
+          <p className="text-sm text-slate-500 text-center mb-6">
             Click the link in the email to activate your account.
           </p>
 
@@ -125,13 +125,13 @@ export default function VerifyEmailPage() {
 
             <button
               onClick={handleResend}
-              className="w-full py-3 text-sm text-brand-primary font-medium bg-transparent border border-ui-border rounded-xl hover:bg-ui-bg transition-colors"
+              className="w-full py-3 text-sm text-brand-500 font-medium bg-transparent border border-slate-200 rounded-xl hover:bg-surface-base transition-colors"
             >
               Resend verification email
             </button>
           </div>
 
-          <p className="text-xs text-text-secondary text-center mt-6">
+          <p className="text-xs text-slate-500 text-center mt-6">
             Didn&apos;t receive the email? Check your spam folder.
           </p>
         </div>

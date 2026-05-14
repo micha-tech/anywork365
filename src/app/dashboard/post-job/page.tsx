@@ -32,7 +32,7 @@ export default function PostJobPage() {
     <>
       <div className="mb-5 sm:mb-7">
         <h1 className="font-display text-xl sm:text-2xl font-semibold">Post a Job</h1>
-        <p className="text-sm text-text-secondary mt-1">Fill in the details to attract the right vendors</p>
+        <p className="text-sm text-slate-500 mt-1">Fill in the details to attract the right vendors</p>
       </div>
 
       {success && (
@@ -155,7 +155,7 @@ export default function PostJobPage() {
             </select>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6 pt-4 border-t border-ui-border">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6 pt-4 border-t border-slate-200">
             <button type="submit" disabled={isSubmitting} className="btn-primary px-8 py-3 w-full sm:w-auto justify-center">
               {isSubmitting ? 'Posting...' : 'Post Job →'}
             </button>

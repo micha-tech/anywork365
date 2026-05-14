@@ -50,11 +50,11 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-ui-border">
-          <h2 className="font-display font-semibold text-lg text-text-primary">{title}</h2>
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-200">
+          <h2 className="font-display font-semibold text-lg text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:bg-gray-100 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-gray-100 transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>

@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils'
 type BadgeVariant = 'green' | 'gray' | 'blue' | 'red' | 'amber'
 
 const badgeVariants: Record<BadgeVariant, string> = {
-  green: 'bg-brand-light text-brand-active',
-  gray: 'bg-gray-100 text-text-secondary',
+  green: 'bg-brand-50 text-brand-500',
+  gray: 'bg-gray-100 text-slate-500',
   blue: 'bg-blue-50 text-blue-700',
   red: 'bg-red-50 text-red-600',
   amber: 'bg-amber-50 text-amber-700',
@@ -34,7 +34,7 @@ export function Card({ size = 'md', hover = false, className, children, ...props
     <div
       className={cn(
         size === 'sm' ? 'card-sm' : 'card',
-        hover && 'cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-primary',
+        hover && 'cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-500',
         className
       )}
       {...props}
@@ -45,7 +45,7 @@ export function Card({ size = 'md', hover = false, className, children, ...props
 }
 
 const AVATAR_COLORS = [
-  'bg-brand-primary',
+  'bg-brand-500',
   'bg-blue-600',
   'bg-purple-600',
   'bg-amber-500',
@@ -105,8 +105,8 @@ export function Stars({ rating, count }: { rating: number; count?: number }) {
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-sm text-amber-400">★</span>
-      <span className="text-sm font-medium text-text-primary">{rating.toFixed(1)}</span>
-      {count !== undefined && <span className="text-sm text-text-secondary">({count})</span>}
+      <span className="text-sm font-medium text-slate-900">{rating.toFixed(1)}</span>
+      {count !== undefined && <span className="text-sm text-slate-500">({count})</span>}
     </div>
   )
 }
@@ -122,8 +122,8 @@ export function EmptyState({ icon = '🔍', title, description, action }: EmptyS
   return (
     <div className="px-6 py-16 text-center">
       <div className="mb-4 text-4xl">{icon}</div>
-      <h3 className="mb-2 text-base font-medium text-text-primary">{title}</h3>
-      {description && <p className="mb-6 text-sm text-text-secondary">{description}</p>}
+      <h3 className="mb-2 text-base font-medium text-slate-900">{title}</h3>
+      {description && <p className="mb-6 text-sm text-slate-500">{description}</p>}
       {action}
     </div>
   )

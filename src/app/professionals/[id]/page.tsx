@@ -163,7 +163,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-      <Link href="/professionals" className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-brand-primary mb-5">
+      <Link href="/professionals" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-500 mb-5">
         ← Back to Vendors
       </Link>
 
@@ -173,18 +173,18 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
         </div>
       )}
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-ui-border p-3 z-50 pb-safe">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-50 pb-safe">
         <div className="flex items-center justify-between gap-2 max-w-lg mx-auto">
           <div className="flex items-center gap-1">
             <button
               onClick={() => handleCall('voice')}
               disabled={calling !== null}
-              className="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center disabled:opacity-50"
+              className="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center disabled:opacity-50"
             >
               {calling === 'voice' ? (
-                <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
               ) : (
-                <svg className="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z" />
                 </svg>
               )}
@@ -192,12 +192,12 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
             <button
               onClick={() => handleCall('video')}
               disabled={calling !== null}
-              className="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center disabled:opacity-50"
+              className="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center disabled:opacity-50"
             >
               {calling === 'video' ? (
-                <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
               ) : (
-                <svg className="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
               )}
@@ -246,7 +246,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
                     {pro.firstName} {pro.lastName}
                   </h1>
                 </div>
-                <p className="text-sm text-text-secondary mt-0.5">{pro.skills?.[0]} · {pro.city}</p>
+                <p className="text-sm text-slate-500 mt-0.5">{pro.skills?.[0]} · {pro.city}</p>
                 {pro.rating && (
                   <div className="mt-2">
                     <Stars rating={pro.rating} count={pro.reviewCount} />
@@ -261,9 +261,9 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
             </div>
 
             {pro.bio && (
-              <div className="mt-4 pt-4 border-t border-ui-border">
+              <div className="mt-4 pt-4 border-t border-slate-200">
                 <h2 className="font-medium text-sm mb-2">About</h2>
-                <p className="text-sm text-text-secondary leading-relaxed">{pro.bio}</p>
+                <p className="text-sm text-slate-500 leading-relaxed">{pro.bio}</p>
               </div>
             )}
           </div>
@@ -271,18 +271,18 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
           <div className="card">
             <h2 className="font-medium text-base mb-4">
               Reviews{' '}
-              <span className="text-text-secondary font-normal text-sm">({pro.reviewCount})</span>
+              <span className="text-slate-500 font-normal text-sm">({pro.reviewCount})</span>
             </h2>
-            <div className="divide-y divide-ui-border">
+            <div className="divide-y divide-slate-200">
               {reviews.length > 0 ? reviews.map((r: any, i: number) => (
                 <div key={i} className="py-4">
                   <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <span className="text-sm font-medium">{r.review}</span>
-                    <span className="text-xs text-text-secondary">{r.dateAdded || ''}</span>
+                    <span className="text-xs text-slate-500">{r.dateAdded || ''}</span>
                   </div>
                 </div>
               )) : (
-                <p className="text-sm text-text-secondary py-4">No reviews yet</p>
+                <p className="text-sm text-slate-500 py-4">No reviews yet</p>
               )}
             </div>
           </div>
@@ -290,7 +290,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
         <div className="hidden sm:flex flex-col gap-5">
           <div className="card">
-            <p className="text-xs text-text-secondary font-medium uppercase tracking-wide mb-4">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
               Hire {pro.firstName}
             </p>
             <div className="space-y-2 text-sm mb-5">
@@ -301,8 +301,8 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
                 { label: 'Availability', value: 'Available now' },
               ].map((r) => (
                 <div key={r.label} className="flex justify-between">
-                  <span className="text-text-secondary">{r.label}</span>
-                  <span className={`font-medium ${r.label === 'Availability' ? 'text-brand-primary' : ''}`}>
+                  <span className="text-slate-500">{r.label}</span>
+                  <span className={`font-medium ${r.label === 'Availability' ? 'text-brand-500' : ''}`}>
                     {r.value}
                   </span>
                 </div>
@@ -323,7 +323,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
                 className="btn-ghost py-2.5 justify-center flex items-center gap-2 text-sm disabled:opacity-50"
               >
                 {calling === 'voice' ? (
-                  <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z" />
@@ -337,7 +337,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
                 className="btn-ghost py-2.5 justify-center flex items-center gap-2 text-sm disabled:opacity-50"
               >
                 {calling === 'video' ? (
-                  <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -353,7 +353,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
               className="btn-ghost w-full py-2.5 justify-center mt-2 flex items-center gap-2"
             >
               {startingChat ? (
-                <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -383,9 +383,9 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
           </div>
 
           {pro.isVerified && (
-            <div className="card-sm bg-brand-light border-brand-primary/20">
-              <p className="text-sm font-medium text-brand-active mb-1">✓ Verified Vendor</p>
-              <p className="text-xs text-brand-active/70">Identity and credentials verified by Anywork365</p>
+            <div className="card-sm bg-brand-50 border-brand-500/20">
+              <p className="text-sm font-medium text-brand-500 mb-1">✓ Verified Vendor</p>
+              <p className="text-xs text-brand-500/70">Identity and credentials verified by Anywork365</p>
             </div>
           )}
         </div>

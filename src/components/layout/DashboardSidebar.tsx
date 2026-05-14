@@ -36,13 +36,13 @@ export function DashboardSidebar() {
   const role = user ? (user.role === 'vendor' ? 'Vendor' : 'User') : ''
 
   return (
-    <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-white border-r border-ui-border min-h-[calc(100dvh-64px)] py-6 px-3">
-      <div className="px-3 pb-4 mb-2 border-b border-ui-border">
+    <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-white border-r border-slate-200 min-h-[calc(100dvh-64px)] py-6 px-3">
+      <div className="px-3 pb-4 mb-2 border-b border-slate-200">
         <BrandLogo size="md" imageClassName="max-w-[185px] object-contain" />
       </div>
 
-      <div className="flex items-center gap-3 px-3 pb-5 mb-2 border-b border-ui-border">
-        <div className="w-9 h-9 rounded-full overflow-hidden bg-brand-primary flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+      <div className="flex items-center gap-3 px-3 pb-5 mb-2 border-b border-slate-200">
+        <div className="w-9 h-9 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
           {loading ? '...' : user?.avatarUrl ? (
             <Image
               src={user.avatarUrl}
@@ -57,16 +57,16 @@ export function DashboardSidebar() {
           )}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary truncate">
+          <p className="text-sm font-medium text-slate-900 truncate">
             {loading ? 'Loading...' : fullName}
           </p>
-          <p className="text-xs text-text-secondary capitalize">{role}</p>
+          <p className="text-xs text-slate-500 capitalize">{role}</p>
         </div>
       </div>
 
       {NAV_ITEMS.map((section) => (
         <div key={section.label} className="mb-4">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-text-secondary px-3 mb-1.5">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500 px-3 mb-1.5">
             {section.label}
           </p>
           {section.links.map((link) => {
@@ -80,8 +80,8 @@ export function DashboardSidebar() {
                 className={cn(
                   'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm mb-0.5 transition-colors',
                   active
-                    ? 'bg-brand-light text-brand-primary font-medium'
-                    : 'text-text-secondary hover:bg-brand-light hover:text-brand-primary'
+                    ? 'bg-brand-50 text-brand-500 font-medium'
+                    : 'text-slate-500 hover:bg-brand-50 hover:text-brand-500'
                 )}
               >
                 <Icon className="w-4 h-4 flex-shrink-0" />
@@ -92,10 +92,10 @@ export function DashboardSidebar() {
         </div>
       ))}
 
-      <div className="mt-auto pt-4 border-t border-ui-border">
+      <div className="mt-auto pt-4 border-t border-slate-200">
         <Link
           href="/"
-          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-brand-light hover:text-brand-primary transition-colors"
+          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-500 hover:bg-brand-50 hover:text-brand-500 transition-colors"
         >
           <LogoutIcon className="w-4 h-4" />
           Back to Home

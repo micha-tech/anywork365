@@ -737,7 +737,7 @@ export interface ActivityItem {
   time: string
 }
 
-const ACTIVITY_COLORS = ['bg-brand-primary', 'bg-blue-600', 'bg-amber-500', 'bg-rose-500', 'bg-teal-600', 'bg-purple-600']
+const ACTIVITY_COLORS = ['bg-brand-500', 'bg-blue-600', 'bg-amber-500', 'bg-rose-500', 'bg-teal-600', 'bg-purple-600']
 
 export async function getDashboardStats(uid: string, role: string): Promise<DashboardStats> {
   const business = role === 'vendor' ? await getBusinessByUid(uid) : null

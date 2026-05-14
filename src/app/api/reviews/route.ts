@@ -54,43 +54,56 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { execute, query } = await import('@/lib/db')
-
-  interface ReviewIdRow extends RowDataPacket { reviewId: number }
-  const existing = await query<ReviewIdRow[]>(
-    'SELECT reviewId FROM reviews WHERE businessId = ? AND userUid = ? LIMIT 1',
-    [booking.businessId, session.id]
-  )
-  if (existing.length > 0) {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'You have already reviewed this vendor for this booking' },
-      { status: 409 }
-    )
-  }
-
-  await execute(
-    `INSERT INTO reviews (businessId, userUid, review, dateAdded) VALUES (?, ?, ?, NOW())`,
-    [booking.businessId, session.id, comment.trim()]
-  )
-
-  await execute(
-    `INSERT INTO business_ratings (userUid, businessId, rating) VALUES (?, ?, ?)
-     ON DUPLICATE KEY UPDATE rating = ?`,
-    [session.id, booking.businessId, numRating, numRating]
-  )
-
   interface AvgRow extends RowDataPacket { avg: number | null; cnt: number }
-  const avgRows = await query<AvgRow[]>(
-    'SELECT AVG(rating) AS avg, COUNT(*) AS cnt FROM business_ratings WHERE businessId = ?',
-    [booking.businessId]
-  )
-  const avg = avgRows[0]?.avg ?? 0
-  const cnt = avgRows[0]?.cnt ?? 0
+  const { getConnection } = await import('@/lib/db')
+  const connection = await getConnection()
+  try {
+    await connection.execute('START TRANSACTION')
 
-  await execute(
-    'UPDATE businesses SET rating = ?, reviews = ? WHERE businessId = ?',
-    [Math.round(avg * 10) / 10, cnt, booking.businessId]
-  )
+    interface ReviewIdRow extends RowDataPacket { reviewId: number }
+    const [existing] = await connection.query<ReviewIdRow[]>(
+      'SELECT reviewId FROM reviews WHERE businessId = ? AND userUid = ? LIMIT 1',
+      [booking.businessId, session.id]
+    )
+    if ((existing as ReviewIdRow[]).length > 0) {
+      await connection.execute('ROLLBACK')
+      connection.release()
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'You have already reviewed this vendor for this booking' },
+        { status: 409 }
+      )
+    }
+
+    await connection.execute(
+      `INSERT INTO reviews (businessId, userUid, review, dateAdded) VALUES (?, ?, ?, NOW())`,
+      [booking.businessId, session.id, comment.trim()]
+    )
+
+    await connection.execute(
+      `INSERT INTO business_ratings (userUid, businessId, rating) VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE rating = ?`,
+      [session.id, booking.businessId, numRating, numRating]
+    )
+
+    const [avgRows] = await connection.query<AvgRow[]>(
+      'SELECT AVG(rating) AS avg, COUNT(*) AS cnt FROM business_ratings WHERE businessId = ?',
+      [booking.businessId]
+    )
+    const avg = (avgRows as AvgRow[])[0]?.avg ?? 0
+    const cnt = (avgRows as AvgRow[])[0]?.cnt ?? 0
+
+    await connection.execute(
+      'UPDATE businesses SET rating = ?, reviews = ? WHERE businessId = ?',
+      [Math.round(avg * 10) / 10, cnt, booking.businessId]
+    )
+
+    await connection.execute('COMMIT')
+    connection.release()
+  } catch (txErr) {
+    await connection.execute('ROLLBACK')
+    connection.release()
+    throw txErr
+  }
 
   return NextResponse.json<ApiResponse<any>>(
     {

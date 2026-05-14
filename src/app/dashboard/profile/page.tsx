@@ -106,7 +106,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-sm text-text-secondary">Loading profile...</p>
+        <p className="text-sm text-slate-500">Loading profile...</p>
       </div>
     )
   }
@@ -117,7 +117,7 @@ export default function ProfilePage() {
     <>
       <div className="mb-5 sm:mb-7">
         <h1 className="font-display text-xl sm:text-2xl font-semibold">My Profile</h1>
-        <p className="text-sm text-text-secondary mt-1">Manage your personal information</p>
+        <p className="text-sm text-slate-500 mt-1">Manage your personal information</p>
       </div>
 
       {/* ── Profile header ───────────────────────────────────────────────── */}
@@ -127,7 +127,7 @@ export default function ProfilePage() {
           {/* Avatar with overlay edit button */}
           <div className="relative flex-shrink-0 group">
             {currentPhoto ? (
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 ring-2 ring-ui-border">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 ring-2 ring-slate-200">
                 <Image
                   src={currentPhoto}
                   alt={fullName}
@@ -176,9 +176,9 @@ export default function ProfilePage() {
           {/* Name + role */}
           <div className="flex-1 min-w-0">
             <h2 className="font-display text-lg sm:text-xl font-semibold">{fullName}</h2>
-            <p className="text-sm text-text-secondary mt-0.5">{roleLabel} · {user?.city ?? ''}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{roleLabel} · {user?.city ?? ''}</p>
             {uploading && (
-              <p className="text-xs text-brand-primary mt-1.5">Uploading photo...</p>
+              <p className="text-xs text-brand-600 mt-1.5">Uploading photo...</p>
             )}
             {photoUrl && !uploading && (
               <p className="text-xs text-green-600 mt-1.5">✓ Photo updated</p>
@@ -211,19 +211,19 @@ export default function ProfilePage() {
             onClick={() => fileInputRef.current?.click()}
             className={`mt-4 border-2 border-dashed rounded-xl px-6 py-5 text-center cursor-pointer transition-colors ${
               dragOver
-                ? 'border-brand-primary bg-brand-light'
-                : 'border-ui-border hover:border-brand-primary hover:bg-brand-light'
+                ? 'border-brand-500 bg-surface-50'
+                : 'border-slate-200 hover:border-brand-500 hover:bg-surface-50'
             }`}
           >
-            <svg className="w-7 h-7 text-text-secondary mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg className="w-7 h-7 text-slate-500 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="17 8 12 3 7 8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            <p className="text-sm text-text-secondary">
-              <span className="font-medium text-brand-primary">Click to upload</span> or drag and drop
+            <p className="text-sm text-slate-500">
+              <span className="font-medium text-brand-600">Click to upload</span> or drag and drop
             </p>
-            <p className="text-xs text-text-secondary mt-1">JPEG, PNG or WebP · Max 5MB</p>
+            <p className="text-xs text-slate-500 mt-1">JPEG, PNG or WebP · Max 5MB</p>
           </div>
         )}
 
@@ -333,10 +333,10 @@ export default function ProfilePage() {
               ].map((s) => (
                 <div
                   key={s.label}
-                  className="flex items-center justify-between text-sm py-2 border-b border-ui-border last:border-0"
+                  className="flex items-center justify-between text-sm py-2 border-b border-slate-200 last:border-0"
                 >
-                  <span className="text-text-secondary flex-shrink-0">{s.label}</span>
-                  <span className="font-medium text-text-primary truncate max-w-[55%] text-right">
+                  <span className="text-slate-500 flex-shrink-0">{s.label}</span>
+                  <span className="font-medium text-slate-900 truncate max-w-[55%] text-right">
                     {s.value}
                   </span>
                 </div>

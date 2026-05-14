@@ -49,11 +49,11 @@ export default async function JobsPage({ searchParams }: Props) {
 
   return (
     <div>
-      <div className="bg-white border-b border-ui-border px-4 sm:px-6 py-5 sm:py-7">
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-5 sm:py-7">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div>
             <h1 className="font-display text-xl sm:text-2xl font-semibold mb-1">Browse Jobs</h1>
-            <p className="text-sm text-text-secondary">Open opportunities across Nigeria</p>
+            <p className="text-sm text-slate-500">Open opportunities across Nigeria</p>
           </div>
           <Link href="/dashboard/post-job" className="btn-primary text-sm flex-shrink-0">
             + Post Job
@@ -87,7 +87,7 @@ export default async function JobsPage({ searchParams }: Props) {
 
         {jobs.length > 0 ? (
           <>
-            <p className="text-sm text-text-secondary mb-4">{jobs.length} jobs found</p>
+            <p className="text-sm text-slate-500 mb-4">{jobs.length} jobs found</p>
             <div className="flex flex-col gap-3 sm:gap-4">
               {jobs.map((job) => (
                 <JobCard key={job.id} job={job} />

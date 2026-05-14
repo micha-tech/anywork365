@@ -8,7 +8,13 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyWebhookSignature } from '@/lib/paystack'
-import { creditWallet, hasSuccessfulTransactionReference, confirmWithdrawalSuccess, rollbackWithdrawal, findPendingWithdrawal } from '@/lib/wallet'
+import { creditWallet, hasSuccessfulTransactionReference, confirmWithdrawalById, rollbackWithdrawal } from '@/lib/wallet'
+
+function extractWithdrawalId(reference: string): string | null {
+  if (!reference.startsWith('WD_')) return null
+  const parts = reference.split('_')
+  return parts[1] || null
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,9 +55,12 @@ export async function POST(req: NextRequest) {
 
       case 'transfer.success': {
         const transferCode = event.data.transfer_code
-        if (transferCode) {
-          await confirmWithdrawalSuccess(transferCode)
-          console.log(`[WEBHOOK] Withdrawal confirmed: ${transferCode}`)
+        const withdrawalId = extractWithdrawalId(event.data.reference || '')
+        if (withdrawalId) {
+          await confirmWithdrawalById(withdrawalId)
+          console.log(`[WEBHOOK] Withdrawal confirmed: id=${withdrawalId}`)
+        } else if (transferCode) {
+          console.warn(`[WEBHOOK] Received transfer.success without WD_ reference, transferCode=${transferCode}`)
         }
         break
       }
@@ -59,12 +68,12 @@ export async function POST(req: NextRequest) {
       case 'transfer.failed':
       case 'transfer.reversed': {
         const transferCode = event.data.transfer_code
-        console.warn(`[WEBHOOK] Transfer failed/reversed: ${transferCode}`)
-        const withdrawal = await findPendingWithdrawal()
-        
-        if (withdrawal) {
-          await rollbackWithdrawal(withdrawal.id, 'Transfer failed or reversed by Paystack')
-          console.log(`[WEBHOOK] Withdrawal rolled back: ${withdrawal.id}`)
+        const withdrawalId = extractWithdrawalId(event.data.reference || '')
+        if (withdrawalId) {
+          await rollbackWithdrawal(withdrawalId, 'Transfer failed or reversed by Paystack')
+          console.log(`[WEBHOOK] Withdrawal rolled back: id=${withdrawalId}`)
+        } else {
+          console.warn(`[WEBHOOK] Transfer failed/reversed: ${transferCode}, no WD_ reference found`)
         }
         break
       }

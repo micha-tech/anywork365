@@ -138,15 +138,15 @@ function ChatPageContent() {
   if (userLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
     <div className="min-h-[calc(100dvh-64px)] flex bg-[#ECE5DD]">
-      {/* Conversations List */}
-      <div className="w-full md:w-[400px] bg-white flex flex-col">
+      {/* Conversations List - hide on mobile when a conversation is selected */}
+      <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-[400px] bg-white flex-col`}>
         <div className="p-4 bg-[#F0F2F5] border-b border-gray-200">
           <h1 className="font-semibold text-lg text-[#111]">Messages</h1>
         </div>
@@ -216,8 +216,8 @@ function ChatPageContent() {
         )}
       </div>
 
-      {/* Chat Window */}
-      <div className="hidden md:flex flex-1 flex-col">
+      {/* Chat Window - show on mobile when a conversation is selected */}
+      <div className={`${selectedConv ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
         {!selectedConv ? (
           <div className="flex-1 flex items-center justify-center bg-[#ECE5DD]">
             <div className="text-center">
@@ -365,7 +365,7 @@ export default function ChatPage() {
   return (
     <Suspense fallback={
       <div className="min-h-[calc(100dvh-64px)] flex items-center justify-center bg-[#ECE5DD]">
-        <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <ChatPageContent />
