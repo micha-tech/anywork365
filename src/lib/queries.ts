@@ -686,10 +686,11 @@ export async function createBusiness(data: {
   state?: string
 }): Promise<number> {
   const result = await execute(
-    `INSERT INTO businesses (uid, businessName, category, businessContact, state, dateStarted)
-     VALUES (?, ?, ?, ?, ?, NOW())`,
+    `INSERT INTO businesses (uid, businessName, category, businessContact, state, dateStarted, deleted)
+     VALUES (?, ?, ?, ?, ?, NOW(), 0)`,
     [data.uid, data.businessName, data.category || '', data.businessContact || '', data.state || '']
   )
+  await execute('UPDATE users SET hasBusinessAccount = 1 WHERE uid = ?', [data.uid])
   return result.insertId
 }
 
