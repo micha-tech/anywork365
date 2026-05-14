@@ -49,11 +49,11 @@ export default function LoginPage() {
       }
 
       if (!result.user.emailVerified) {
-        router.push('/verify-email')
+        window.location.href = '/verify-email'
         return
       }
 
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     } catch (err: unknown) {
       const e = err as { code?: string; message?: string }
       const messages: Record<string, string> = {

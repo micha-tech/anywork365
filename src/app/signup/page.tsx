@@ -71,7 +71,7 @@ export default function SignupPage() {
         return
       }
 
-      router.push('/verify-email')
+      window.location.href = '/verify-email'
     } catch (err: unknown) {
       const e = err as { code?: string; message?: string }
       setServerError(e?.message ?? 'An unexpected error occurred')

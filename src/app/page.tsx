@@ -432,25 +432,27 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* CTA */}
-      <section className="border-t border-slate-100 bg-brand-500 px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
-            Ready to get started?
-          </h2>
-          <p className="text-brand-100 text-lg mb-8 leading-relaxed">
-            Join thousands of Nigerians who trust Anywork365 to connect them with quality professionals.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/signup" className="h-[52px] px-8 rounded-xl bg-white text-brand-600 font-bold text-sm flex items-center justify-center hover:bg-brand-50 active:scale-[0.98] transition-all shadow-sm">
-              Create Free Account
-            </Link>
-            <Link href="/professionals" className="h-[52px] px-8 rounded-xl border-2 border-white/30 text-white font-semibold text-sm flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
-              Browse Professionals
-            </Link>
+      {/* CTA - hidden when signed in */}
+      {!user && (
+        <section className="border-t border-slate-100 bg-brand-500 px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
+              Ready to get started?
+            </h2>
+            <p className="text-brand-100 text-lg mb-8 leading-relaxed">
+              Join thousands of Nigerians who trust Anywork365 to connect them with quality professionals.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/signup" className="h-[52px] px-8 rounded-xl bg-white text-brand-600 font-bold text-sm flex items-center justify-center hover:bg-brand-50 active:scale-[0.98] transition-all shadow-sm">
+                Create Free Account
+              </Link>
+              <Link href="/professionals" className="h-[52px] px-8 rounded-xl border-2 border-white/30 text-white font-semibold text-sm flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
+                Browse Professionals
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   )
 }
