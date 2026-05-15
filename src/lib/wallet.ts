@@ -9,6 +9,7 @@ import {
   saveWithdrawalAccount,
   getWithdrawalAccounts,
   getUserWithdrawals,
+  createDbNotification,
 } from '@/lib/queries'
 import type { Wallet, WalletTransaction, WithdrawalRequest } from '@/types'
 import { generateReference } from './paystack'
@@ -108,6 +109,16 @@ export async function creditWallet(
     status: 'success',
     metadata: JSON.stringify({ userId, source: 'paystack' }),
   })
+
+  const amountFormatted = `₦${amountNGN.toLocaleString()}`
+  const notificationBody = _isJobEarnings
+    ? `Job earnings of ${amountFormatted} received`
+    : `Wallet funded with ${amountFormatted}`
+  try {
+    await createDbNotification(userId, notificationBody)
+  } catch {
+    // Notification is non-critical; silently ignore if it fails
+  }
 
   return {
     id: reference,

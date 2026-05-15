@@ -54,10 +54,9 @@ export async function GET(req: NextRequest) {
       },
       { status: 200 }
     )
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to verify bank account'
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: message },
+      { success: false, error: 'Failed to verify bank account' },
       { status: 400 }
     )
   }
@@ -125,10 +124,9 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     )
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to verify bank account'
     console.error('[BANK ACCOUNT]', err)
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: message },
+      { success: false, error: 'Failed to save bank account' },
       { status: 400 }
     )
   }

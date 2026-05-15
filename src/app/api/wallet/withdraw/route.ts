@@ -118,11 +118,9 @@ export async function POST(req: NextRequest) {
     if (withdrawalId) {
       await rollbackWithdrawal(withdrawalId)
     }
-
-    const message = err instanceof Error ? err.message : 'Withdrawal failed'
     console.error('[WITHDRAWAL]', err)
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: message },
+      { success: false, error: 'Withdrawal failed. Please try again.' },
       { status: 500 }
     )
   }

@@ -99,9 +99,7 @@ function ChatPageContent() {
 
     const eventSource = new EventSource('/api/chat/sse')
 
-    eventSource.addEventListener('connected', () => {
-      console.log('SSE connected')
-    })
+    eventSource.addEventListener('connected', () => {})
 
     eventSource.addEventListener('conversation_update', (e) => {
       const data = JSON.parse(e.data)
@@ -167,7 +165,7 @@ function ChatPageContent() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto overscroll-contain">
             {conversations.map((conv) => {
               const other = getOtherParticipant(conv, user?.id ?? '')
               const initials = other ? getInitials(other.firstName, other.lastName) : '?'
@@ -264,7 +262,7 @@ function ChatPageContent() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[#ECE5DD]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[#ECE5DD] overscroll-contain">
               <div className="flex justify-center my-4">
                 <span className="text-xs text-gray-400 bg-[#DFDCD7] px-4 py-1 rounded-full">
                   Messages are end-to-end encrypted

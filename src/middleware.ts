@@ -6,11 +6,7 @@ export async function middleware(request: NextRequest) {
 
   const protectedPaths = [
     '/dashboard',
-    '/wallet',
     '/messages',
-    '/settings',
-    '/post-job',
-    '/bookings',
   ]
 
   const isProtectedPath = protectedPaths.some((p) => pathname.startsWith(p))

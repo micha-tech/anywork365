@@ -97,7 +97,7 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
                   type="text"
                   name="search"
                   placeholder="What service do you need?"
-                  className="w-full h-[52px] pl-12 pr-4 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all text-sm"
+                  className="w-full h-[52px] pl-12 pr-4 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all text-[16px]"
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
                 />
@@ -151,12 +151,13 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
               <div className="absolute inset-0 bg-brand-100 rounded-[2.5rem] blur-3xl opacity-50 scale-95" />
 
               <div className="relative z-10">
-                <Image
+                  <Image
                   src="/phone-hand.webp"
                   alt="Anywork365 mobile app"
                   width={480}
                   height={620}
                   priority
+                  sizes="(max-width: 768px) 100vw, 480px"
                   className="w-full h-auto object-contain"
                   style={{ filter: 'drop-shadow(0 20px 40px rgba(15,79,74,0.12))' }}
                 />
@@ -215,11 +216,11 @@ export default function HomePage() {
     fetch('/api/professionals?limit=8')
       .then(r => r.json())
       .then(d => { if (d.success) setVendors(d.data) })
-      .catch(() => {})
+      .catch(() => console.error('Failed to load vendors'))
     fetch('/api/jobs?limit=3')
       .then(r => r.json())
       .then(d => { if (d.success) setJobs(d.data) })
-      .catch(() => {})
+      .catch(() => console.error('Failed to load jobs'))
   }, [])
 
   const featuredVendors = vendors.slice(0, 8)

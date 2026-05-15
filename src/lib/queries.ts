@@ -1,13 +1,8 @@
 import { query, queryOne, execute, type SqlValue } from './db'
 import type { RowDataPacket } from 'mysql2/promise'
 import type {
-  User, AuthUser, UserRole,
-  Job, JobCategory, JobStatus,
-  Review,
+  User, AuthUser,
   Booking, BookingStatus,
-  Application, ApplicationStatus,
-  Wallet, WalletTransaction, TransactionType, TransactionStatus,
-  WithdrawalRequest, WithdrawalStatus,
 } from '@/types'
 
 // ─── Row Types (mirror MySQL columns) ──────────────────────────────────────
@@ -110,15 +105,6 @@ interface WalletLedgerRow extends RowDataPacket {
   created_at: string
 }
 
-interface WalletTransactionRow extends RowDataPacket {
-  id: number
-  reference: string | null
-  type: string | null
-  status: string
-  metadata: string | null
-  created_at: string
-}
-
 interface WalletEscrowRow extends RowDataPacket {
   id: number
   booking_id: number
@@ -169,12 +155,6 @@ interface ReviewRow extends RowDataPacket {
   userUid: string
   review: string
   dateAdded: string | null
-}
-
-interface BusinessRatingRow extends RowDataPacket {
-  userUid: string
-  businessId: number
-  rating: number
 }
 
 interface FavoriteRow extends RowDataPacket {
@@ -245,43 +225,6 @@ function userRowToUser(row: UserRow): User {
     nin: row.nin || undefined,
     isVerified: row.verified === 1,
     createdAt: row.dateJoined,
-  }
-}
-
-function vacancyRowToJob(row: VacancyRow): Job {
-  return {
-    id: String(row.vacancy_id),
-    title: row.vacancy_title,
-    description: row.job_description,
-    category: 'Professional services' as JobCategory,
-    budget: 0,
-    city: row.vacancy_location,
-    status: row.closed ? 'completed' as JobStatus : 'open' as JobStatus,
-    timeline: 'flexible',
-    posterId: '',
-    posterName: '',
-    businessName: '',
-    businessAddress: '',
-    jobType: row.work_type === 'Remote' ? 'contract' : 'full-time',
-    closingDate: row.closing_date || '',
-    applicationCount: 0,
-    createdAt: row.date_created,
-  }
-}
-
-function bookingRowToBooking(row: BookingRow): Booking {
-  return {
-    id: String(row.bookingId),
-    vendorId: String(row.businessId),
-    clientId: row.clientUID,
-    serviceTitle: row.additionalInfo,
-    description: row.additionalInfo,
-    scheduledDate: `${row.bookedDate}T${row.bookedTime}`,
-    location: row.appointmentAddress || row.meetingPoint,
-    status: mapBookingStatus(row.bookingStatus),
-    price: row.amountAgreed,
-    isUrgent: false,
-    createdAt: row.dateBooked,
   }
 }
 
@@ -358,6 +301,7 @@ export async function listBusinesses(filters?: {
   category?: string
   state?: string
   search?: string
+  limit?: number
 }): Promise<BusinessRow[]> {
   let sql = 'SELECT * FROM businesses WHERE deleted = 0'
   const params: SqlValue[] = []
@@ -365,21 +309,76 @@ export async function listBusinesses(filters?: {
   if (filters?.state) { sql += ' AND state = ?'; params.push(filters.state) }
   if (filters?.search) { sql += ' AND (businessName LIKE ? OR description LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`) }
   sql += ' ORDER BY rating DESC, reviews DESC'
+  if (filters?.limit && filters.limit > 0) { sql += ' LIMIT ?'; params.push(filters.limit) }
   return query<BusinessRow[]>(sql, params)
+}
+
+interface VendorJoinRow extends RowDataPacket {
+  businessId: number
+  uid: string
+  category: string
+  businessName: string
+  businessContact: string
+  description: string
+  location: string
+  state: string
+  lga: string | null
+  yearsOfExperience: number | null
+  feePerHour: number
+  businessLogo: string
+  reviews: number
+  rating: number
+  verified: number
+  suspended: number
+  dateStarted: string
+  subscriptionCategory: number
+  activeSubscription: number
+  deleted: number
+  user_email: string | null
+  user_phoneNumber: string | null
+  user_fullName: string | null
 }
 
 export async function listVendors(filters?: {
   category?: string
   state?: string
   search?: string
+  limit?: number
 }): Promise<User[]> {
-  const businesses = await listBusinesses(filters)
-  const users: User[] = []
-  for (const b of businesses) {
-    const row = await getUserRowByUid(b.uid)
-    users.push(businessRowToUser(b, row ?? undefined))
-  }
-  return users
+  let sql = `
+    SELECT b.*, u.email AS user_email, u.phoneNumber AS user_phoneNumber, u.fullName AS user_fullName
+    FROM businesses b
+    LEFT JOIN users u ON b.uid = u.uid AND u.deleted = 0
+    WHERE b.deleted = 0
+  `
+  const params: SqlValue[] = []
+  if (filters?.category) { sql += ' AND b.category LIKE ?'; params.push(`%${filters.category}%`) }
+  if (filters?.state) { sql += ' AND b.state = ?'; params.push(filters.state) }
+  if (filters?.search) { sql += ' AND (b.businessName LIKE ? OR b.description LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`) }
+  sql += ' ORDER BY b.rating DESC, b.reviews DESC'
+  if (filters?.limit && filters.limit > 0) { sql += ' LIMIT ?'; params.push(filters.limit) }
+
+  const rows = await query<VendorJoinRow[]>(sql, params)
+  return rows.map((r) => {
+    const name = r.user_fullName || r.businessName
+    const parts = name.split(' ')
+    return {
+      id: r.uid,
+      firstName: parts[0] || '',
+      lastName: parts.slice(1).join(' ') || '',
+      email: r.user_email ?? '',
+      phone: r.user_phoneNumber || undefined,
+      role: 'vendor',
+      city: r.state,
+      bio: r.description,
+      avatarUrl: r.businessLogo ? `/uploads/${r.businessLogo}` : undefined,
+      skills: r.category ? [r.category] : [],
+      rating: r.rating,
+      reviewCount: r.reviews,
+      isVerified: r.verified === 1,
+      createdAt: r.dateStarted,
+    }
+  })
 }
 
 export async function getVendorByUid(uid: string): Promise<User | null> {
@@ -420,6 +419,7 @@ export async function listVacancies(filters?: {
   search?: string
   location?: string
   job_type?: string
+  limit?: number
 }): Promise<VacancyRow[]> {
   let sql = 'SELECT * FROM vacancies WHERE closed = 0'
   const params: SqlValue[] = []
@@ -427,6 +427,7 @@ export async function listVacancies(filters?: {
   if (filters?.location) { sql += ' AND vacancy_location = ?'; params.push(filters.location) }
   if (filters?.job_type) { sql += ' AND job_type = ?'; params.push(filters.job_type) }
   sql += ' ORDER BY date_created DESC'
+  if (filters?.limit && filters.limit > 0) { sql += ' LIMIT ?'; params.push(filters.limit) }
   return query<VacancyRow[]>(sql, params)
 }
 
@@ -637,6 +638,14 @@ export async function markAllNotificationsAsRead(uid: string): Promise<void> {
   await execute('UPDATE users_notifications SET seenByReciever = 1 WHERE recieverUid = ?', [uid])
 }
 
+export async function createDbNotification(uid: string, body: string): Promise<void> {
+  await execute(
+    `INSERT INTO users_notifications (senderUid, senderEmail, recieverUid, recieverEmail, body, dateCreated, seenByReciever)
+     VALUES (?, ?, ?, ?, ?, NOW(), 0)`,
+    ['system', '', uid, '', body]
+  )
+}
+
 // ─── Withdrawal Accounts ──────────────────────────────────────────────────
 
 export async function getWithdrawalAccounts(userId: number): Promise<WithdrawalAccountRow[]> {
@@ -815,6 +824,70 @@ export async function getRecentActivity(uid: string, role: string): Promise<Acti
   }
 
   return items.slice(0, 5)
+}
+
+// ─── Business Verification ───────────────────────────────────────────
+
+interface BusinessVerificationRow extends RowDataPacket {
+  id: number
+  businessId: number
+  nin: string
+  photo_url: string | null
+  nin_card_url: string | null
+  utility_bill_url: string | null
+  business_registration_url: string | null
+  trade_certificate_url: string | null
+  status: 'pending' | 'approved' | 'rejected'
+  admin_notes: string | null
+  submitted_at: string
+  reviewed_at: string | null
+}
+
+export async function ensureVerificationTable(): Promise<void> {
+  await execute(
+    `CREATE TABLE IF NOT EXISTS business_verifications (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      businessId INT NOT NULL,
+      nin VARCHAR(11) NOT NULL,
+      photo_url VARCHAR(500),
+      nin_card_url VARCHAR(500),
+      utility_bill_url VARCHAR(500),
+      business_registration_url VARCHAR(500),
+      trade_certificate_url VARCHAR(500),
+      status ENUM('pending','approved','rejected') DEFAULT 'pending',
+      admin_notes TEXT,
+      submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      reviewed_at DATETIME,
+      FOREIGN KEY (businessId) REFERENCES businesses(businessId)
+    )`
+  )
+}
+
+export async function submitVerification(data: {
+  businessId: number
+  nin: string
+  photo_url: string | null
+  nin_card_url: string | null
+  utility_bill_url: string | null
+  business_registration_url: string | null
+  trade_certificate_url: string | null
+}): Promise<number> {
+  await ensureVerificationTable()
+  const result = await execute(
+    `INSERT INTO business_verifications
+     (businessId, nin, photo_url, nin_card_url, utility_bill_url, business_registration_url, trade_certificate_url, status, submitted_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
+    [data.businessId, data.nin, data.photo_url, data.nin_card_url, data.utility_bill_url, data.business_registration_url, data.trade_certificate_url]
+  )
+  return result.insertId
+}
+
+export async function getLatestVerification(businessId: number): Promise<BusinessVerificationRow | null> {
+  await ensureVerificationTable()
+  return queryOne<BusinessVerificationRow[]>(
+    'SELECT * FROM business_verifications WHERE businessId = ? ORDER BY submitted_at DESC LIMIT 1',
+    [businessId]
+  )
 }
 
 function timeAgo(dateStr: string): string {

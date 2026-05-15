@@ -32,7 +32,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
           setReviews(d.data.reviews)
         }
       })
-      .catch(() => {})
+      .catch(() => console.error('Failed to load professional', id))
       .finally(() => setLoading(false))
   }, [id])
 

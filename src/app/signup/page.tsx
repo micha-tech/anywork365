@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signupSchema, type SignupInput, COUNTRY_CODES } from '@/lib/validators/auth'
@@ -14,7 +13,6 @@ import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
 
 export default function SignupPage() {
-  const router = useRouter()
   const [showPw, setShowPw] = useState(false)
   const [role, setRole] = useState<'client' | 'vendor'>('client')
   const [serverError, setServerError] = useState('')

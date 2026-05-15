@@ -3,6 +3,7 @@ import { listVacancies, createVacancy, getCompanyByUid } from '@/lib/queries'
 import { getSession } from '@/lib/auth'
 import { query } from '@/lib/db'
 import { jobPostSchema } from '@/lib/validators/job'
+import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse, Job } from '@/types'
 import type { RowDataPacket } from 'mysql2'
 
@@ -70,6 +71,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },
         { status: 401 }
+      )
+    }
+
+    const rateLimit = checkRateLimit(`jobs:${session.id}`, 3, 60 * 1000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: `Too many requests. Please try again in ${rateLimit.retryAfter} seconds.` },
+        { status: 429 }
       )
     }
 

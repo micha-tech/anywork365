@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { getBookingById } from '@/lib/queries'
+import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
 import type { RowDataPacket } from 'mysql2'
 
@@ -12,6 +13,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },
       { status: 401 }
+    )
+  }
+
+  const rateLimit = checkRateLimit(`reviews:${session.id}`, 5, 60 * 1000)
+  if (!rateLimit.allowed) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: `Too many requests. Please try again in ${rateLimit.retryAfter} seconds.` },
+      { status: 429 }
     )
   }
 

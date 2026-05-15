@@ -24,7 +24,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           if (found) setJob(found)
         }
       })
-      .catch(() => {})
+      .catch(() => console.error('Failed to load job', id))
       .finally(() => setLoading(false))
   }, [id])
 

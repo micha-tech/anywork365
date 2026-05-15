@@ -127,7 +127,7 @@ export function ChatWindow({ conversation, currentUserId, onSend }: ChatWindowPr
 
   return (
     <div className="flex flex-col h-[calc(100dvh-200px)]">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 overscroll-behavior-contain">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 overscroll-contain">
         {loading ? (
           <div className="text-center py-8 text-slate-500">Loading...</div>
         ) : messages.length === 0 ? (
