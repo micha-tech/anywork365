@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ModalProps {
@@ -15,6 +15,19 @@ const sizeMap = { sm: 'sm:max-w-sm', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl' }
 
 export function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
+  const [animating, setAnimating] = useState(false)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setVisible(true)
+      requestAnimationFrame(() => setAnimating(true))
+    } else {
+      setAnimating(false)
+      const t = setTimeout(() => setVisible(false), 200)
+      return () => clearTimeout(t)
+    }
+  }, [open])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -27,22 +40,26 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
     return () => { document.body.style.overflow = '' }
   }, [open])
 
-  if (!open) return null
+  if (!visible) return null
 
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+      className={cn(
+        'fixed inset-0 z-50 flex items-end sm:items-center justify-center transition-opacity duration-200',
+        animating ? 'bg-black/40 backdrop-blur-sm' : 'bg-transparent'
+      )}
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
-      {/* Sheet on mobile, centered modal on sm+ */}
       <div className={cn(
         'bg-white w-full max-h-[92dvh] overflow-y-auto',
-        // Mobile: bottom sheet with rounded top corners
         'rounded-t-2xl sm:rounded-2xl',
-        // Desktop: constrained width
         sizeMap[size],
-        'shadow-xl'
+        'shadow-xl',
+        'transition-all duration-200',
+        animating
+          ? 'translate-y-0 opacity-100 sm:scale-100'
+          : 'translate-y-8 opacity-0 sm:translate-y-0 sm:scale-95'
       )}>
         {/* Drag handle — mobile only */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden">

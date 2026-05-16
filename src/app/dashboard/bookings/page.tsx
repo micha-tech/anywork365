@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { Modal } from '@/components/ui/Modal'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
+import { useToast } from '@/components/ui/Toast'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface BookingItem {
   id: number
@@ -25,6 +27,7 @@ interface BookingItem {
 
 export default function BookingsPage() {
   const { user, loading } = useCurrentUser()
+  const { toast } = useToast()
   const [bookings, setBookings] = useState<BookingItem[]>([])
   const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
@@ -59,11 +62,12 @@ export default function BookingsPage() {
       body: JSON.stringify({ action }),
     })
     const data = await res.json()
-    if (data.success) {
-      loadBookings()
-    } else {
-      alert(data.error || 'Action failed')
-    }
+      if (data.success) {
+        toast(data.message || 'Action completed', 'success')
+        loadBookings()
+      } else {
+        toast(data.error || 'Action failed', 'error')
+      }
   }
 
   async function handleSubmitReview() {
@@ -133,14 +137,12 @@ export default function BookingsPage() {
         {fetching ? (
           <p className="text-sm text-slate-500 py-8 text-center">Loading bookings...</p>
         ) : bookings.length === 0 ? (
-          <div className="card text-center py-10">
-            <p className="text-slate-500 mb-3">No bookings yet</p>
-            {!isVendor && (
-              <Link href="/professionals" className="btn-primary inline-flex px-6 py-2.5 text-sm">
-                Browse Vendors
-              </Link>
-            )}
-          </div>
+          <EmptyState
+            icon="bookings"
+            title="No bookings yet"
+            description={isVendor ? 'When clients book your services, they will appear here.' : 'Browse professionals and book a service to get started.'}
+            action={!isVendor ? <Link href="/professionals" className="btn-primary inline-flex px-6 py-2.5 text-sm">Browse Vendors</Link> : undefined}
+          />
         ) : bookings.map((b) => (
           <div key={b.id} className="card">
             <div className="flex items-start justify-between gap-3">

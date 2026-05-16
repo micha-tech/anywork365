@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
+import { ToastProvider } from '@/components/ui/Toast'
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -44,9 +45,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${jakarta.variable} ${dm.variable}`}>
       <body className="font-body bg-surface-base text-slate-900 antialiased capacitor-status-bar">
-        <Navbar />
-        <OfflineBanner />
-        <main className="page-enter">{children}</main>
+        <ToastProvider>
+          <Navbar />
+          <OfflineBanner />
+          <main className="page-enter">{children}</main>
+        </ToastProvider>
       </body>
     </html>
   )
