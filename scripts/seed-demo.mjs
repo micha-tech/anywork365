@@ -54,13 +54,14 @@ async function main() {
     // Create Firebase Auth user
     let uid
     try {
-      const fb = await auth.createUser({ email, password, displayName: fullName })
+      const fb = await auth.createUser({ email, password, displayName: fullName, emailVerified: true })
       uid = fb.uid
       console.log(`  ✓ Firebase user created: ${email} (${uid})`)
     } catch (e) {
       if (e.code === 'auth/email-already-exists') {
         const fb = await auth.getUserByEmail(email)
         uid = fb.uid
+        await auth.updateUser(uid, { emailVerified: true })
         console.log(`  ~ Firebase user already exists: ${email} (${uid})`)
       } else {
         throw e
