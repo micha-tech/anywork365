@@ -1,0 +1,38 @@
+{
+  "appId": "ng.anywork365.app",
+  "appName": "Anywork365",
+  "webDir": "capacitor-public",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://anywork-365-inky.vercel.app",
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0F4F4A",
+      "overlaysWebView": false
+    },
+    "SplashScreen": {
+      "launchShowDuration": 3000,
+      "backgroundColor": "#0F4F4A",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": false
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  },
+  "ios": {
+    "contentInset": "always",
+    "scrollEnabled": false,
+    "allowsLinkPreview": false
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

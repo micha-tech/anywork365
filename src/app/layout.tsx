@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
+import { OfflineBanner } from '@/components/ui/OfflineBanner'
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -22,7 +23,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
   themeColor: '#0F4F4A',
+  minimumScale: 1,
+  interactiveWidget: 'resizes-content',
 }
 
 export const metadata: Metadata = {
@@ -41,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${jakarta.variable} ${dm.variable}`}>
       <body className="font-body bg-surface-base text-slate-900 antialiased">
         <Navbar />
+        <OfflineBanner />
         <main>{children}</main>
       </body>
     </html>

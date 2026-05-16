@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { JOB_CATEGORIES, NIGERIAN_CITIES } from '@/types'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { CategoryIcon } from '@/components/ui/CategoryIcon'
+import { SkeletonProCard, SkeletonJobCard } from '@/components/ui/Skeleton'
 import type { User, Job, AuthUser } from '@/types'
 
 function CheckIcon({ className = '' }: { className?: string }) {
@@ -211,16 +212,20 @@ export default function HomePage() {
   const { user, loading } = useCurrentUser()
   const [vendors, setVendors] = useState<User[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
+  const [vendorsLoading, setVendorsLoading] = useState(true)
+  const [jobsLoading, setJobsLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/professionals?limit=8')
       .then(r => r.json())
       .then(d => { if (d.success) setVendors(d.data) })
       .catch(() => console.error('Failed to load vendors'))
+      .finally(() => setVendorsLoading(false))
     fetch('/api/jobs?limit=3')
       .then(r => r.json())
       .then(d => { if (d.success) setJobs(d.data) })
       .catch(() => console.error('Failed to load jobs'))
+      .finally(() => setJobsLoading(false))
   }, [])
 
   const featuredVendors = vendors.slice(0, 8)
@@ -244,7 +249,7 @@ export default function HomePage() {
       <HeroSection user={user} loading={loading} />
 
       {/* Categories */}
-      <section className="border-t border-slate-100 bg-white px-4 py-12 sm:px-6 lg:px-8">
+      <section className="border-t border-slate-100 bg-white px-4 py-12 sm:px-6 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-7">
             <div>
@@ -272,7 +277,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Vendors */}
-      <section className="border-t border-slate-100 px-4 py-12 sm:px-6 lg:px-8">
+      <section className="border-t border-slate-100 px-4 py-12 sm:px-6 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-7">
             <div>
@@ -285,7 +290,11 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {featuredVendors.map((vendor) => (
+            {vendorsLoading ? (
+              Array.from({ length: 4 }).map((_, i) => <SkeletonProCard key={i} />)
+            ) : featuredVendors.length === 0 ? (
+              <p className="col-span-full text-sm text-slate-500 text-center py-8">No vendors found</p>
+            ) : featuredVendors.map((vendor) => (
               <Link
                 key={vendor.id}
                 href={`/professionals/${vendor.id}`}
@@ -338,7 +347,7 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="border-t border-slate-100 bg-white px-4 py-12 sm:px-6 lg:px-8">
+      <section className="border-t border-slate-100 bg-white px-4 py-12 sm:px-6 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-2">How it works</p>
@@ -390,8 +399,8 @@ export default function HomePage() {
       </section>
 
       {/* Latest Jobs */}
-      {latestJobs.length > 0 && (
-        <section className="border-t border-slate-100 px-4 py-12 sm:px-6 lg:px-8">
+      {(jobsLoading || latestJobs.length > 0) && (
+        <section className="border-t border-slate-100 px-4 py-12 sm:px-6 lg:px-8 content-below-fold">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-7">
               <div>
@@ -404,7 +413,9 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {latestJobs.map((job) => (
+              {jobsLoading ? (
+                Array.from({ length: 3 }).map((_, i) => <SkeletonJobCard key={i} />)
+              ) : latestJobs.map((job) => (
                 <Link
                   key={job.id}
                   href={`/jobs/${job.id}`}
@@ -435,7 +446,7 @@ export default function HomePage() {
 
       {/* CTA - hidden when signed in */}
       {!user && (
-        <section className="border-t border-slate-100 bg-brand-500 px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+        <section className="border-t border-slate-100 bg-brand-500 px-4 py-14 sm:px-6 sm:py-16 lg:px-8 content-below-fold">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
               Ready to get started?

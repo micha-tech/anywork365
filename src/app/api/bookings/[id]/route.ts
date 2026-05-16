@@ -199,6 +199,17 @@ export async function PATCH(
     ]
   )
 
+  try {
+    const { sendPushNotification } = await import('@/lib/notifications')
+    if (action === 'confirm') {
+      await sendPushNotification(booking.clientUID, 'Booking Confirmed', `Your booking #${bookingId} has been confirmed by the vendor.`)
+    } else if (action === 'complete') {
+      await sendPushNotification(business.uid, 'Job Completed', `Booking #${bookingId} has been marked as complete. Payment released.`)
+    }
+  } catch {
+    // Non-critical
+  }
+
   return NextResponse.json<ApiResponse<any>>(
     {
       success: true,

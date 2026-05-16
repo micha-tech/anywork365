@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
+import { SkeletonMetricCard } from '@/components/ui/Skeleton'
 
 interface Metric {
   label: string
@@ -29,31 +31,36 @@ export default function DashboardPage() {
   const [activity, setActivity] = useState<ActivityItem[]>([])
   const [dashboardLoading, setDashboardLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchDashboard = useCallback(async () => {
     if (loading || !user) return
-    fetch('/api/dashboard')
-      .then((r) => r.json())
-      .then((res) => {
-        if (!res.success) return
-        const { stats, activity: acts, changeMap } = res.data
-        setMetrics([
-          { label: 'Active Jobs',    value: String(stats.activeJobs),    change: changeMap.activeJobs },
-          { label: 'Applications',   value: String(stats.applications),   change: changeMap.applications },
-          { label: 'Hired Pros',     value: String(stats.hiredPros),     change: changeMap.hiredPros },
-          { label: 'Jobs Completed', value: String(stats.jobsCompleted), change: changeMap.jobsCompleted },
-        ])
-        setActivity(acts)
-        setDashboardLoading(false)
-      })
-      .catch(() => setDashboardLoading(false))
+    setDashboardLoading(true)
+    try {
+      const res = await fetch('/api/dashboard')
+      const json = await res.json()
+      if (!json.success) return
+      const { stats, activity: acts, changeMap } = json.data
+      setMetrics([
+        { label: 'Active Jobs',    value: String(stats.activeJobs),    change: changeMap.activeJobs },
+        { label: 'Applications',   value: String(stats.applications),   change: changeMap.applications },
+        { label: 'Hired Pros',     value: String(stats.hiredPros),     change: changeMap.hiredPros },
+        { label: 'Jobs Completed', value: String(stats.jobsCompleted), change: changeMap.jobsCompleted },
+      ])
+      setActivity(acts)
+    } catch {
+      // ignore
+    } finally {
+      setDashboardLoading(false)
+    }
   }, [user, loading])
+
+  useEffect(() => { fetchDashboard() }, [fetchDashboard])
 
   const greeting = loading
     ? 'Good morning 👋'
     : `Good morning, ${user?.firstName ?? 'there'} 👋`
 
   return (
-    <>
+    <PullToRefresh onRefresh={fetchDashboard}>
       <div className="mb-5 sm:mb-7">
         <h1 className="font-display text-xl sm:text-2xl font-semibold">{greeting}</h1>
         <p className="text-sm text-slate-500 mt-1">Here&apos;s what&apos;s happening with your projects</p>
@@ -61,7 +68,14 @@ export default function DashboardPage() {
 
       {/* Metrics — 2 cols on all sizes */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-5 sm:mb-7">
-        {metrics.map((m) => (
+        {dashboardLoading ? (
+          <>
+            <SkeletonMetricCard />
+            <SkeletonMetricCard />
+            <SkeletonMetricCard />
+            <SkeletonMetricCard />
+          </>
+        ) : metrics.map((m) => (
           <div key={m.label} className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wide leading-tight">{m.label}</p>
             <p className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 my-1">{m.value}</p>
@@ -107,6 +121,6 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
-    </>
+    </PullToRefresh>
   )
 }

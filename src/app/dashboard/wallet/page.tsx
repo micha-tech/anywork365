@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { formatCurrency } from '@/lib/utils'
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import type { Wallet, WalletTransaction, NigerianBank } from '@/types'
 
 interface WalletData {
@@ -218,7 +219,7 @@ function WalletPageContent() {
   const quickAmounts = [5000, 10000, 25000, 50000]
 
   return (
-    <>
+    <PullToRefresh onRefresh={fetchWallet}>
       <div className="mb-5 sm:mb-7">
         <h1 className="font-display text-xl sm:text-2xl font-semibold">Wallet</h1>
         <p className="text-sm text-slate-500 mt-1">
@@ -558,7 +559,7 @@ function WalletPageContent() {
           </form>
         </div>
       )}
-    </>
+    </PullToRefresh>
   )
 }
 

@@ -116,8 +116,10 @@ export async function creditWallet(
     : `Wallet funded with ${amountFormatted}`
   try {
     await createDbNotification(userId, notificationBody)
+    const { sendPushNotification } = await import('./notifications')
+    await sendPushNotification(userId, 'Anywork365', notificationBody)
   } catch {
-    // Notification is non-critical; silently ignore if it fails
+    // Notifications are non-critical; silently ignore if they fail
   }
 
   return {

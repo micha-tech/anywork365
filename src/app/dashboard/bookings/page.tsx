@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { Modal } from '@/components/ui/Modal'
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
 
 interface BookingItem {
   id: number
@@ -114,6 +115,7 @@ export default function BookingsPage() {
 
   return (
     <>
+      <PullToRefresh onRefresh={loadBookings}>
       <div className="mb-5 sm:mb-7">
         <h1 className="font-display text-xl sm:text-2xl font-semibold">My Bookings</h1>
         <p className="text-sm text-slate-500 mt-1">
@@ -261,6 +263,7 @@ export default function BookingsPage() {
           </div>
         )}
       </Modal>
+      </PullToRefresh>
     </>
   )
 }

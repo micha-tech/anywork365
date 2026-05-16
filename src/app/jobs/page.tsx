@@ -7,8 +7,10 @@ import type { Job, JobStatus, JobCategory } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
+const PAGE_SIZE = 10
+
 interface Props {
-  searchParams?: Promise<{ search?: string; category?: string; city?: string }>
+  searchParams?: Promise<{ search?: string; category?: string; city?: string; page?: string }>
 }
 
 function vacancyToJob(v: Awaited<ReturnType<typeof listVacancies>>[number], companyName?: string, companyAddress?: string): Job {
@@ -33,7 +35,8 @@ function vacancyToJob(v: Awaited<ReturnType<typeof listVacancies>>[number], comp
 }
 
 export default async function JobsPage({ searchParams }: Props) {
-  const { search, category, city } = (await searchParams) ?? {}
+  const { search, category, city, page } = (await searchParams) ?? {}
+  const currentPage = Math.max(1, parseInt(page || '1'))
 
   const vacancies = await listVacancies({
     search,
@@ -41,11 +44,15 @@ export default async function JobsPage({ searchParams }: Props) {
     job_type: category,
   })
 
-  const jobs = await Promise.all(vacancies.map(async (v) => {
+  const allJobs = await Promise.all(vacancies.map(async (v) => {
     const companies = await getCompaniesByUid(String(v.company_id))
     const company = companies[0]
     return vacancyToJob(v, company?.company_name ?? undefined, company?.company_address ?? undefined)
   }))
+
+  const jobs = allJobs.slice(0, currentPage * PAGE_SIZE)
+  const totalCount = allJobs.length
+  const hasMore = totalCount > currentPage * PAGE_SIZE
 
   return (
     <div>
@@ -87,12 +94,22 @@ export default async function JobsPage({ searchParams }: Props) {
 
         {jobs.length > 0 ? (
           <>
-            <p className="text-sm text-slate-500 mb-4">{jobs.length} jobs found</p>
+            <p className="text-sm text-slate-500 mb-4">{totalCount.toLocaleString()} jobs found</p>
             <div className="flex flex-col gap-3 sm:gap-4">
               {jobs.map((job) => (
                 <JobCard key={job.id} job={job} />
               ))}
             </div>
+            {hasMore && (
+              <div className="flex justify-center mt-6 sm:mt-8">
+                <a
+                  href={`/jobs?${new URLSearchParams({ ...(search ? { search } : {}), ...(category ? { category } : {}), ...(city ? { city } : {}), page: String(currentPage + 1) }).toString()}`}
+                  className="btn-outline px-8 py-3"
+                >
+                  Load More ({totalCount - currentPage * PAGE_SIZE} remaining)
+                </a>
+              </div>
+            )}
           </>
         ) : (
           <EmptyState

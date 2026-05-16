@@ -10,6 +10,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
+    "@capacitor/ios": "^8.3.4",
     "autoprefixer": "^10.5.0",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
@@ -24,6 +28,7 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@hookform/resolvers": "^5.0.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.15.3",

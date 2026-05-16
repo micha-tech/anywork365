@@ -7,15 +7,21 @@ export const dynamic = 'force-dynamic'
 
 const CATEGORIES = ['All', ...JOB_CATEGORIES]
 
+const PAGE_SIZE = 12
+
 interface Props {
-  searchParams?: Promise<{ category?: string; city?: string; search?: string }>
+  searchParams?: Promise<{ category?: string; city?: string; search?: string; page?: string }>
 }
 
 export default async function ProfessionalsPage({ searchParams }: Props) {
-  const { category, city, search } = (await searchParams) ?? {}
+  const { category, city, search, page } = (await searchParams) ?? {}
+  const currentPage = Math.max(1, parseInt(page || '1'))
+  const offset = (currentPage - 1) * PAGE_SIZE
 
-  const vendors = await listVendors({ category, state: city, search })
-  const totalCount = (await listVendors()).length
+  const allVendors = await listVendors({ category, state: city, search })
+  const vendors = allVendors.slice(0, currentPage * PAGE_SIZE)
+  const totalCount = allVendors.length
+  const hasMore = totalCount > currentPage * PAGE_SIZE
 
   return (
     <div>
@@ -63,12 +69,22 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
 
         {vendors.length > 0 ? (
           <>
-            <p className="text-sm text-slate-500 mb-4">{vendors.length} vendors found</p>
+            <p className="text-sm text-slate-500 mb-4">{totalCount.toLocaleString()} vendors found</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {vendors.map((pro, i) => (
+              {vendors.slice(0, currentPage * PAGE_SIZE).map((pro, i) => (
                 <ProCard key={pro.id} pro={pro} index={i} />
               ))}
             </div>
+            {hasMore && (
+              <div className="flex justify-center mt-6 sm:mt-8">
+                <a
+                  href={`/professionals?${new URLSearchParams({ ...(category ? { category } : {}), ...(city ? { city } : {}), ...(search ? { search } : {}), page: String(currentPage + 1) }).toString()}`}
+                  className="btn-outline px-8 py-3"
+                >
+                  Load More ({totalCount - currentPage * PAGE_SIZE} remaining)
+                </a>
+              </div>
+            )}
           </>
         ) : (
           <EmptyState
