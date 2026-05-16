@@ -75,7 +75,7 @@ export function MobileBottomNav() {
               key={tab.href}
               href={tab.href}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 h-full transition-colors min-w-0',
+                'flex flex-col items-center justify-center gap-1 h-full transition-colors min-w-0 relative',
                 isPost ? 'relative' : '',
                 active && !isPost ? 'text-brand-500' : 'text-slate-500'
               )}
@@ -85,6 +85,9 @@ export function MobileBottomNav() {
                 <span className={cn('text-[10px] font-medium truncate', active ? 'text-brand-500' : 'text-slate-500')}>
                   {tab.label}
                 </span>
+              )}
+              {active && !isPost && (
+                <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-brand-500" />
               )}
             </Link>
           )

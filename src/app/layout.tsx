@@ -43,10 +43,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${jakarta.variable} ${dm.variable}`}>
-      <body className="font-body bg-surface-base text-slate-900 antialiased">
+      <body className="font-body bg-surface-base text-slate-900 antialiased capacitor-status-bar">
         <Navbar />
         <OfflineBanner />
-        <main>{children}</main>
+        <main className="page-enter">{children}</main>
       </body>
     </html>
   )
