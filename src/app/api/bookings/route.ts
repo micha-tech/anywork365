@@ -8,12 +8,10 @@ import {
   getUserRowByUid,
   getWalletByUserId,
   getOrCreateWallet as getOrCreateWalletDb,
-  getWalletBalance,
-  addLedgerEntry,
-  createEscrow,
 } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
+import type mysql from 'mysql2'
 import type { RowDataPacket } from 'mysql2'
 
 export const runtime = 'nodejs'
@@ -150,15 +148,8 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Ensure wallets exist BEFORE the transaction (these may INSERT)
   const clientWallet = await getWalletByUserId(clientRow.userId) ?? await getOrCreateWalletDb(clientRow.userId, clientRow.email)
-
-  const balance = await getWalletBalance(clientWallet.id)
-  if (balance < budget) {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: `Insufficient balance. You need ₦${budget.toLocaleString()} but your wallet has ₦${balance.toLocaleString()}. Please fund your wallet first.` },
-      { status: 400 }
-    )
-  }
 
   const vendorRow = await getUserRowByUid(vendorId)
   let vendorWalletId: number | null = null
@@ -170,59 +161,103 @@ export async function POST(req: NextRequest) {
     vendorWalletId = vw.id
   }
 
-  const { execute } = await import('@/lib/db')
-  const result = await execute(
-    `INSERT INTO bookings (businessId, clientUID, bookedDate, bookedTime, appointmentAddress, meetingPoint, additionalInfo, bookingStatus, amountAgreed, priceConfirmed, dateBooked)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', ?, 1, NOW())`,
-    [
-      vendor.businessId,
-      session.id,
-      date,
-      new Date().toLocaleTimeString('en-US', { hour12: false }),
-      location || '',
-      location || '',
-      description,
-      budget,
-    ]
-  )
+  // ── Transaction: atomic balance check + booking + escrow ──────────────
+  const { getConnection } = await import('@/lib/db')
+  const conn = await getConnection()
+  try {
+    await conn.beginTransaction()
 
-  const bookingId = result.insertId
+    // Lock the client wallet row (prevents concurrent debits/credits)
+    const [walletRows] = await conn.execute<RowDataPacket[]>(
+      'SELECT id FROM wallets WHERE id = ? FOR UPDATE',
+      [clientWallet.id]
+    )
+    if (walletRows.length === 0) {
+      await conn.rollback()
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Wallet not found' },
+        { status: 404 }
+      )
+    }
 
-  const newBalance = balance - budget
-  await addLedgerEntry({
-    wallet_id: clientWallet.id,
-    amount: budget,
-    direction: 'debit',
-    balance_after: newBalance,
-    description: `Payment locked in escrow for booking #${bookingId}`,
-  })
+    // Read current balance inside the transaction (sees all prior committed txns)
+    const [balRows] = await conn.execute<RowDataPacket[]>(
+      `SELECT COALESCE(SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END), 0) AS balance
+       FROM wallet_ledger WHERE wallet_id = ?`,
+      [clientWallet.id]
+    )
+    const currentBalance = Number(balRows[0]?.balance ?? 0)
+    if (currentBalance < budget) {
+      await conn.rollback()
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: `Insufficient balance. You need ₦${budget.toLocaleString()} but your wallet has ₦${currentBalance.toLocaleString()}. Please fund your wallet first.` },
+        { status: 400 }
+      )
+    }
 
-  if (vendorWalletId) {
-    await createEscrow({
-      booking_id: bookingId,
-      client_wallet_id: clientWallet.id,
-      vendor_wallet_id: vendorWalletId,
-      amount: budget,
-    })
-  }
-
-  return NextResponse.json<ApiResponse<any>>(
-    {
-      success: true,
-      data: {
-        id: bookingId,
-        vendorId,
+    // INSERT booking
+    const [bookingResult] = await conn.execute<mysql.ResultSetHeader>(
+      `INSERT INTO bookings (businessId, clientUID, bookedDate, bookedTime, appointmentAddress, meetingPoint, additionalInfo, bookingStatus, amountAgreed, priceConfirmed, dateBooked)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', ?, 1, NOW())`,
+      [
+        vendor.businessId,
+        session.id,
+        date,
+        new Date().toLocaleTimeString('en-US', { hour12: false }),
+        location || '',
+        location || '',
         description,
         budget,
-        date,
-        location,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
+      ]
+    )
+    const bookingId = bookingResult.insertId
+
+    // Debit client wallet (ledger entry)
+    const newBalance = currentBalance - budget
+    await conn.execute(
+      `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
+       VALUES (?, ?, 'debit', ?, ?, NOW())`,
+      [clientWallet.id, budget, newBalance, `Payment locked in escrow for booking #${bookingId}`]
+    )
+
+    // Create escrow record
+    if (vendorWalletId) {
+      await conn.execute(
+        `INSERT INTO wallet_escrow (booking_id, client_wallet_id, vendor_wallet_id, escrow_wallet_id, amount, status, created_at)
+         VALUES (?, ?, ?, (SELECT id FROM wallets WHERE wallet_type = 'escrow' LIMIT 1), ?, 'held', NOW())`,
+        [bookingId, clientWallet.id, vendorWalletId, budget]
+      )
+    }
+
+    await conn.commit()
+
+    return NextResponse.json<ApiResponse<any>>(
+      {
+        success: true,
+        data: {
+          id: bookingId,
+          vendorId,
+          description,
+          budget,
+          date,
+          location,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        },
+        message: 'Booking request sent! The vendor will respond shortly.',
       },
-      message: 'Booking request sent! The vendor will respond shortly.',
-    },
-    { status: 201 }
-  )
+      { status: 201 }
+    )
+  } catch (error) {
+    await conn.rollback()
+    console.error('Booking creation transaction error:', error)
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Failed to create booking. Please try again.' },
+      { status: 500 }
+    )
+  } finally {
+    conn.release()
+  }
 }
 
 function mapStatus(db: string): string {

@@ -54,7 +54,7 @@ export async function GET() {
         totalEarned: 0,
         isVerified: !!bankAccount,
         bankName: bankAccount?.bank_name || null,
-        bankAccountNumber: bankAccount?.account_number || null,
+        bankAccountNumber: bankAccount?.account_number ? '****' + bankAccount.account_number.slice(-4) : null,
         createdAt: wallet.created_at,
         updatedAt: wallet.created_at,
       },

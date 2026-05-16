@@ -1,18 +1,25 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto'
 import type { ChatConversation, ChatMessage, ChatNotification, PushSubscription } from '@/types'
 
-const raw = process.env.CHAT_ENCRYPTION_KEY
-if (!raw) {
-  throw new Error('Missing CHAT_ENCRYPTION_KEY environment variable. Run: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64\'))"')
-}
-const CHAT_KEY = Buffer.from(raw, 'base64')
-if (CHAT_KEY.length !== 32) {
-  throw new Error('CHAT_ENCRYPTION_KEY must be a 32-byte base64 string')
+let _chatKey: Buffer | null = null
+
+function getChatKey(): Buffer {
+  if (_chatKey) return _chatKey
+  const raw = process.env.CHAT_ENCRYPTION_KEY
+  if (!raw) {
+    throw new Error('Missing CHAT_ENCRYPTION_KEY environment variable. Run: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64\'))"')
+  }
+  const key = Buffer.from(raw, 'base64')
+  if (key.length !== 32) {
+    throw new Error('CHAT_ENCRYPTION_KEY must be a 32-byte base64 string')
+  }
+  _chatKey = key
+  return key
 }
 
 function encryptMessage(text: string): string {
   const iv = randomBytes(16)
-  const cipher = createCipheriv('aes-256-gcm', CHAT_KEY.slice(0, 32), iv)
+  const cipher = createCipheriv('aes-256-gcm', getChatKey().slice(0, 32), iv)
   
   let encrypted = cipher.update(text, 'utf8', 'hex')
   encrypted += cipher.final('hex')
@@ -28,7 +35,7 @@ function decryptMessage(encrypted: string): string {
     const iv = Buffer.from(ivHex, 'hex')
     const authTag = Buffer.from(authTagHex, 'hex')
     
-    const decipher = createDecipheriv('aes-256-gcm', CHAT_KEY.slice(0, 32), iv)
+    const decipher = createDecipheriv('aes-256-gcm', getChatKey().slice(0, 32), iv)
     decipher.setAuthTag(authTag)
     
     let decrypted = decipher.update(content, 'hex', 'utf8')
