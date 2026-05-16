@@ -39,13 +39,14 @@ const SVG_ICONS: Record<string, string> = {
   'Software development': `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#003E3E"/><path d="M30 50L40 60L70 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M60 50H70" stroke="white" stroke-width="4" stroke-linecap="round"/></svg>`,
 }
 
+const ALLOWED_CATEGORIES = new Set(Object.keys(SVG_ICONS))
+
 export function CategoryIcon({ category, size = 48 }: CategoryIconProps) {
-  const svgContent = SVG_ICONS[category]
   const emoji = EMOJI_ICONS[category]
-  
-  if (!svgContent) {
+
+  if (!ALLOWED_CATEGORIES.has(category)) {
     return (
-      <div 
+      <div
         className="rounded-xl bg-brand-50 flex items-center justify-center"
         style={{ width: size, height: size }}
       >
@@ -55,10 +56,10 @@ export function CategoryIcon({ category, size = 48 }: CategoryIconProps) {
   }
 
   return (
-    <div 
+    <div
       className="rounded-xl overflow-hidden flex items-center justify-center bg-[#003E3E]"
       style={{ width: size, height: size }}
-      dangerouslySetInnerHTML={{ __html: svgContent }}
+      dangerouslySetInnerHTML={{ __html: SVG_ICONS[category] }}
     />
   )
 }

@@ -12,16 +12,18 @@ const MAGIC_BYTES: Record<string, number[][]> = {
   'image/jpeg': [[0xFF, 0xD8, 0xFF]],
   'image/jpg': [[0xFF, 0xD8, 0xFF]],
   'image/png': [[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]],
-  'image/webp': [[0x52, 0x49, 0x46, 0x46]],
+  'image/webp': [[0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50]],
   'application/pdf': [[0x25, 0x50, 0x44, 0x46]],
 }
 
 function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
   const signatures = MAGIC_BYTES[mimeType]
   if (!signatures) return false
-  return signatures.some(sig =>
-    sig.every((byte, i) => buffer[i] === byte)
-  )
+  const bufLen = buffer.length
+  return signatures.some(sig => {
+    if (sig.length > bufLen) return false
+    return sig.every((byte, i) => byte === 0x00 || buffer[i] === byte)
+  })
 }
 
 const DOC_FIELDS = ['photo', 'nin_card', 'utility_bill', 'business_registration', 'trade_certificate'] as const

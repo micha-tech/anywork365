@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import {
   getBookingsByClient,
@@ -116,21 +117,22 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { vendorId, description, budget, date, location } = await req.json()
-
-  if (!vendorId || !description || !budget || !date) {
+  const body = await req.json()
+  const schema = z.object({
+    vendorId: z.string().min(1, 'Vendor is required'),
+    description: z.string().min(1, 'Description is required').max(2000, 'Description must be under 2000 characters'),
+    budget: z.number().int().min(1000, 'Minimum booking budget is ₦1,000').max(10_000_000, 'Maximum booking budget is ₦10,000,000'),
+    date: z.string().min(1, 'Date is required'),
+    location: z.string().max(500).optional().default(''),
+  })
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Missing required fields: vendorId, description, budget, date' },
+      { success: false, error: parsed.error.errors[0].message },
       { status: 400 }
     )
   }
-
-  if (budget < 1000) {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Minimum booking budget is ₦1,000' },
-      { status: 400 }
-    )
-  }
+  const { vendorId, description, budget, date, location } = parsed.data
 
   const vendor = await getBusinessByUid(vendorId)
   if (!vendor) {

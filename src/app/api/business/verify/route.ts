@@ -112,7 +112,7 @@ export async function GET() {
           ? {
               id: verification.id,
               status: verification.status,
-              nin: verification.nin,
+              nin: verification.nin ? `*******${verification.nin.slice(-4)}` : null,
               photo_url: verification.photo_url,
               nin_card_url: verification.nin_card_url,
               utility_bill_url: verification.utility_bill_url,

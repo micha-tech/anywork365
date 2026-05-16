@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import { getBookingById } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
@@ -24,24 +25,22 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { bookingId, rating, comment } = await req.json()
-
-  if (!bookingId || !rating || !comment?.trim()) {
+  const body = await req.json()
+  const schema = z.object({
+    bookingId: z.number().int().positive('Booking ID is required'),
+    rating: z.number().int().min(1, 'Rating must be between 1 and 5').max(5, 'Rating must be between 1 and 5'),
+    comment: z.string().min(1, 'Comment is required').max(2000, 'Comment must be under 2000 characters'),
+  })
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Missing required fields: bookingId, rating, comment' },
+      { success: false, error: parsed.error.errors[0].message },
       { status: 400 }
     )
   }
+  const { bookingId, rating: numRating, comment } = parsed.data
 
-  const numRating = Number(rating)
-  if (!Number.isInteger(numRating) || numRating < 1 || numRating > 5) {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Rating must be an integer between 1 and 5' },
-      { status: 400 }
-    )
-  }
-
-  const booking = await getBookingById(Number(bookingId))
+  const booking = await getBookingById(bookingId)
   if (!booking) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Booking not found' },
@@ -71,8 +70,8 @@ export async function POST(req: NextRequest) {
 
     interface ReviewIdRow extends RowDataPacket { reviewId: number }
     const [existing] = await connection.query<ReviewIdRow[]>(
-      'SELECT reviewId FROM reviews WHERE businessId = ? AND userUid = ? LIMIT 1',
-      [booking.businessId, session.id]
+      'SELECT reviewId FROM reviews WHERE businessId = ? AND userUid = ? AND bookingId = ? LIMIT 1',
+      [booking.businessId, session.id, bookingId]
     )
     if ((existing as ReviewIdRow[]).length > 0) {
       await connection.execute('ROLLBACK')
@@ -84,8 +83,8 @@ export async function POST(req: NextRequest) {
     }
 
     await connection.execute(
-      `INSERT INTO reviews (businessId, userUid, review, dateAdded) VALUES (?, ?, ?, NOW())`,
-      [booking.businessId, session.id, comment.trim()]
+      `INSERT INTO reviews (businessId, userUid, review, bookingId, dateAdded) VALUES (?, ?, ?, ?, NOW())`,
+      [booking.businessId, session.id, comment.trim(), bookingId]
     )
 
     await connection.execute(

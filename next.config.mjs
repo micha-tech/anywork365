@@ -6,8 +6,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'ui-avatars.com' },
       // Firebase Storage (for when you migrate off local disk)
       { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
-      // AWS S3 (for when you migrate to S3)
-      { protocol: 'https', hostname: '*.amazonaws.com' },
+      // AWS S3 - restrict to known bucket patterns
+      { protocol: 'https', hostname: '*.s3.amazonaws.com' },
+      { protocol: 'https', hostname: '*.s3.*.amazonaws.com' },
     ],
   },
 }

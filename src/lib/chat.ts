@@ -1,10 +1,14 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto'
 import type { ChatConversation, ChatMessage, ChatNotification, PushSubscription } from '@/types'
 
-const DEFAULT_KEY = 'anywork365-chat-encryption-key-32byte'
-const CHAT_KEY = process.env.CHAT_ENCRYPTION_KEY 
-  ? Buffer.from(process.env.CHAT_ENCRYPTION_KEY, 'base64')
-  : Buffer.from(DEFAULT_KEY).slice(0, 32)
+const raw = process.env.CHAT_ENCRYPTION_KEY
+if (!raw) {
+  throw new Error('Missing CHAT_ENCRYPTION_KEY environment variable. Run: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64\'))"')
+}
+const CHAT_KEY = Buffer.from(raw, 'base64')
+if (CHAT_KEY.length !== 32) {
+  throw new Error('CHAT_ENCRYPTION_KEY must be a 32-byte base64 string')
+}
 
 function encryptMessage(text: string): string {
   const iv = randomBytes(16)

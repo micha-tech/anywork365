@@ -4,7 +4,7 @@ import { auth as adminAuth } from '@/lib/firebase/admin'
 import { getUserRowByUid } from '@/lib/queries'
 
 const COOKIE_NAME = '__session'
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+const COOKIE_MAX_AGE = 60 * 60 * 24
 
 export async function createSessionCookie(idToken: string): Promise<string | null> {
   try {
@@ -50,7 +50,7 @@ export async function setSession(sessionCookie: string): Promise<void> {
   cookieStore.set(COOKIE_NAME, sessionCookie, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: COOKIE_MAX_AGE,
     path: '/',
   })
