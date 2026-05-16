@@ -1,13 +1,20 @@
+import fs from 'fs'
 import mysql from 'mysql2/promise'
 
 export type SqlValue = string | number | boolean | Date | null | Buffer
 
 const sslMode = process.env.MYSQL_SSL || ''
-const sslConfig = sslMode === 'skip-verify'
-  ? { ssl: { rejectUnauthorized: false } }
-  : sslMode === 'true'
-    ? { ssl: { rejectUnauthorized: true } }
-    : {}
+let sslConfig: mysql.ConnectionOptions = {}
+if (sslMode === 'skip-verify') {
+  sslConfig = { ssl: { rejectUnauthorized: false } }
+} else if (sslMode === 'true') {
+  const caPath = process.env.MYSQL_CA_PATH
+  if (caPath && fs.existsSync(caPath)) {
+    sslConfig = { ssl: { ca: fs.readFileSync(caPath).toString() } }
+  } else {
+    sslConfig = { ssl: { rejectUnauthorized: true } }
+  }
+}
 
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST || 'localhost',

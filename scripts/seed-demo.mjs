@@ -5,6 +5,7 @@
  * Requires: .env with Firebase Admin + MySQL credentials
  */
 import { config } from 'dotenv'
+import fs from 'fs'
 import { createRequire } from 'module'
 import { randomBytes } from 'crypto'
 
@@ -29,11 +30,17 @@ async function main() {
 
   // ── MySQL ────────────────────────────────────────────────────────
   const sslMode = process.env.MYSQL_SSL || ''
-  const sslConfig = sslMode === 'skip-verify'
-    ? { ssl: { rejectUnauthorized: false } }
-    : sslMode === 'true'
-      ? { ssl: { rejectUnauthorized: true } }
-      : {}
+  let sslConfig = {}
+  if (sslMode === 'skip-verify') {
+    sslConfig = { ssl: { rejectUnauthorized: false } }
+  } else if (sslMode === 'true') {
+    const caPath = process.env.MYSQL_CA_PATH
+    if (caPath && fs.existsSync(caPath)) {
+      sslConfig = { ssl: { ca: fs.readFileSync(caPath, 'utf8') } }
+    } else {
+      sslConfig = { ssl: { rejectUnauthorized: true } }
+    }
+  }
   const pool = mysql.createPool({
     host: process.env.MYSQL_HOST,
     port: parseInt(process.env.MYSQL_PORT || '3306'),
