@@ -48,7 +48,7 @@ export function Navbar() {
   const [dropOpen, setDropOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const { user, loading }  = useCurrentUser()
-  const hideNavbar = pathname === '/login' || pathname === '/signup'
+  const hideNavbar = pathname === '/login' || pathname === '/signup' || pathname === '/onboarding'
 
   const isLoggedIn = !loading && !!user
   const navLinks   = isLoggedIn ? AUTH_NAV : PUBLIC_NAV

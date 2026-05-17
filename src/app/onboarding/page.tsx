@@ -47,7 +47,10 @@ export default function OnboardingPage() {
   const complete = useCallback(() => {
     localStorage.setItem(ONBOARDING_KEY, 'true')
     document.documentElement.classList.add('page-exit')
-    setTimeout(() => router.replace('/login'), 300)
+    setTimeout(() => {
+      document.documentElement.classList.remove('page-exit')
+      router.replace('/login')
+    }, 300)
   }, [router])
 
   const isLast = active === slides.length - 1
@@ -97,14 +100,14 @@ export default function OnboardingPage() {
               }}
             >
               <div className="w-full max-w-xs sm:max-w-sm mx-auto flex flex-col items-center text-center">
-                <div className="relative w-full aspect-[4/3] mb-6 overflow-hidden rounded-2xl bg-slate-100">
+                <div className="relative w-full mb-6 overflow-hidden rounded-2xl bg-slate-100" style={{ height: 'clamp(200px, 45dvh, 320px)' }}>
                   {i <= active + 1 && (
                     <Image
                       src={slide.image}
                       alt=""
                       fill
                       sizes="(max-width: 480px) 90vw, 384px"
-                      className="object-cover"
+                      className="object-contain"
                       priority={i === 0}
                     />
                   )}
@@ -122,25 +125,17 @@ export default function OnboardingPage() {
       </div>
 
       <div className="px-5 pb-safe pb-6 pt-2 flex flex-col items-center gap-4">
-        <div className="flex gap-2.5" role="tablist" aria-label="Slide navigation">
+        <div className="flex items-center gap-1.5" aria-label="Slide indicator">
           {slides.map((_, i) => (
-            <button
+            <span
               key={i}
-              role="tab"
-              aria-selected={i === active}
-              onClick={() => setActive(i)}
-              className="min-h-[32px] min-w-[32px] flex items-center justify-center"
-            >
-              <span
-                className="block rounded-full transition-all duration-300"
-                style={{
-                  width: i === active ? 20 : 8,
-                  height: 8,
-                  background: i === active ? '#0F4F4A' : '#cbd5e1',
-                  borderRadius: i === active ? 99 : 9999,
-                }}
-              />
-            </button>
+              className="block transition-all duration-300 rounded-full"
+              style={{
+                width: i === active ? 20 : 6,
+                height: 6,
+                background: i === active ? '#0F4F4A' : '#cbd5e1',
+              }}
+            />
           ))}
         </div>
 

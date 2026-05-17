@@ -11,6 +11,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    document.documentElement.classList.remove('page-exit')
+
     if (pathname === '/onboarding') {
       setReady(true)
       return
