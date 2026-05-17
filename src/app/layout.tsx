@@ -4,6 +4,7 @@ import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
 import { ToastProvider } from '@/components/ui/Toast'
+import { OnboardingGuard } from '@/components/OnboardingGuard'
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -46,9 +47,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${jakarta.variable} ${dm.variable}`}>
       <body className="font-body bg-surface-base text-slate-900 antialiased capacitor-status-bar">
         <ToastProvider>
-          <Navbar />
-          <OfflineBanner />
-          <main className="page-enter">{children}</main>
+          <OnboardingGuard>
+            <Navbar />
+            <OfflineBanner />
+            <main className="page-enter">{children}</main>
+          </OnboardingGuard>
         </ToastProvider>
       </body>
     </html>

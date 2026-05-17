@@ -1,131 +1,151 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { Autoplay, Pagination, EffectFade } from 'swiper/modules'
-import type { Swiper as SwiperType } from 'swiper'
-import 'swiper/css'
-import 'swiper/css/pagination'
-import 'swiper/css/effect-fade'
+import Image from 'next/image'
 
 const ONBOARDING_KEY = 'anywork365_onboarding_done'
 
 const slides = [
   {
-    image: '/images/onboarding-1.png',
+    image: '/images/onboarding-1.webp',
     title: 'Find Trusted Professionals',
-    description: 'Browse verified artisans, technicians, and vendors across Nigeria. Read reviews and compare ratings before you book.',
-    gradient: 'from-emerald-50 via-white to-teal-50',
+    description:
+      'Browse verified artisans, technicians, and vendors across Nigeria. Read reviews and compare ratings before you book.',
   },
   {
-    image: '/images/onboarding-2.png',
+    image: '/images/onboarding-2.webp',
     title: 'Book & Pay with Confidence',
-    description: 'Payments are held securely in escrow. Funds are only released when you\'re satisfied with the work — no more guesswork.',
-    gradient: 'from-teal-50 via-white to-emerald-50',
+    description:
+      "Payments are held securely in escrow. Funds are only released when you're satisfied with the work.",
   },
   {
-    image: '/images/onboarding-3.png',
+    image: '/images/onboarding-3.webp',
     title: 'Track Every Step',
-    description: 'From booking to completion, follow your job in real time. Chat with your professional, get updates, and leave a review.',
-    gradient: 'from-emerald-50 via-white to-teal-50',
+    description:
+      'From booking to completion, follow your job in real time. Chat with your professional and get updates.',
   },
   {
-    image: '/images/onboarding-4.png',
+    image: '/images/onboarding-4.webp',
     title: 'Grow Your Business',
-    description: 'Create your professional profile, showcase your work, and get discovered by clients in your area. Join thousands of pros on Anywork365.',
-    gradient: 'from-teal-50 via-white to-emerald-50',
+    description:
+      'Create your professional profile, showcase your work, and get discovered by clients in your area.',
   },
 ]
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const swiperRef = useRef<SwiperType | null>(null)
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [exiting, setExiting] = useState(false)
+  const [active, setActive] = useState(0)
+  const touchX = useRef(0)
 
   useEffect(() => {
-    const done = localStorage.getItem(ONBOARDING_KEY)
-    if (done) router.replace('/login')
+    if (localStorage.getItem(ONBOARDING_KEY)) {
+      router.replace('/login')
+    }
   }, [router])
 
-  const complete = () => {
+  const complete = useCallback(() => {
     localStorage.setItem(ONBOARDING_KEY, 'true')
-    setExiting(true)
-    setTimeout(() => router.replace('/login'), 400)
-  }
+    document.documentElement.classList.add('page-exit')
+    setTimeout(() => router.replace('/login'), 300)
+  }, [router])
 
-  const skip = () => {
-    localStorage.setItem(ONBOARDING_KEY, 'true')
-    setExiting(true)
-    setTimeout(() => router.replace('/login'), 400)
-  }
+  const isLast = active === slides.length - 1
 
-  const isLast = activeIndex === slides.length - 1
+  const goNext = useCallback(() => {
+    if (isLast) { complete(); return }
+    setActive((a) => a + 1)
+  }, [isLast, complete])
+
+  const goPrev = useCallback(() => {
+    if (active > 0) setActive((a) => a - 1)
+  }, [active])
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchX.current = e.touches[0].clientX
+  }, [])
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchX.current
+    if (dx > 50) goPrev()
+    else if (dx < -50) goNext()
+  }, [goNext, goPrev])
 
   return (
-    <div className={`fixed inset-0 z-50 flex flex-col bg-white transition-all duration-500 ${exiting ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}>
-      {/* Skip button */}
-      <div className="absolute top-0 inset-x-0 z-10 flex justify-end px-6 pt-safe">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <div className="absolute top-0 inset-x-0 z-10 flex justify-end px-5 pt-safe">
         <button
-          onClick={skip}
-          className="mt-4 px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 active:scale-95 transition-all"
+          onClick={complete}
+          className="mt-4 px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 active:scale-95 transition-all min-h-[44px]"
         >
           Skip
         </button>
       </div>
 
-      {/* Carousel */}
-      <div className="flex-1 flex flex-col justify-center min-h-0">
-        <Swiper
-          modules={[Autoplay, Pagination, EffectFade]}
-          effect="fade"
-          fadeEffect={{ crossFade: true }}
-          speed={600}
-          autoplay={{ delay: 5000, disableOnInteraction: true }}
-          pagination={{
-            clickable: true,
-            renderBullet: (_index: number, className: string) =>
-              `<span class="${className} !w-2.5 !h-2.5 !rounded-full !transition-all !duration-300"></span>`,
-          }}
-          onSwiper={(s) => { swiperRef.current = s }}
-          onSlideChange={(s) => setActiveIndex(s.activeIndex)}
-          className="!h-full !w-full"
-        >
-          {slides.map((slide, i) => (
-            <SwiperSlide key={i} className="!flex !flex-col !items-center !justify-center !h-full px-6 sm:px-10">
-              <div className={`flex flex-col items-center text-center max-w-sm mx-auto bg-gradient-to-b ${slide.gradient} rounded-3xl p-0 sm:p-0 w-full overflow-hidden`}>
-                {/* Image */}
-                <div className="w-full aspect-[4/3] relative mb-6">
-                  <img
-                    src={slide.image}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    loading={i === 0 ? 'eager' : 'lazy'}
-                  />
+      <div className="flex-1 relative">
+        {slides.map((slide, i) => {
+          const offset = i < active ? -32 : 32
+          return (
+            <div
+              key={i}
+              className="absolute inset-0 flex flex-col items-center justify-center px-5 sm:px-10"
+              style={{
+                opacity: i === active ? 1 : 0,
+                transform: i === active ? 'translateX(0)' : `translateX(${offset}px)`,
+                transition: 'opacity 0.35s ease, transform 0.35s ease',
+                pointerEvents: i === active ? 'auto' : 'none',
+              }}
+            >
+              <div className="w-full max-w-xs sm:max-w-sm mx-auto flex flex-col items-center text-center">
+                <div className="relative w-full aspect-[4/3] mb-6 overflow-hidden rounded-2xl bg-slate-100">
+                  {i <= active + 1 && (
+                    <Image
+                      src={slide.image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 480px) 90vw, 384px"
+                      className="object-cover"
+                      priority={i === 0}
+                    />
+                  )}
                 </div>
-
-                {/* Title */}
-                <div className="px-6 pb-8">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3 leading-tight">
-                    {slide.title}
-                  </h2>
-
-                  {/* Description */}
-                  <p className="text-base sm:text-lg text-slate-500 leading-relaxed max-w-xs mx-auto">
-                    {slide.description}
-                  </p>
-                </div>
+                <h2 className="text-[clamp(1.125rem,5vw,1.75rem)] font-bold text-slate-900 mb-3 leading-tight text-balance">
+                  {slide.title}
+                </h2>
+                <p className="text-[clamp(0.8125rem,3.5vw,1rem)] text-slate-500 leading-relaxed text-balance break-words">
+                  {slide.description}
+                </p>
               </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+            </div>
+          )
+        })}
       </div>
 
-      {/* Bottom area */}
-      <div className="px-6 pb-8 pt-2 flex flex-col items-center gap-4 keyboard-safe">
+      <div className="px-5 pb-safe pb-6 pt-2 flex flex-col items-center gap-4">
+        <div className="flex gap-2.5" role="tablist" aria-label="Slide navigation">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              role="tab"
+              aria-selected={i === active}
+              onClick={() => setActive(i)}
+              className="min-h-[32px] min-w-[32px] flex items-center justify-center"
+            >
+              <span
+                className="block rounded-full transition-all duration-300"
+                style={{
+                  width: i === active ? 20 : 8,
+                  height: 8,
+                  background: i === active ? '#0F4F4A' : '#cbd5e1',
+                  borderRadius: i === active ? 99 : 9999,
+                }}
+              />
+            </button>
+          ))}
+        </div>
+
         <button
-          onClick={isLast ? complete : () => swiperRef.current?.slideNext()}
+          onClick={goNext}
           className="w-full max-w-xs h-14 rounded-2xl bg-brand-500 hover:bg-brand-600 active:scale-[0.97] text-white font-semibold text-base transition-all duration-200 shadow-lg shadow-brand-500/25"
         >
           {isLast ? 'Get Started' : 'Continue'}
@@ -134,7 +154,7 @@ export default function OnboardingPage() {
         {!isLast && (
           <button
             onClick={complete}
-            className="text-sm text-slate-400 hover:text-slate-600 active:scale-95 transition-all py-1"
+            className="text-sm text-slate-400 hover:text-slate-600 active:scale-95 transition-all py-1 min-h-[44px]"
           >
             Get started
           </button>

@@ -260,14 +260,16 @@
   }
 }
 
-/* ─── Swiper pagination override (onboarding) ────────── */
-.swiper-pagination-bullet {
-  background: #cbd5e1 !important;
-  opacity: 1 !important;
+/* ─── Onboarding exit animation ──────────────────────── */
+html.page-exit,
+html.page-exit body {
+  overflow: hidden;
 }
-.swiper-pagination-bullet-active {
-  background: #0F4F4A !important;
-  width: 20px !important;
-  border-radius: 99px !important;
+html.page-exit .fixed.inset-0 {
+  animation: onboardingExit 0.3s ease-in forwards;
 }
+@keyframes onboardingExit {
+  to { opacity: 0; transform: scale(1.04); }
+}
+
 }
