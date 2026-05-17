@@ -257,6 +257,17 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
-    }
   }
+}
+
+/* ─── Swiper pagination override (onboarding) ────────── */
+.swiper-pagination-bullet {
+  background: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+.swiper-pagination-bullet-active {
+  background: #0F4F4A !important;
+  width: 20px !important;
+  border-radius: 99px !important;
+}
 }
