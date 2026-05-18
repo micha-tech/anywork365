@@ -46,12 +46,14 @@ export async function GET(
     )
 
     const bookings = await query<AnyRow[]>(
-      `SELECT b.*, sv.title AS serviceTitle
+      `SELECT b.bookingId, b.bookingCode, b.clientUID, b.businessId,
+              b.bookingStatus, b.amountAgreed, b.dateBooked,
+              bu.businessName AS serviceTitle
        FROM bookings b
-       LEFT JOIN service_vacancies sv ON sv.vacancy_id = b.vacancy_id
-       WHERE b.clientUID = ? OR b.vendorUID = ?
-       ORDER BY b.dateAdded DESC LIMIT 10`,
-      [uid, uid]
+       LEFT JOIN businesses bu ON bu.businessId = b.businessId
+       WHERE b.clientUID = ?
+       ORDER BY b.dateBooked DESC LIMIT 10`,
+      [uid]
     )
 
     return NextResponse.json({ success: true, data: { user, wallet, recentTransactions, bookings } })

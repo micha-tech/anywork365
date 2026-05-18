@@ -25,10 +25,11 @@ export async function GET(request: NextRequest) {
     const total = countRows[0]?.total ?? 0
 
     const rows = await query<(RowDataPacket & Record<string, unknown>)[]>(
-      `SELECT we.*, b.clientUID, b.vendorUID, sv.title AS bookingTitle
+      `SELECT we.*, b.bookingId, b.clientUID, b.businessId,
+              bu.businessName AS bookingTitle
        FROM wallet_escrow we
-       LEFT JOIN bookings b ON b.vacancy_id = we.booking_id
-       LEFT JOIN service_vacancies sv ON sv.vacancy_id = we.booking_id
+       LEFT JOIN bookings b ON b.bookingId = we.booking_id
+       LEFT JOIN businesses bu ON bu.businessId = b.businessId
        ${where}
        ORDER BY we.created_at DESC
        LIMIT ? OFFSET ?`,

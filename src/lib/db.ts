@@ -84,9 +84,15 @@ export async function getConnection(): Promise<mysql.PoolConnection> {
 export default pool
 
 // ─── Graceful shutdown ────────────────────────────────────
+let shuttingDown = false
 function shutdown(): void {
+  if (shuttingDown) return
+  shuttingDown = true
   console.log('[DB] Shutting down connection pool...')
-  pool.end().catch((err: Error) => console.error('[DB] Pool shutdown error:', err))
+  pool.end().catch((err: Error) => {
+    if ((err as Error & { code?: string }).code === 'ECONNRESET') return
+    console.warn('[DB] Pool shutdown warn:', err.message)
+  })
 }
 process.on('SIGTERM', shutdown)
 process.on('SIGINT', shutdown)

@@ -44,8 +44,10 @@ export async function GET(request: NextRequest) {
               COALESCE(w.availableBalance, 0) AS walletBalance
        FROM users u
        LEFT JOIN (
-         SELECT wl.user_id, SUM(CASE WHEN wl.direction = 'credit' THEN wl.amount ELSE -wl.amount END) AS availableBalance
-         FROM wallet_ledger wl GROUP BY wl.user_id
+         SELECT w.user_id, SUM(CASE WHEN wl.direction = 'credit' THEN wl.amount ELSE -wl.amount END) AS availableBalance
+         FROM wallet_ledger wl
+         JOIN wallets w ON w.id = wl.wallet_id
+         GROUP BY w.user_id
        ) w ON w.user_id = u.userId
        ${where}
        ORDER BY u.dateJoined DESC

@@ -14,7 +14,7 @@ export async function POST(
     const { id } = await params
 
     const withdrawal = await queryOne<AnyRow[]>(
-      'SELECT * FROM withdrawal_requests WHERE id = ?', [id]
+      'SELECT * FROM withdrawals WHERE id = ?', [id]
     )
     if (!withdrawal) {
       return NextResponse.json({ success: false, error: 'Withdrawal not found' }, { status: 404 })
@@ -24,11 +24,11 @@ export async function POST(
     const { action } = body
 
     if (action === 'mark_paid') {
-      await execute("UPDATE withdrawal_requests SET status = 'paid', updatedAt = NOW() WHERE id = ?", [id])
+      await execute("UPDATE withdrawals SET status = 'paid' WHERE id = ?", [id])
       await logAdminAction(session.id, 'mark_withdrawal_paid', 'withdrawal', id)
     } else if (action === 'mark_failed') {
-      await execute("UPDATE withdrawal_requests SET status = 'failed', reason = ?, updatedAt = NOW() WHERE id = ?",
-        [body.reason || 'Marked as failed by admin', id])
+      await execute("UPDATE withdrawals SET status = 'failed' WHERE id = ?",
+        [id])
       await logAdminAction(session.id, 'mark_withdrawal_failed', 'withdrawal', id, { reason: body.reason })
     } else {
       return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 })

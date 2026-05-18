@@ -20,16 +20,16 @@ export async function GET(request: NextRequest) {
     }
 
     const countRows = await query<(RowDataPacket & { total: number })[]>(
-      `SELECT COUNT(*) AS total FROM withdrawal_requests wr ${where}`, params
+      `SELECT COUNT(*) AS total FROM withdrawals wr ${where}`, params
     )
     const total = countRows[0]?.total ?? 0
 
     const rows = await query<(RowDataPacket & Record<string, unknown>)[]>(
       `SELECT wr.*, u.fullName, u.email
-       FROM withdrawal_requests wr
-       LEFT JOIN users u ON u.uid = wr.userId
+       FROM withdrawals wr
+       LEFT JOIN users u ON u.userId = wr.user_id
        ${where}
-       ORDER BY wr.createdAt DESC
+       ORDER BY wr.created_at DESC
        LIMIT ? OFFSET ?`,
       [...params, limit, offset]
     )
