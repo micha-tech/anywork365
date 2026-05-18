@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "backup": "node scripts/backup.mjs ./backups"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

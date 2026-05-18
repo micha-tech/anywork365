@@ -30,12 +30,17 @@ export async function getUserFromFirebase(uid: string): Promise<AuthUser | null>
     const user = await getUserRowByUid(uid)
     if (!user) return null
     const parts = user.fullName.trim().split(/\s+/)
+    const role: AuthUser['role'] =
+      user.role === 'admin' ? 'admin' :
+      user.role === 'vendor' ? 'vendor' :
+      user.role === 'client' ? 'client' :
+      user.hasBusinessAccount ? 'vendor' : 'client'
     return {
       id: uid,
       email: user.email,
       firstName: parts[0] || '',
       lastName: parts.slice(1).join(' ') || '',
-      role: user.hasBusinessAccount ? 'vendor' : 'client',
+      role,
       phone: user.phoneNumber,
       city: user.state || '',
       avatarUrl: user.profileImage ? `/uploads/${user.profileImage}` : undefined,

@@ -147,7 +147,8 @@ export async function hasSuccessfulTransactionReference(
       [reference, 'success']
     ) as { '1'?: number }[]
     return rows.length > 0
-  } catch {
+  } catch (err) {
+    console.error('[WALLET] hasSuccessfulTransactionReference error:', err)
     return false
   }
 }
@@ -311,7 +312,8 @@ export async function getWithdrawalById(withdrawalId: string): Promise<{ id: num
       [withdrawalId]
     ) as { id: number; user_id: number; amount: number }[]
     return rows[0] || null
-  } catch {
+  } catch (err) {
+    console.error('[WALLET] getWithdrawalById error:', err)
     return null
   }
 }

@@ -23,6 +23,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const protectedPaths = [
+    '/admin',
     '/dashboard',
     '/messages',
   ]

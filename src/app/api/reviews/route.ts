@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
   interface AvgRow extends RowDataPacket { avg: number | null; cnt: number }
   const { getConnection } = await import('@/lib/db')
   const connection = await getConnection()
+  let connReleased = false
   try {
     await connection.execute('START TRANSACTION')
 
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
     )
     if ((existing as ReviewIdRow[]).length > 0) {
       await connection.execute('ROLLBACK')
-      connection.release()
+      connReleased = true; connection.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'You have already reviewed this vendor for this booking' },
         { status: 409 }
@@ -106,11 +107,18 @@ export async function POST(req: NextRequest) {
     )
 
     await connection.execute('COMMIT')
-    connection.release()
+    connReleased = true; connection.release()
   } catch (txErr) {
-    await connection.execute('ROLLBACK')
-    connection.release()
+    if (!connReleased) {
+      await connection.execute('ROLLBACK')
+      connection.release()
+      connReleased = true
+    }
     throw txErr
+  } finally {
+    if (!connReleased) {
+      connection.release()
+    }
   }
 
   return NextResponse.json<ApiResponse<any>>(

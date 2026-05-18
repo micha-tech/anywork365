@@ -1,5 +1,6 @@
 import fs from 'fs'
 import mysql from 'mysql2/promise'
+import { ensureIndexes } from './indexes'
 
 export type SqlValue = string | number | boolean | Date | null | Buffer
 
@@ -28,11 +29,31 @@ const pool = mysql.createPool({
   ...sslConfig,
 })
 
+let indexTask: Promise<void> | null = null
+
+async function ensureDbInit(): Promise<void> {
+  if (!indexTask) {
+    indexTask = ensureIndexes().catch((err) => {
+      console.error('[DB INIT] Index creation failed:', err)
+    })
+  }
+  await indexTask
+}
+
+function slowQueryLog(sql: string, durationMs: number): void {
+  if (durationMs > 200) {
+    console.warn(`[SLOW QUERY] ${durationMs}ms: ${sql.substring(0, 120)}`)
+  }
+}
+
 export async function query<T extends mysql.RowDataPacket[]>(
   sql: string,
   params?: SqlValue[]
 ): Promise<T> {
+  await ensureDbInit()
+  const start = Date.now()
   const [rows] = await pool.execute<T>(sql, params as mysql.ExecuteValues)
+  slowQueryLog(sql, Date.now() - start)
   return rows
 }
 
@@ -48,12 +69,24 @@ export async function execute(
   sql: string,
   params?: SqlValue[]
 ): Promise<mysql.ResultSetHeader> {
+  await ensureDbInit()
+  const start = Date.now()
   const [result] = await pool.execute<mysql.ResultSetHeader>(sql, params as mysql.ExecuteValues)
+  slowQueryLog(sql, Date.now() - start)
   return result
 }
 
 export async function getConnection(): Promise<mysql.PoolConnection> {
+  await ensureDbInit()
   return pool.getConnection()
 }
 
 export default pool
+
+// ─── Graceful shutdown ────────────────────────────────────
+function shutdown(): void {
+  console.log('[DB] Shutting down connection pool...')
+  pool.end().catch((err: Error) => console.error('[DB] Pool shutdown error:', err))
+}
+process.on('SIGTERM', shutdown)
+process.on('SIGINT', shutdown)

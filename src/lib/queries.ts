@@ -20,6 +20,7 @@ interface UserRow extends RowDataPacket {
   nin: string | null
   address: string
   hasBusinessAccount: number
+  role: 'client' | 'vendor' | 'admin' | null
   verified: number
   suspended: number
   dateJoined: string
@@ -196,6 +197,13 @@ interface WithdrawalRow extends RowDataPacket {
 
 // ─── Transform helpers ────────────────────────────────────────────────────
 
+function resolveRole(row: UserRow): 'client' | 'vendor' | 'admin' {
+  if (row.role === 'admin') return 'admin'
+  if (row.role === 'vendor') return 'vendor'
+  if (row.role === 'client') return 'client'
+  return row.hasBusinessAccount ? 'vendor' : 'client'
+}
+
 function userRowToAuthUser(row: UserRow): AuthUser {
   const parts = row.fullName.trim().split(/\s+/)
   return {
@@ -203,7 +211,7 @@ function userRowToAuthUser(row: UserRow): AuthUser {
     email: row.email,
     firstName: parts[0] || '',
     lastName: parts.slice(1).join(' ') || '',
-    role: row.hasBusinessAccount ? 'vendor' : 'client',
+    role: resolveRole(row),
     phone: row.phoneNumber || undefined,
     city: row.state || undefined,
     bio: undefined,
@@ -219,7 +227,7 @@ function userRowToUser(row: UserRow): User {
     lastName: parts.slice(1).join(' ') || '',
     email: row.email,
     phone: row.phoneNumber || undefined,
-    role: row.hasBusinessAccount ? 'vendor' : 'client',
+    role: resolveRole(row),
     city: row.state || '',
     avatarUrl: row.profileImage ? `/uploads/${row.profileImage}` : undefined,
     nin: row.nin || undefined,

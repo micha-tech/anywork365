@@ -46,13 +46,14 @@ export async function PATCH(
 
   const { getConnection } = await import('@/lib/db')
   const conn = await getConnection()
+  let connReleased = false
 
   try {
     // Lock the booking row and check status atomically
     const [rows] = await conn.query<mysql.RowDataPacket[]>('SELECT b.*, bus.uid AS businessUid FROM bookings b JOIN businesses bus ON bus.businessId = b.businessId WHERE b.bookingId = ? FOR UPDATE', [bookingId])
     const booking = rows[0]
     if (!booking) {
-      conn.release()
+      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Booking not found' },
         { status: 404 }
@@ -63,7 +64,7 @@ export async function PATCH(
     const isVendor = booking.businessUid === session.id
 
     if (!isClient && !isVendor) {
-      conn.release()
+      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Not authorized to update this booking' },
         { status: 403 }
@@ -71,7 +72,7 @@ export async function PATCH(
     }
 
     if (booking.bookingStatus === 'Closed' || booking.bookingStatus === 'Cancelled') {
-      conn.release()
+      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Cannot update a completed or cancelled booking' },
         { status: 400 }
@@ -86,7 +87,7 @@ export async function PATCH(
     const newStatus = dbStatusMap[action]
 
     if (action === 'confirm' && !isVendor) {
-      conn.release()
+      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Only the vendor can confirm a booking' },
         { status: 403 }
@@ -94,7 +95,7 @@ export async function PATCH(
     }
 
     if (action === 'complete' && !isClient) {
-      conn.release()
+      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Only the client can mark a booking as complete' },
         { status: 403 }
@@ -102,7 +103,7 @@ export async function PATCH(
     }
 
     if (action === 'cancel' && booking.bookingStatus !== 'Pending') {
-      conn.release()
+      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Only pending bookings can be cancelled' },
         { status: 400 }
@@ -116,7 +117,7 @@ export async function PATCH(
       const [clientRows] = await conn.query<mysql.RowDataPacket[]>('SELECT userId FROM users WHERE uid = ?', [session.id])
       if (clientRows.length === 0) {
         await conn.execute('ROLLBACK')
-        conn.release()
+        connReleased = true; conn.release()
         return NextResponse.json<ApiResponse<null>>(
           { success: false, error: 'User not found' },
           { status: 404 }
@@ -126,7 +127,7 @@ export async function PATCH(
       const [clientWalletRows] = await conn.query<mysql.RowDataPacket[]>('SELECT id FROM wallets WHERE user_id = ?', [clientRows[0].userId])
       if (clientWalletRows.length === 0) {
         await conn.execute('ROLLBACK')
-        conn.release()
+        connReleased = true; conn.release()
         return NextResponse.json<ApiResponse<null>>(
           { success: false, error: 'Client wallet not found' },
           { status: 400 }
@@ -181,7 +182,7 @@ export async function PATCH(
     )
 
     await conn.execute('COMMIT')
-    conn.release()
+    connReleased = true; conn.release()
 
     // Non-critical: push notifications outside transaction
     try {
@@ -207,12 +208,19 @@ export async function PATCH(
       { status: 200 }
     )
   } catch (err) {
-    await conn.execute('ROLLBACK').catch(() => {})
-    conn.release()
+    if (!connReleased) {
+      await conn.execute('ROLLBACK').catch(() => {})
+      conn.release()
+      connReleased = true
+    }
     console.error('[BOOKING PATCH]', err)
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Failed to update booking' },
       { status: 500 }
     )
+  } finally {
+    if (!connReleased) {
+      conn.release()
+    }
   }
 }
