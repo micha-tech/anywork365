@@ -51,7 +51,7 @@ export default function LoginPage() {
         return
       }
 
-      window.location.href = '/dashboard'
+      window.location.href = body.data?.role === 'admin' ? '/admin' : '/dashboard'
     } catch (err: unknown) {
       const e = err as { code?: string; message?: string }
       const messages: Record<string, string> = {
