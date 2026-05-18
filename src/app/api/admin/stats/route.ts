@@ -24,15 +24,15 @@ export async function GET() {
 
     const totalBookings = await query<CountRow[]>('SELECT COUNT(*) AS count FROM bookings')
     const pendingBookings = await query<CountRow[]>(
-      "SELECT COUNT(*) AS count FROM bookings WHERE status = 'Pending'"
+      "SELECT COUNT(*) AS count FROM bookings WHERE bookingStatus = 'Active'"
     )
     const completedBookings = await query<CountRow[]>(
-      "SELECT COUNT(*) AS count FROM bookings WHERE status = 'Closed'"
+      "SELECT COUNT(*) AS count FROM bookings WHERE bookingStatus = 'Confirmed'"
     )
 
-    const totalJobs = await query<CountRow[]>('SELECT COUNT(*) AS count FROM service_vacancies')
+    const totalJobs = await query<CountRow[]>('SELECT COUNT(*) AS count FROM vacancies')
     const openJobs = await query<CountRow[]>(
-      "SELECT COUNT(*) AS count FROM service_vacancies WHERE status = 'Open'"
+      'SELECT COUNT(*) AS count FROM vacancies WHERE closed = 0'
     )
 
     const totalRevenue = await query<TotalRow[]>(
