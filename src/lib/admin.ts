@@ -1,10 +1,8 @@
 import { getSession } from './auth'
-import { ensureAdminTables } from './admin-init'
 import { redirect } from 'next/navigation'
 import { NextResponse } from 'next/server'
 
 export async function requireAdmin(): Promise<{ id: string; email: string; firstName: string; lastName: string }> {
-  await ensureAdminTables()
   const session = await getSession()
   if (!session || session.role !== 'admin') {
     redirect('/dashboard')
@@ -13,7 +11,6 @@ export async function requireAdmin(): Promise<{ id: string; email: string; first
 }
 
 export async function requireAdminApi(): Promise<{ id: string; email: string }> {
-  await ensureAdminTables()
   const session = await getSession()
   if (!session || session.role !== 'admin') {
     throw new Error('Unauthorized')

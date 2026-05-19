@@ -1,6 +1,5 @@
 import fs from 'fs'
 import mysql from 'mysql2/promise'
-import { ensureIndexes } from './indexes'
 
 export type SqlValue = string | number | boolean | Date | null | Buffer
 
@@ -24,41 +23,13 @@ const pool = mysql.createPool({
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 2,
   queueLimit: 0,
+  connectTimeout: 10000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
   ...sslConfig,
 })
-
-let indexTask: Promise<void> | null = null
-
-async function createFcmTable(): Promise<void> {
-  try {
-    await pool.execute(
-      `CREATE TABLE IF NOT EXISTS user_fcm_tokens (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        uid VARCHAR(128) NOT NULL,
-        token VARCHAR(255) NOT NULL UNIQUE,
-        is_active TINYINT DEFAULT 1,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX idx_user_fcm_tokens_uid (uid)
-      )`
-    )
-  } catch {
-    // Table already exists
-  }
-}
-
-async function ensureDbInit(): Promise<void> {
-  if (!indexTask) {
-    indexTask = (async () => {
-      await createFcmTable()
-      await ensureIndexes()
-    })().catch((err) => {
-      console.error('[DB INIT] Index creation failed:', err)
-    })
-  }
-  await indexTask
-}
 
 function slowQueryLog(sql: string, durationMs: number): void {
   if (durationMs > 200) {
@@ -70,7 +41,6 @@ export async function query<T extends mysql.RowDataPacket[]>(
   sql: string,
   params?: SqlValue[]
 ): Promise<T> {
-  await ensureDbInit()
   const start = Date.now()
   const [rows] = await pool.execute<T>(sql, params as mysql.ExecuteValues)
   slowQueryLog(sql, Date.now() - start)
@@ -89,7 +59,6 @@ export async function execute(
   sql: string,
   params?: SqlValue[]
 ): Promise<mysql.ResultSetHeader> {
-  await ensureDbInit()
   const start = Date.now()
   const [result] = await pool.execute<mysql.ResultSetHeader>(sql, params as mysql.ExecuteValues)
   slowQueryLog(sql, Date.now() - start)
@@ -97,7 +66,6 @@ export async function execute(
 }
 
 export async function getConnection(): Promise<mysql.PoolConnection> {
-  await ensureDbInit()
   return pool.getConnection()
 }
 
