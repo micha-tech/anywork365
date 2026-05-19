@@ -214,6 +214,7 @@ export async function requestWithdrawal(
 
   const withdrawalId = await createWithdrawal({
     user_id: user.userId,
+    wallet_id: walletId,
     amount: amountNGN,
     account_id: accounts[0].id,
   })

@@ -141,7 +141,7 @@ export async function PATCH(
 
       const [balRows] = await conn.query<mysql.RowDataPacket[]>('SELECT balance_after FROM wallet_ledger WHERE wallet_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE', [clientWalletRows[0].id])
       const clientBal = balRows.length > 0 ? balRows[0].balance_after : 0
-      await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description) VALUES (?, ?, ?, ?, ?)',
+      await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
         [clientWalletRows[0].id, amount, 'credit', clientBal + amount, `Escrow released for booking #${bookingId}`])
 
       if (vendorRows.length > 0) {
@@ -149,7 +149,7 @@ export async function PATCH(
         if (vWalletRows.length > 0) {
           const [vBalRows] = await conn.query<mysql.RowDataPacket[]>('SELECT balance_after FROM wallet_ledger WHERE wallet_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE', [vWalletRows[0].id])
           const vBal = vBalRows.length > 0 ? vBalRows[0].balance_after : 0
-          await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description) VALUES (?, ?, ?, ?, ?)',
+          await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
             [vWalletRows[0].id, proAmount, 'credit', vBal + proAmount, `Job earnings - booking #${bookingId}`])
         }
       }
@@ -164,7 +164,7 @@ export async function PATCH(
         if (walletRows.length > 0) {
           const [balRows] = await conn.query<mysql.RowDataPacket[]>('SELECT balance_after FROM wallet_ledger WHERE wallet_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE', [walletRows[0].id])
           const balance = balRows.length > 0 ? balRows[0].balance_after : 0
-          await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description) VALUES (?, ?, ?, ?, ?)',
+          await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
             [walletRows[0].id, booking.amountAgreed, 'credit', balance + booking.amountAgreed, `Escrow refunded for cancelled booking #${bookingId}`])
           await conn.execute("UPDATE wallet_escrow SET status = 'refunded', released_at = NOW() WHERE booking_id = ?", [bookingId])
         }

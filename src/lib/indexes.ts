@@ -21,7 +21,6 @@ const INDEX_STATEMENTS = [
   'CREATE INDEX idx_withdrawal_accounts_user_id ON withdrawal_accounts(user_id)',
   'CREATE INDEX idx_withdrawals_wallet_id ON withdrawals(wallet_id)',
   'CREATE INDEX idx_withdrawals_user_id ON withdrawals(user_id)',
-  'CREATE INDEX idx_user_fcm_tokens_uid ON user_fcm_tokens(uid)',
   'CREATE INDEX idx_business_verifications_businessId ON business_verifications(businessId)',
   'CREATE INDEX idx_vacancies_company_id ON vacancies(company_id)',
   'CREATE INDEX idx_vacancy_applications_vacancy_id ON vacancy_applications(vacancy_id)',

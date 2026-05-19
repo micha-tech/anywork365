@@ -31,9 +31,29 @@ const pool = mysql.createPool({
 
 let indexTask: Promise<void> | null = null
 
+async function createFcmTable(): Promise<void> {
+  try {
+    await pool.execute(
+      `CREATE TABLE IF NOT EXISTS user_fcm_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        uid VARCHAR(128) NOT NULL,
+        token VARCHAR(255) NOT NULL UNIQUE,
+        is_active TINYINT DEFAULT 1,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_user_fcm_tokens_uid (uid)
+      )`
+    )
+  } catch {
+    // Table already exists
+  }
+}
+
 async function ensureDbInit(): Promise<void> {
   if (!indexTask) {
-    indexTask = ensureIndexes().catch((err) => {
+    indexTask = (async () => {
+      await createFcmTable()
+      await ensureIndexes()
+    })().catch((err) => {
       console.error('[DB INIT] Index creation failed:', err)
     })
   }

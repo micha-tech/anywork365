@@ -679,12 +679,13 @@ export async function saveWithdrawalAccount(data: {
 
 export async function createWithdrawal(data: {
   user_id: number
+  wallet_id: number
   amount: number
   account_id: number
 }): Promise<number> {
   const result = await execute(
-    'INSERT INTO withdrawals (user_id, amount, account_id, status) VALUES (?, ?, ?, ?)',
-    [data.user_id, data.amount, data.account_id, 'pending']
+    'INSERT INTO withdrawals (wallet_id, user_id, amount, account_id, status, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+    [data.wallet_id, data.user_id, data.amount, data.account_id, 'pending']
   )
   return result.insertId
 }
