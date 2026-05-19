@@ -16,6 +16,7 @@ import {
   getUserConversations 
 } from '@/lib/chat'
 import { findUserById } from '@/lib/users'
+import { sendPushNotification } from '@/lib/notifications'
 import type { ApiResponse, ChatParticipantInfo } from '@/types'
 
 const sendSchema = z.object({
@@ -136,6 +137,18 @@ export async function POST(req: NextRequest) {
   }
 
   const message = sendMessage(conversationId, session.id, content, type)
+
+  const otherUserId = conversation.participants.find(p => p !== session.id)
+  if (otherUserId) {
+    const sender = await findUserById(session.id)
+    sendPushNotification(
+      otherUserId,
+      `Message from ${sender?.firstName ?? 'Someone'}`,
+      content.slice(0, 150),
+      { type: 'chat', conversationId }
+    ).catch(() => {})
+  }
+
   const messages = getMessages(conversationId)
   const enrichedMessages = await Promise.all(messages.map(enrichMessage))
   const conversations = getUserConversations(session.id)

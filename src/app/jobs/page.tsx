@@ -1,9 +1,11 @@
 import Link from 'next/link'
-import { listVacancies, getCompaniesByUid } from '@/lib/queries'
+import { listVacancies } from '@/lib/queries'
+import { query } from '@/lib/db'
 import { JobCard } from '@/components/forms/JobCard'
 import { EmptyState } from '@/components/ui'
 import { JOB_CATEGORIES, NIGERIAN_CITIES } from '@/types'
 import type { Job, JobStatus, JobCategory } from '@/types'
+import type { RowDataPacket } from 'mysql2'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +13,12 @@ const PAGE_SIZE = 10
 
 interface Props {
   searchParams?: Promise<{ search?: string; category?: string; city?: string; page?: string }>
+}
+
+interface CompanyRow extends RowDataPacket {
+  company_id: number
+  company_name: string
+  company_address: string | null
 }
 
 function vacancyToJob(v: Awaited<ReturnType<typeof listVacancies>>[number], companyName?: string, companyAddress?: string): Job {
@@ -44,11 +52,22 @@ export default async function JobsPage({ searchParams }: Props) {
     job_type: category,
   })
 
-  const allJobs = await Promise.all(vacancies.map(async (v) => {
-    const companies = await getCompaniesByUid(String(v.company_id))
-    const company = companies[0]
-    return vacancyToJob(v, company?.company_name ?? undefined, company?.company_address ?? undefined)
-  }))
+  const ids = vacancies.map((v) => v.company_id).filter(Boolean)
+  const companyMap: Record<number, { name: string; address: string }> = {}
+  if (ids.length > 0) {
+    const companies = await query<CompanyRow[]>(
+      `SELECT company_id, company_name, company_address FROM companies WHERE company_id IN (${ids.map(() => '?').join(',')})`,
+      ids
+    )
+    for (const c of companies) {
+      companyMap[c.company_id] = { name: c.company_name, address: c.company_address || '' }
+    }
+  }
+
+  const allJobs = vacancies.map((v) => {
+    const company = companyMap[v.company_id]
+    return vacancyToJob(v, company?.name, company?.address)
+  })
 
   const jobs = allJobs.slice(0, currentPage * PAGE_SIZE)
   const totalCount = allJobs.length

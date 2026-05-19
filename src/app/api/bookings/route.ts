@@ -10,6 +10,7 @@ import {
   getOrCreateWallet as getOrCreateWalletDb,
 } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
+import { sendPushNotification } from '@/lib/notifications'
 import type { ApiResponse } from '@/types'
 import type mysql from 'mysql2'
 import type { RowDataPacket } from 'mysql2'
@@ -225,6 +226,13 @@ export async function POST(req: NextRequest) {
     }
 
     await conn.commit()
+
+    await sendPushNotification(
+      vendorId,
+      'New Booking Request',
+      `${clientRow.firstName} ${clientRow.lastName} wants to book your service — ₦${budget.toLocaleString()}`,
+      { type: 'booking', bookingId: String(bookingId) }
+    )
 
     return NextResponse.json<ApiResponse<any>>(
       {

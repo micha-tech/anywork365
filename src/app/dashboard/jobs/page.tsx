@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { listVacancies, getCompaniesByUid } from '@/lib/queries'
+import { getCompaniesByUid } from '@/lib/queries'
 import { query } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { JobCard } from '@/components/forms/JobCard'
@@ -26,16 +26,32 @@ export default async function MyJobsPage({
   const companies = await getCompaniesByUid(session.id)
   const companyIds = companies.map((c) => c.company_id)
 
-  const allVacancies = companyIds.length > 0
-    ? await listVacancies()
-    : []
+  let allVacancies: any[] = []
+  if (companyIds.length > 0) {
+    interface VacancyRow extends RowDataPacket {
+      vacancy_id: number
+      company_id: number
+      vacancy_title: string
+      vacancy_location: string
+      job_type: string
+      work_type: string
+      years_of_experience: number | null
+      required_skills: string
+      job_description: string
+      closing_date: string | null
+      date_created: string
+      closed: number
+    }
+    const placeholders = companyIds.map(() => '?').join(',')
+    allVacancies = await query<VacancyRow[]>(
+      `SELECT * FROM vacancies WHERE company_id IN (${placeholders}) ORDER BY date_created DESC LIMIT 200`,
+      companyIds
+    )
+  }
 
-  const vacancies = companyIds.length > 0
-    ? allVacancies.filter((v) => companyIds.includes(v.company_id))
-    : []
+  const vacancies = allVacancies
 
   const ids = vacancies.map((v) => v.company_id).filter(Boolean)
-
   const companyMap: Record<number, { name: string; address: string }> = {}
   if (ids.length > 0) {
     interface CompanyRow extends RowDataPacket {
@@ -43,11 +59,11 @@ export default async function MyJobsPage({
       company_name: string
       company_address: string | null
     }
-    const companies = await query<CompanyRow[]>(
+    const companyRows = await query<CompanyRow[]>(
       `SELECT company_id, company_name, company_address FROM companies WHERE company_id IN (${ids.map(() => '?').join(',')})`,
       ids
     )
-    for (const c of companies) {
+    for (const c of companyRows) {
       companyMap[c.company_id] = { name: c.company_name, address: c.company_address || '' }
     }
   }

@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 import { BrandLogo } from '@/components/layout/BrandLogo'
-import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { useAppPushNotifications } from '@/hooks/useAppPushNotifications'
 
 const PUBLIC_NAV = [
   { href: '/professionals', label: 'Find Vendors' },
@@ -58,7 +58,7 @@ export function Navbar() {
     router.push(`/messages?id=${conversationId}`)
   }, [router])
 
-  usePushNotifications(handleConversationOpen)
+  useAppPushNotifications(handleConversationOpen)
 
   useEffect(() => {
     if (!user) return
