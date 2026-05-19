@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
        ) w ON w.user_id = u.userId
        ${where}
        ORDER BY u.dateJoined DESC
-       LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
+       LIMIT ${limit} OFFSET ${offset}`,
+      params
     )
 
     return NextResponse.json({ success: true, data: rows, total, page, limit })

@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
        FROM admin_audit_log a
        LEFT JOIN users u ON u.uid = a.adminUid
        ORDER BY a.createdAt DESC
-       LIMIT ? OFFSET ?`,
-      [limit, offset]
+       LIMIT ${limit} OFFSET ${offset}`,
+      []
     )
 
     return NextResponse.json({ success: true, data: rows, total, page, limit })

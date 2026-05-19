@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
        LEFT JOIN businesses bu ON bu.businessId = b.businessId
        ${where}
        ORDER BY we.created_at DESC
-       LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
+       LIMIT ${limit} OFFSET ${offset}`,
+      params
     )
 
     return NextResponse.json({ success: true, data: rows, total, page, limit })

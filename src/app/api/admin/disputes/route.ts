@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
        LEFT JOIN users rb ON rb.uid = d.raisedBy
        ${where}
        ORDER BY d.createdAt DESC
-       LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
+       LIMIT ${limit} OFFSET ${offset}`,
+      params
     )
 
     return NextResponse.json({ success: true, data: rows, total, page, limit })

@@ -317,7 +317,7 @@ export async function listBusinesses(filters?: {
   if (filters?.state) { sql += ' AND state = ?'; params.push(filters.state) }
   if (filters?.search) { sql += ' AND (businessName LIKE ? OR description LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`) }
   sql += ' ORDER BY rating DESC, reviews DESC'
-  if (filters?.limit && filters.limit > 0) { sql += ' LIMIT ?'; params.push(filters.limit) }
+  if (filters?.limit && filters.limit > 0) { sql += ` LIMIT ${filters.limit}` }
   return query<BusinessRow[]>(sql, params)
 }
 
@@ -364,7 +364,7 @@ export async function listVendors(filters?: {
   if (filters?.state) { sql += ' AND b.state = ?'; params.push(filters.state) }
   if (filters?.search) { sql += ' AND (b.businessName LIKE ? OR b.description LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`) }
   sql += ' ORDER BY b.rating DESC, b.reviews DESC'
-  if (filters?.limit && filters.limit > 0) { sql += ' LIMIT ?'; params.push(filters.limit) }
+  if (filters?.limit && filters.limit > 0) { sql += ` LIMIT ${filters.limit}` }
 
   const rows = await query<VendorJoinRow[]>(sql, params)
   return rows.map((r) => {
@@ -436,7 +436,7 @@ export async function listVacancies(filters?: {
   if (filters?.job_type) { sql += ' AND job_type = ?'; params.push(filters.job_type) }
   sql += ' ORDER BY date_created DESC'
   const limit = filters?.limit && filters.limit > 0 ? filters.limit : 100
-  sql += ' LIMIT ?'; params.push(limit)
+  sql += ` LIMIT ${limit}`
   return query<VacancyRow[]>(sql, params)
 }
 
