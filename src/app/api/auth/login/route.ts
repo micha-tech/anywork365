@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { setSession, createSessionCookie } from '@/lib/auth'
 import { auth as adminAuth } from '@/lib/firebase/admin'
-import { getUserByUid } from '@/lib/queries'
+import { getUserRowByUid, getUserByUid } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse, AuthUser } from '@/types'
 
@@ -29,6 +29,15 @@ export async function POST(req: NextRequest) {
 
     const decoded = await adminAuth.verifyIdToken(idToken)
     const uid = decoded.uid
+
+    // Check suspension BEFORE allowing login
+    const userRow = await getUserRowByUid(uid)
+    if (userRow?.suspended) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Your account has been suspended. Please contact support@anywork365.ng' },
+        { status: 403 }
+      )
+    }
 
     const profile = await getUserByUid(uid)
     if (!profile) {

@@ -22,6 +22,15 @@ export async function GET() {
     )
   }
 
+  // If user was suspended after login, clear session and block
+  if (row.suspended) {
+    await clearSession()
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Your account has been suspended. Please contact support@anywork365.ng' },
+      { status: 403 }
+    )
+  }
+
   const hydrated: AuthUser = {
     ...session,
     phone: row.phoneNumber || session.phone,
