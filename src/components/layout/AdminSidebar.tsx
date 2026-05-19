@@ -92,13 +92,6 @@ export function AdminSidebar() {
 
       <div className="mt-auto pt-4 border-t border-slate-200 space-y-1">
         <Link
-          href="/dashboard"
-          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-500 hover:bg-brand-50 hover:text-brand-500 transition-colors"
-        >
-          <DashboardIcon className="w-4 h-4" />
-          User Dashboard
-        </Link>
-        <Link
           href="/"
           className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-500 hover:bg-brand-50 hover:text-brand-500 transition-colors"
         >
@@ -165,17 +158,6 @@ function VerifyIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M9 12l2 2 4-4" />
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  )
-}
-
-function DashboardIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
     </svg>
   )
 }

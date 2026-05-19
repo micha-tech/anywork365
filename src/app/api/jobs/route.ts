@@ -74,6 +74,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    if (session.role !== 'vendor') {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Only vendors can post jobs' },
+        { status: 403 }
+      )
+    }
+
     const rateLimit = checkRateLimit(`jobs:${session.id}`, 3, 60 * 1000)
     if (!rateLimit.allowed) {
       return NextResponse.json<ApiResponse<null>>(

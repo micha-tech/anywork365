@@ -435,7 +435,8 @@ export async function listVacancies(filters?: {
   if (filters?.location) { sql += ' AND vacancy_location = ?'; params.push(filters.location) }
   if (filters?.job_type) { sql += ' AND job_type = ?'; params.push(filters.job_type) }
   sql += ' ORDER BY date_created DESC'
-  if (filters?.limit && filters.limit > 0) { sql += ' LIMIT ?'; params.push(filters.limit) }
+  const limit = filters?.limit && filters.limit > 0 ? filters.limit : 100
+  sql += ' LIMIT ?'; params.push(limit)
   return query<VacancyRow[]>(sql, params)
 }
 
@@ -464,12 +465,24 @@ export async function getBookingById(id: number): Promise<BookingRow | null> {
   return queryOne<BookingRow[]>('SELECT * FROM bookings WHERE bookingId = ?', [id])
 }
 
-export async function getBookingsByClient(uid: string): Promise<BookingRow[]> {
-  return query<BookingRow[]>('SELECT * FROM bookings WHERE clientUID = ? ORDER BY dateBooked DESC', [uid])
+export async function getBookingsByClient(uid: string): Promise<(BookingRow & { businessName: string })[]> {
+  return query<(BookingRow & { businessName: string })[]>(
+    `SELECT b.*, COALESCE(bu.businessName, 'Vendor') AS businessName
+     FROM bookings b
+     LEFT JOIN businesses bu ON bu.businessId = b.businessId
+     WHERE b.clientUID = ?
+     ORDER BY b.dateBooked DESC
+     LIMIT 50`, [uid])
 }
 
-export async function getBookingsByBusiness(businessId: number): Promise<BookingRow[]> {
-  return query<BookingRow[]>('SELECT * FROM bookings WHERE businessId = ? ORDER BY dateBooked DESC', [businessId])
+export async function getBookingsByBusiness(businessId: number): Promise<(BookingRow & { fullName: string })[]> {
+  return query<(BookingRow & { fullName: string })[]>(
+    `SELECT b.*, COALESCE(u.fullName, 'Unknown') AS fullName
+     FROM bookings b
+     LEFT JOIN users u ON u.uid = b.clientUID
+     WHERE b.businessId = ?
+     ORDER BY b.dateBooked DESC
+     LIMIT 50`, [businessId])
 }
 
 // ─── Applications (Vacancy Applications) ──────────────────────────────────
@@ -695,6 +708,33 @@ export async function getUserWithdrawals(userId: number): Promise<WithdrawalRow[
 }
 
 // ─── Vendor creation(for signup) ──────────────────────────────────────────
+
+export async function updateBusiness(uid: string, data: {
+  businessName?: string
+  category?: string
+  businessContact?: string
+  description?: string
+  location?: string
+  state?: string
+  lga?: string
+  yearsOfExperience?: number
+  feePerHour?: number
+}): Promise<void> {
+  const sets: string[] = []
+  const params: SqlValue[] = []
+  if (data.businessName !== undefined) { sets.push('businessName = ?'); params.push(data.businessName) }
+  if (data.category !== undefined) { sets.push('category = ?'); params.push(data.category) }
+  if (data.businessContact !== undefined) { sets.push('businessContact = ?'); params.push(data.businessContact) }
+  if (data.description !== undefined) { sets.push('description = ?'); params.push(data.description) }
+  if (data.location !== undefined) { sets.push('location = ?'); params.push(data.location) }
+  if (data.state !== undefined) { sets.push('state = ?'); params.push(data.state) }
+  if (data.lga !== undefined) { sets.push('lga = ?'); params.push(data.lga) }
+  if (data.yearsOfExperience !== undefined) { sets.push('yearsOfExperience = ?'); params.push(data.yearsOfExperience) }
+  if (data.feePerHour !== undefined) { sets.push('feePerHour = ?'); params.push(data.feePerHour) }
+  if (sets.length === 0) return
+  params.push(uid)
+  await execute(`UPDATE businesses SET ${sets.join(', ')} WHERE uid = ? AND deleted = 0`, params)
+}
 
 export async function createBusiness(data: {
   uid: string

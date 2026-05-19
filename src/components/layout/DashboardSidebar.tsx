@@ -7,26 +7,52 @@ import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
 
-const NAV_ITEMS = [
+const VENDOR_NAV = [
   {
     label: 'Main',
     links: [
       { href: '/dashboard', label: 'Overview', icon: GridIcon },
       { href: '/dashboard/jobs', label: 'My Jobs', icon: BriefcaseIcon },
-      { href: '/dashboard/bookings', label: 'My Bookings', icon: BookingsIcon },
+      { href: '/dashboard/bookings', label: 'Bookings', icon: BookingsIcon },
       { href: '/dashboard/post-job', label: 'Post a Job', icon: PlusIcon },
       { href: '/messages', label: 'Messages', icon: ChatIcon },
     ],
   },
-    {
-      label: 'Account',
-      links: [
-        { href: '/dashboard/wallet', label: 'Wallet', icon: WalletIcon },
-        { href: '/dashboard/profile', label: 'My Profile', icon: UserIcon },
-        { href: '/dashboard/verify-business', label: 'Verification', icon: VerifyIcon },
-      ],
-    },
-  ]
+  {
+    label: 'Business',
+    links: [
+      { href: '/dashboard/my-business', label: 'My Business', icon: StoreIcon },
+      { href: '/dashboard/verify-business', label: 'Verification', icon: VerifyIcon },
+    ],
+  },
+  {
+    label: 'Account',
+    links: [
+      { href: '/dashboard/wallet', label: 'Wallet', icon: WalletIcon },
+      { href: '/dashboard/profile', label: 'My Profile', icon: UserIcon },
+    ],
+  },
+]
+
+const CLIENT_NAV = [
+  {
+    label: 'Main',
+    links: [
+      { href: '/dashboard', label: 'Overview', icon: GridIcon },
+      { href: '/professionals', label: 'Find Vendors', icon: SearchIcon },
+      { href: '/jobs', label: 'Browse Jobs', icon: BriefcaseIcon },
+      { href: '/dashboard/bookings', label: 'My Bookings', icon: BookingsIcon },
+      { href: '/messages', label: 'Messages', icon: ChatIcon },
+    ],
+  },
+  {
+    label: 'Account',
+    links: [
+      { href: '/dashboard/wallet', label: 'Wallet', icon: WalletIcon },
+      { href: '/dashboard/profile', label: 'My Profile', icon: UserIcon },
+    ],
+  },
+]
 
 export function DashboardSidebar() {
   const pathname = usePathname()
@@ -34,7 +60,9 @@ export function DashboardSidebar() {
 
   const initials = getInitialsFromUser(user)
   const fullName = user ? `${user.firstName} ${user.lastName}` : '...'
-  const role = user ? (user.role === 'vendor' ? 'Vendor' : user.role === 'admin' ? 'Admin' : 'User') : ''
+  const role = user ? (user.role === 'vendor' ? 'Vendor' : user.role === 'admin' ? 'Admin' : 'Client') : ''
+  const isVendor = user?.role === 'vendor'
+  const nav = isVendor ? VENDOR_NAV : CLIENT_NAV
 
   return (
     <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-white border-r border-slate-200 min-h-[calc(100dvh-64px)] py-6 px-3">
@@ -65,7 +93,7 @@ export function DashboardSidebar() {
         </div>
       </div>
 
-      {NAV_ITEMS.map((section) => (
+      {nav.map((section) => (
         <div key={section.label} className="mb-4">
           <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500 px-3 mb-1.5">
             {section.label}
@@ -211,6 +239,24 @@ function ShieldIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  )
+}
+
+function StoreIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  )
+}
+
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
   )
 }

@@ -1,6 +1,8 @@
 import Link from 'next/link'
-import { listVacancies } from '@/lib/queries'
+import { redirect } from 'next/navigation'
+import { listVacancies, getCompaniesByUid } from '@/lib/queries'
 import { query } from '@/lib/db'
+import { getSession } from '@/lib/auth'
 import { JobCard } from '@/components/forms/JobCard'
 import type { Job } from '@/types'
 import type { RowDataPacket } from 'mysql2'
@@ -15,10 +17,23 @@ export default async function MyJobsPage({
 }: {
   searchParams: Promise<{ tab?: string }>
 }) {
+  const session = await getSession()
+  if (!session || session.role !== 'vendor') redirect('/dashboard')
+
   const { tab: rawTab } = await searchParams
   const currentTab: Tab = TABS.includes(rawTab as Tab) ? (rawTab as Tab) : 'active'
 
-  const vacancies = await listVacancies()
+  const companies = await getCompaniesByUid(session.id)
+  const companyIds = companies.map((c) => c.company_id)
+
+  const allVacancies = companyIds.length > 0
+    ? await listVacancies()
+    : []
+
+  const vacancies = companyIds.length > 0
+    ? allVacancies.filter((v) => companyIds.includes(v.company_id))
+    : []
+
   const ids = vacancies.map((v) => v.company_id).filter(Boolean)
 
   const companyMap: Record<number, { name: string; address: string }> = {}

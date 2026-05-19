@@ -35,46 +35,15 @@ export async function GET() {
 
   let bookings: any[] = []
 
-  const { query } = await import('@/lib/db')
-
   if (session.role === 'vendor') {
     const business = await getBusinessByUid(session.id)
     if (business) {
       const rows = await getBookingsByBusiness(business.businessId)
-      const enriched = await Promise.all(rows.map(async (r) => {
-        const client = await getUserRowByUid(r.clientUID)
-        return {
-          id: r.bookingId,
-          businessId: r.businessId,
-          clientUID: r.clientUID,
-          clientName: client?.fullName || 'Unknown',
-          description: r.additionalInfo,
-          budget: r.amountAgreed,
-          priceConfirmed: r.priceConfirmed,
-          date: r.bookedDate,
-          location: r.appointmentAddress,
-          status: mapStatus(r.bookingStatus),
-          clientDecision: r.clientDecision,
-          vendorDecision: r.vendorDecision,
-          jobStatus: r.jobStatus,
-          createdAt: r.dateBooked,
-          meetingPoint: r.meetingPoint,
-          reasonForCancellation: r.reasonForCancellation,
-        }
-      }))
-      bookings = enriched
-    }
-  } else {
-    const rows = await getBookingsByClient(session.id)
-    const enriched = await Promise.all(rows.map(async (r) => {
-      interface BusNameRow extends RowDataPacket { businessName: string }
-      const busRows = await query<BusNameRow[]>('SELECT businessName FROM businesses WHERE businessId = ?', [r.businessId])
-      const businessName = busRows.length > 0 ? busRows[0].businessName : 'Vendor'
-      return {
+      bookings = rows.map((r) => ({
         id: r.bookingId,
         businessId: r.businessId,
         clientUID: r.clientUID,
-        businessName,
+        clientName: r.fullName,
         description: r.additionalInfo,
         budget: r.amountAgreed,
         priceConfirmed: r.priceConfirmed,
@@ -87,9 +56,28 @@ export async function GET() {
         createdAt: r.dateBooked,
         meetingPoint: r.meetingPoint,
         reasonForCancellation: r.reasonForCancellation,
-      }
+      }))
+    }
+  } else {
+    const rows = await getBookingsByClient(session.id)
+    bookings = rows.map((r) => ({
+      id: r.bookingId,
+      businessId: r.businessId,
+      clientUID: r.clientUID,
+      businessName: r.businessName,
+      description: r.additionalInfo,
+      budget: r.amountAgreed,
+      priceConfirmed: r.priceConfirmed,
+      date: r.bookedDate,
+      location: r.appointmentAddress,
+      status: mapStatus(r.bookingStatus),
+      clientDecision: r.clientDecision,
+      vendorDecision: r.vendorDecision,
+      jobStatus: r.jobStatus,
+      createdAt: r.dateBooked,
+      meetingPoint: r.meetingPoint,
+      reasonForCancellation: r.reasonForCancellation,
     }))
-    bookings = enriched
   }
 
   return NextResponse.json<ApiResponse<any>>(
@@ -104,6 +92,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },
       { status: 401 }
+    )
+  }
+
+  if (session.role === 'vendor') {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Only clients can book vendors' },
+      { status: 403 }
     )
   }
 
