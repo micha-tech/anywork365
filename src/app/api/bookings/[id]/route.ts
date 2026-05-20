@@ -139,11 +139,6 @@ export async function PATCH(
       const platformFee = Math.round(amount * PLATFORM_FEE_PERCENT / 100)
       const proAmount = amount - platformFee
 
-      const [balRows] = await conn.query<mysql.RowDataPacket[]>('SELECT balance_after FROM wallet_ledger WHERE wallet_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE', [clientWalletRows[0].id])
-      const clientBal = balRows.length > 0 ? balRows[0].balance_after : 0
-      await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-        [clientWalletRows[0].id, amount, 'credit', clientBal + amount, `Escrow released for booking #${bookingId}`])
-
       if (vendorRows.length > 0) {
         const [vWalletRows] = await conn.query<mysql.RowDataPacket[]>('SELECT id FROM wallets WHERE user_id = ?', [vendorRows[0].userId])
         if (vWalletRows.length > 0) {
@@ -152,6 +147,14 @@ export async function PATCH(
           await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
             [vWalletRows[0].id, proAmount, 'credit', vBal + proAmount, `Job earnings - booking #${bookingId}`])
         }
+      }
+
+      const [escWalletRows] = await conn.query<mysql.RowDataPacket[]>('SELECT id FROM wallets WHERE wallet_type = ? LIMIT 1', ['escrow'])
+      if (escWalletRows.length > 0) {
+        const [eBalRows] = await conn.query<mysql.RowDataPacket[]>('SELECT balance_after FROM wallet_ledger WHERE wallet_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE', [escWalletRows[0].id])
+        const eBal = eBalRows.length > 0 ? eBalRows[0].balance_after : 0
+        await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+          [escWalletRows[0].id, platformFee, 'credit', eBal + platformFee, `Platform fee - booking #${bookingId}`])
       }
 
       await conn.execute("UPDATE wallet_escrow SET status = 'released', released_at = NOW() WHERE booking_id = ?", [bookingId])

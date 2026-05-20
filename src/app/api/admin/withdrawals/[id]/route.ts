@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { queryOne, execute } from '@/lib/db'
 import type { RowDataPacket } from 'mysql2/promise'
 import { requireAdminApi, unauthorized, logAdminAction } from '@/lib/admin'
+import { rollbackWithdrawal } from '@/lib/wallet'
 
 type AnyRow = RowDataPacket & Record<string, unknown>
 
@@ -27,8 +28,7 @@ export async function POST(
       await execute("UPDATE withdrawals SET status = 'paid' WHERE id = ?", [id])
       await logAdminAction(session.id, 'mark_withdrawal_paid', 'withdrawal', id)
     } else if (action === 'mark_failed') {
-      await execute("UPDATE withdrawals SET status = 'failed' WHERE id = ?",
-        [id])
+      await rollbackWithdrawal(id, body.reason || 'Transfer failed')
       await logAdminAction(session.id, 'mark_withdrawal_failed', 'withdrawal', id, { reason: body.reason })
     } else {
       return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 })
