@@ -289,12 +289,28 @@ function WalletPageContent() {
       {wallet?.isVerified && (
         <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">
           <span className="text-green-600 text-lg leading-none mt-0.5">✓</span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-green-800">Bank account verified</p>
             <p className="text-xs text-green-700 break-words">
               {wallet.bankName} ****{wallet.bankAccountNumber?.slice(-4)}
             </p>
           </div>
+          <button
+            onClick={async () => {
+              if (!confirm('Remove this bank account?')) return
+              const res = await fetch('/api/wallet/bank-account', { method: 'DELETE' })
+              const d = await res.json()
+              if (d.success) {
+                setMessage({ type: 'success', text: 'Bank account removed' })
+                fetchWallet()
+              } else {
+                setMessage({ type: 'error', text: d.error ?? 'Failed to remove' })
+              }
+            }}
+            className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium flex-shrink-0"
+          >
+            Remove
+          </button>
         </div>
       )}
 
@@ -497,12 +513,30 @@ function WalletPageContent() {
           </p>
 
           {wallet?.isVerified && (
-            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-5">
-              <p className="text-sm font-medium text-green-800">Verified bank account</p>
-              <p className="text-xs text-green-700 mt-0.5 break-words">
-                {wallet.bankName} - ****{wallet.bankAccountNumber?.slice(-4)}
-              </p>
-              <p className="text-xs text-green-600 mt-2">You can update this by adding a new account below.</p>
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-5 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-green-800">Verified bank account</p>
+                <p className="text-xs text-green-700 mt-0.5 break-words">
+                  {wallet.bankName} - ****{wallet.bankAccountNumber?.slice(-4)}
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  if (!confirm('Remove this bank account?')) return
+                  const res = await fetch('/api/wallet/bank-account', { method: 'DELETE' })
+                  const d = await res.json()
+                  if (d.success) {
+                    setMessage({ type: 'success', text: 'Bank account removed' })
+                    setActiveTab('overview')
+                    fetchWallet()
+                  } else {
+                    setMessage({ type: 'error', text: d.error ?? 'Failed to remove' })
+                  }
+                }}
+                className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium flex-shrink-0"
+              >
+                Remove
+              </button>
             </div>
           )}
 

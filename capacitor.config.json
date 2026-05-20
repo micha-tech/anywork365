@@ -4,7 +4,7 @@
   "webDir": "capacitor-public",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://anywork-365-inky.vercel.app",
+    "url": "https://anywork365-blond.vercel.app",
     "androidScheme": "https",
     "cleartext": true
   },

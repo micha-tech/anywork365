@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import { resolveAccountNumber, createTransferRecipient } from '@/lib/paystack'
-import { saveBankAccount } from '@/lib/wallet'
+import { saveBankAccount, deleteBankAccount } from '@/lib/wallet'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
 
@@ -128,6 +128,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Failed to save bank account' },
       { status: 400 }
+    )
+  }
+}
+
+export async function DELETE() {
+  try {
+    const session = await getSession()
+    if (!session) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    await deleteBankAccount(session.id)
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('[BANK ACCOUNT DELETE]', err)
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Failed to remove bank account' },
+      { status: 500 }
     )
   }
 }

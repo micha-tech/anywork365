@@ -11,6 +11,7 @@ import {
   getUserWithdrawals,
   createDbNotification,
 } from '@/lib/queries'
+import { execute } from '@/lib/db'
 import type { Wallet, WalletTransaction, WithdrawalRequest } from '@/types'
 import { generateReference } from './paystack'
 
@@ -151,6 +152,14 @@ export async function hasSuccessfulTransactionReference(
     console.error('[WALLET] hasSuccessfulTransactionReference error:', err)
     return false
   }
+}
+
+// ─── Delete bank account ────────────────────────────────────────────────
+
+export async function deleteBankAccount(userId: string): Promise<void> {
+  const userRow = await getUserRowByUid(userId)
+  if (!userRow) throw new Error('User not found')
+  await execute('DELETE FROM withdrawal_accounts WHERE user_id = ?', [userRow.userId])
 }
 
 // ─── Save bank account ──────────────────────────────────────────────────
