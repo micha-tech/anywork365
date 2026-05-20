@@ -197,22 +197,17 @@ export interface JobsFilter {
   maxBudget?: number
 }
 
-// ─── Nigerian Cities ──────────────────────────────────────────────────────────
+// ─── Nigerian States ──────────────────────────────────────────────────────────
 
-export const NIGERIAN_CITIES = [
-  'Lagos',
-  'Abuja',
-  'Port Harcourt',
-  'Kano',
-  'Ibadan',
-  'Enugu',
-  'Benin City',
-  'Kaduna',
-  'Owerri',
-  'Uyo',
+export const NIGERIAN_STATE_NAMES = [
+  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue',
+  'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu',
+  'FCT', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi',
+  'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun',
+  'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara',
 ] as const
 
-export type NigerianCity = typeof NIGERIAN_CITIES[number]
+export type NigerianState = typeof NIGERIAN_STATE_NAMES[number]
 
 export const JOB_CATEGORIES: JobCategory[] = [
   'Repair services',

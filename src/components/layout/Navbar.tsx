@@ -21,6 +21,10 @@ const AUTH_NAV = [
   { href: '/dashboard',     label: 'Dashboard' },
 ]
 
+const ADMIN_NAV = [
+  { href: '/admin', label: 'Admin Panel' },
+]
+
 function NotificationBell({ unreadCount, onClick }: { unreadCount: number; onClick: () => void }) {
   return (
     <button
@@ -51,7 +55,8 @@ export function Navbar() {
   const hideNavbar = pathname === '/login' || pathname === '/signup' || pathname === '/onboarding'
 
   const isLoggedIn = !loading && !!user
-  const navLinks   = isLoggedIn ? AUTH_NAV : PUBLIC_NAV
+  const isAdmin    = user?.role === 'admin'
+  const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? AUTH_NAV : PUBLIC_NAV
   const initials   = getInitialsFromUser(user)
 
   const handleConversationOpen = useCallback((conversationId: string) => {
@@ -145,12 +150,14 @@ export function Navbar() {
                         <p className="text-sm font-semibold text-slate-900">{user?.firstName} {user?.lastName}</p>
                         <p className="text-xs text-slate-400 capitalize mt-0.5">{user?.role}</p>
                       </div>
-                      {[
+                      {(isAdmin ? [
+                        { href: '/admin', label: 'Admin Panel' },
+                      ] : [
                         { href: '/dashboard',        label: 'Dashboard' },
                         { href: '/messages',         label: 'Messages' },
                         { href: '/dashboard/wallet', label: 'Wallet' },
                         { href: '/dashboard/profile',label: 'My Profile' },
-                      ].map((item) => (
+                      ]).map((item) => (
                         <Link
                           key={item.href}
                           href={item.href}
@@ -238,7 +245,7 @@ export function Navbar() {
                 </Link>
               ))}
 
-              {isLoggedIn && (
+              {isLoggedIn && !isAdmin && (
                 <>
                   <div className="border-t border-slate-100 mt-2 pt-2">
                     {[

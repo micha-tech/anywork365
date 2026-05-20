@@ -10,6 +10,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/verify-email')
   }
 
+  if (session?.role === 'admin') {
+    redirect('/admin')
+  }
+
   return (
     <div className="flex min-h-[calc(100dvh-64px)]">
       {/* Sidebar — desktop only */}

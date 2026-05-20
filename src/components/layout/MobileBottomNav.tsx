@@ -9,6 +9,41 @@ export function MobileBottomNav() {
   const pathname = usePathname()
   const { user } = useCurrentUser()
   const isVendor = user?.role === 'vendor'
+  const isAdmin = user?.role === 'admin'
+
+  if (isAdmin) {
+    return (
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe">
+        <div className="flex items-center justify-center px-2 h-16">
+          <Link
+            href="/admin"
+            className={cn(
+              'flex flex-col items-center justify-center gap-1 transition-colors',
+              pathname.startsWith('/admin') ? 'text-brand-500' : 'text-slate-500'
+            )}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={pathname.startsWith('/admin') ? 2.5 : 2} strokeLinecap="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <span className="text-[10px] font-medium">Admin Panel</span>
+            {pathname.startsWith('/admin') && (
+              <span className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-brand-500" />
+            )}
+          </Link>
+          <Link
+            href="/"
+            className="flex flex-col items-center justify-center gap-1 transition-colors text-slate-500 ml-8"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span className="text-[10px] font-medium">Home</span>
+          </Link>
+        </div>
+      </nav>
+    )
+  }
 
   const TABS = isVendor
     ? [

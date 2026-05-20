@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { jobPostSchema, type JobPostInput } from '@/lib/validators/job'
 import { jobsApi } from '@/lib/api'
-import { JOB_CATEGORIES, NIGERIAN_CITIES } from '@/types'
+import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 
 export default function PostJobPage() {
   const router = useRouter()
@@ -138,8 +138,8 @@ export default function PostJobPage() {
                 {...register('city')}
                 className={`input-field appearance-none ${errors.city ? 'border-red-400' : ''}`}
               >
-                <option value="">Select city</option>
-                {NIGERIAN_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                <option value="">Select state</option>
+                {NIGERIAN_STATE_NAMES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
               {errors.city && <p className="mt-1.5 text-xs text-red-500">{errors.city.message}</p>}
             </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { NIGERIAN_CITIES, JOB_CATEGORIES } from '@/types'
+import { NIGERIAN_STATE_NAMES, JOB_CATEGORIES } from '@/types'
 
 interface BusinessData {
   businessName: string
@@ -188,9 +188,9 @@ export default function MyBusinessPage() {
               value={form.state}
               onChange={(e) => update('state', e.target.value)}
             >
-              <option value="">Select city</option>
-              {NIGERIAN_CITIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              <option value="">Select state</option>
+              {NIGERIAN_STATE_NAMES.map((s) => (
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>

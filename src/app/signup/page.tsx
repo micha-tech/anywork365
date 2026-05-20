@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signupSchema, type SignupInput, COUNTRY_CODES } from '@/lib/validators/auth'
 import { signUp } from '@/lib/firebase/auth'
-import { NIGERIAN_CITIES } from '@/types'
+import { NIGERIAN_STATE_NAMES } from '@/types'
 import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
 
@@ -184,10 +184,10 @@ export default function SignupPage() {
             </div>
 
             <div className="form-group">
-              <label className="label">City</label>
+              <label className="label">State</label>
               <select {...register('city')} className={`input-field appearance-none ${errors.city ? 'border-red-400' : ''}`}>
-                <option value="">Select your city</option>
-                {NIGERIAN_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}
+                <option value="">Select your state</option>
+                {NIGERIAN_STATE_NAMES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
               {errors.city && <p className="mt-1 text-xs text-red-500">{errors.city.message}</p>}
             </div>

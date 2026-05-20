@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Avatar } from '@/components/ui'
-import { NIGERIAN_CITIES } from '@/types'
+import { NIGERIAN_STATE_NAMES } from '@/types'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 
 export default function ProfilePage() {
@@ -295,9 +295,9 @@ export default function ProfilePage() {
           </div>
           <div className="form-group">
             <label className="label">City</label>
-            <select className="input-field appearance-none" defaultValue={user?.city ?? NIGERIAN_CITIES[0]}>
-              {NIGERIAN_CITIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+            <select className="input-field appearance-none" defaultValue={user?.city ?? NIGERIAN_STATE_NAMES[0]}>
+              {NIGERIAN_STATE_NAMES.map((s) => (
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { JOB_CATEGORIES, NIGERIAN_CITIES } from '@/types'
+import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { CategoryIcon } from '@/components/ui/CategoryIcon'
 import { SkeletonProCard, SkeletonJobCard } from '@/components/ui/Skeleton'
@@ -104,12 +104,12 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
                 />
               </div>
               <select
-                name="city"
+                name="state"
                 className="h-[52px] px-4 rounded-xl border-2 border-slate-200 bg-white text-slate-700 focus:border-brand-400 outline-none transition-all cursor-pointer text-sm font-medium"
               >
-                <option value="">All cities</option>
-                {NIGERIAN_CITIES.slice(0, 12).map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                <option value="">All states</option>
+                {NIGERIAN_STATE_NAMES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
               <button

@@ -14,8 +14,6 @@ CREATE TABLE IF NOT EXISTS users (
   nin             VARCHAR(20) DEFAULT NULL,
   address         VARCHAR(500) NOT NULL DEFAULT '',
   googleAddress   VARCHAR(500) NOT NULL DEFAULT '',
-  userLat         VARCHAR(50) NOT NULL DEFAULT '0.0',
-  userLong        VARCHAR(50) NOT NULL DEFAULT '0.0',
   hasBusinessAccount TINYINT(1) NOT NULL DEFAULT 0,
   role            ENUM('client','vendor','admin') DEFAULT NULL,
   verified        TINYINT(1) NOT NULL DEFAULT 0,

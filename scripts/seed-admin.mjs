@@ -99,8 +99,8 @@ async function main() {
       console.log(`Updated role=admin for ${a.email}`)
     } else {
       await conn.execute(
-        `INSERT INTO users (uid, email, fullName, phoneNumber, state, gender, profileImage, address, googleAddress, userLat, userLong, hasBusinessAccount, role, verified, suspended, businessUuid, loginProvider, dateJoined, deleted)
-         VALUES (?, ?, ?, '', 'Lagos', '', '', '', '', '0.0', '0.0', 0, 'admin', 1, 0, ?, 'seed', NOW(), 0)`,
+        `INSERT INTO users (uid, email, fullName, phoneNumber, state, gender, profileImage, address, googleAddress, hasBusinessAccount, role, verified, suspended, businessUuid, loginProvider, dateJoined, deleted)
+         VALUES (?, ?, ?, '', 'Lagos', '', '', '', '', 0, 'admin', 1, 0, ?, 'seed', NOW(), 0)`,
         [uid, a.email, a.name, uid.substring(0, 8)]
       )
       console.log(`Created DB user for ${a.email}`)

@@ -1,7 +1,7 @@
 import { listVendors } from '@/lib/queries'
 import { ProCard } from '@/components/forms/ProCard'
 import { EmptyState } from '@/components/ui'
-import { JOB_CATEGORIES, NIGERIAN_CITIES } from '@/types'
+import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +16,6 @@ interface Props {
 export default async function ProfessionalsPage({ searchParams }: Props) {
   const { category, city, search, page } = (await searchParams) ?? {}
   const currentPage = Math.max(1, parseInt(page || '1'))
-  const offset = (currentPage - 1) * PAGE_SIZE
 
   const allVendors = await listVendors({ category, state: city, search })
   const vendors = allVendors.slice(0, currentPage * PAGE_SIZE)
@@ -41,9 +40,9 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
             placeholder="Search by skill, name, or keyword..."
           />
           <div className="flex gap-2">
-            <select name="city" defaultValue={city} className="input-field flex-1 sm:w-44 appearance-none">
-              <option value="">All Cities</option>
-              {NIGERIAN_CITIES.map((c) => (
+            <select name="state" defaultValue={city} className="input-field flex-1 sm:w-44 appearance-none">
+              <option value="">All States</option>
+              {NIGERIAN_STATE_NAMES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
@@ -78,7 +77,7 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
             {hasMore && (
               <div className="flex justify-center mt-6 sm:mt-8">
                 <a
-                  href={`/professionals?${new URLSearchParams({ ...(category ? { category } : {}), ...(city ? { city } : {}), ...(search ? { search } : {}), page: String(currentPage + 1) }).toString()}`}
+                  href={`/professionals?${new URLSearchParams({ ...(category ? { category } : {}), ...(city ? { state: city } : {}), ...(search ? { search } : {}), page: String(currentPage + 1) }).toString()}`}
                   className="btn-outline px-8 py-3"
                 >
                   Load More ({totalCount - currentPage * PAGE_SIZE} remaining)
