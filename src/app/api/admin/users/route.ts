@@ -79,12 +79,6 @@ export async function PATCH(request: NextRequest) {
     } else if (act === 'unsuspend') {
       await execute('UPDATE users SET suspended = 0 WHERE uid = ?', [uid])
       await logAdminAction(session.id, 'unsuspend_user', 'user', uid)
-    } else if (act === 'set_role' && body.role) {
-      if (!['client', 'vendor', 'admin'].includes(body.role)) {
-        return NextResponse.json({ success: false, error: 'Invalid role' }, { status: 400 })
-      }
-      await execute('UPDATE users SET role = ? WHERE uid = ?', [body.role, uid])
-      await logAdminAction(session.id, 'set_role', 'user', uid, { role: body.role })
     } else {
       return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 })
     }

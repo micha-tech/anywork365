@@ -127,9 +127,6 @@ export default function AdminUsersPage() {
                     ) : (
                       <button onClick={() => handleAction(u.uid, 'suspend')} className="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100">Suspend</button>
                     )}
-                    {u.role !== 'admin' && (
-                      <button onClick={() => handleAction(u.uid, 'set_role', 'admin')} className="text-xs px-2 py-1 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100">Make Admin</button>
-                    )}
                   </div>
                 </td>
               </tr>

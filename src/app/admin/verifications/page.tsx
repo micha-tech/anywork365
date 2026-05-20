@@ -45,12 +45,12 @@ export default function AdminVerificationsPage() {
   useEffect(() => { loadData() }, [loadData])
 
   const review = async (id: number, action: string) => {
-    const adminNotes = action === 'reject' ? prompt('Reason for rejection:') : ''
+    const adminNotes = prompt(action === 'approve' ? 'Add notes (optional):' : 'Reason for rejection:') || ''
     if (action === 'reject' && !adminNotes) return
     const res = await fetch(`/api/admin/verifications/${id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, adminNotes: adminNotes || 'Approved by admin' }),
+      body: JSON.stringify({ action, adminNotes }),
     })
     const d = await res.json()
     if (d.success) loadData()

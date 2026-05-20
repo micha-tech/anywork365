@@ -4,6 +4,34 @@ import { useEffect, useState, useCallback } from 'react'
 
 type Tab = 'transactions' | 'escrows' | 'withdrawals'
 
+interface TransactionRow {
+  id: number
+  reference: string
+  fullName: string
+  email: string
+  type: string
+  status: string
+  created_at: string
+}
+
+interface EscrowRow {
+  id: number
+  booking_id: number
+  bookingTitle: string
+  amount: number
+  status: string
+  created_at: string
+}
+
+interface WithdrawalRow {
+  id: number
+  fullName: string
+  amount: number
+  bankName: string
+  status: string
+  createdAt: string
+}
+
 export default function AdminReconciliationPage() {
   const [tab, setTab] = useState<Tab>('transactions')
 
@@ -28,7 +56,7 @@ export default function AdminReconciliationPage() {
 }
 
 function TransactionsTab() {
-  const [rows, setRows] = useState<Record<string, unknown>[]>([])
+  const [rows, setRows] = useState<TransactionRow[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -60,13 +88,13 @@ function TransactionsTab() {
         <tbody>
           {loading ? <tr><td colSpan={5} className="p-6 text-center text-slate-400">Loading...</td></tr> :
             rows.length === 0 ? <tr><td colSpan={5} className="p-6 text-center text-slate-400">No transactions</td></tr> :
-            rows.map((r: any, i: number) => (
+            rows.map((r, i) => (
               <tr key={r.id || i} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="p-3 text-xs font-mono text-slate-600">{r.reference || '-'}</td>
                 <td className="p-3 text-slate-900">{r.fullName || r.email || '-'}</td>
                 <td className="p-3"><span className="text-xs px-2 py-0.5 rounded-full bg-slate-100">{r.type}</span></td>
                 <td className="p-3"><span className={`text-xs font-medium ${r.status === 'success' ? 'text-green-600' : r.status === 'failed' ? 'text-red-600' : 'text-yellow-600'}`}>{r.status}</span></td>
-                <td className="p-3 text-xs text-slate-400">{r.created_at ? new Date(r.created_at as string).toLocaleDateString() : '-'}</td>
+                <td className="p-3 text-xs text-slate-400">{r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
         </tbody>
@@ -83,7 +111,7 @@ function TransactionsTab() {
 }
 
 function EscrowsTab() {
-  const [rows, setRows] = useState<Record<string, unknown>[]>([])
+  const [rows, setRows] = useState<EscrowRow[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -114,12 +142,12 @@ function EscrowsTab() {
         <tbody>
           {loading ? <tr><td colSpan={4} className="p-6 text-center text-slate-400">Loading...</td></tr> :
             rows.length === 0 ? <tr><td colSpan={4} className="p-6 text-center text-slate-400">No escrows</td></tr> :
-            rows.map((r: any, i: number) => (
+            rows.map((r, i) => (
               <tr key={r.id || i} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="p-3 text-slate-900">{r.bookingTitle || `#${r.booking_id}`}</td>
-                <td className="p-3 text-slate-600">₦{Number(r.amount).toLocaleString()}</td>
+                <td className="p-3 text-slate-600">₦{r.amount.toLocaleString()}</td>
                 <td className="p-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full ${r.status === 'held' ? 'bg-yellow-100 text-yellow-700' : r.status === 'released' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{r.status}</span></td>
-                <td className="p-3 text-xs text-slate-400">{r.created_at ? new Date(r.created_at as string).toLocaleDateString() : '-'}</td>
+                <td className="p-3 text-xs text-slate-400">{r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
         </tbody>
@@ -136,7 +164,7 @@ function EscrowsTab() {
 }
 
 function WithdrawalsTab() {
-  const [rows, setRows] = useState<Record<string, unknown>[]>([])
+  const [rows, setRows] = useState<WithdrawalRow[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -152,7 +180,7 @@ function WithdrawalsTab() {
 
   useEffect(() => { loadData() }, [loadData])
 
-  const markPaid = async (id: string) => {
+  const markPaid = async (id: number) => {
     const res = await fetch(`/api/admin/withdrawals/${id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -162,7 +190,7 @@ function WithdrawalsTab() {
     if (d.success) loadData()
   }
 
-  const markFailed = async (id: string) => {
+  const markFailed = async (id: number) => {
     const reason = prompt('Reason for failure:')
     if (!reason) return
     const res = await fetch(`/api/admin/withdrawals/${id}`, {
@@ -191,13 +219,13 @@ function WithdrawalsTab() {
         <tbody>
           {loading ? <tr><td colSpan={6} className="p-6 text-center text-slate-400">Loading...</td></tr> :
             rows.length === 0 ? <tr><td colSpan={6} className="p-6 text-center text-slate-400">No withdrawals</td></tr> :
-            rows.map((r: any, i: number) => (
+            rows.map((r, i) => (
               <tr key={r.id || i} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="p-3 text-slate-900">{r.fullName || r.userId}</td>
-                <td className="p-3 text-slate-600">₦{Number(r.amount).toLocaleString()}</td>
+                <td className="p-3 text-slate-900">{r.fullName || '-'}</td>
+                <td className="p-3 text-slate-600">₦{r.amount.toLocaleString()}</td>
                 <td className="p-3 text-xs text-slate-500">{r.bankName || '-'}</td>
                 <td className="p-3"><span className={`text-xs font-medium ${r.status === 'paid' ? 'text-green-600' : r.status === 'pending' ? 'text-yellow-600' : 'text-red-600'}`}>{r.status}</span></td>
-                <td className="p-3 text-xs text-slate-400">{r.createdAt ? new Date(r.createdAt as string).toLocaleDateString() : '-'}</td>
+                <td className="p-3 text-xs text-slate-400">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'}</td>
                 <td className="p-3">
                   <div className="flex gap-1">
                     {r.status === 'pending' && (

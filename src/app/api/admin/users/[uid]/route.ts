@@ -36,12 +36,9 @@ export async function GET(
     )
 
     const recentTransactions = await query<AnyRow[]>(
-      `SELECT wt.* FROM wallet_transactions wt
-       WHERE wt.reference IN (
-         SELECT wl.description FROM wallet_ledger wl
-         WHERE wl.wallet_id = (SELECT id FROM wallets WHERE user_id = (SELECT userId FROM users WHERE uid = ?) LIMIT 1)
-       )
-       ORDER BY wt.created_at DESC LIMIT 20`,
+      `SELECT wl.* FROM wallet_ledger wl
+       WHERE wl.wallet_id = (SELECT id FROM wallets WHERE user_id = (SELECT userId FROM users WHERE uid = ?) LIMIT 1)
+       ORDER BY wl.id DESC LIMIT 20`,
       [uid]
     )
 

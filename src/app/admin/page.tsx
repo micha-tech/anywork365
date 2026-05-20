@@ -58,6 +58,12 @@ export default function AdminOverviewPage() {
         <Link href="/admin/users" className="text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 hover:border-brand-300 transition-colors">
           Manage Users
         </Link>
+        <Link href="/admin/disputes" className="text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 hover:border-brand-300 transition-colors">
+          Disputes: <span className="font-semibold text-brand-500">{stats?.openDisputes ?? 0}</span>
+        </Link>
+        <Link href="/admin/analytics" className="text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 hover:border-brand-300 transition-colors">
+          Analytics
+        </Link>
       </div>
     </div>
   )

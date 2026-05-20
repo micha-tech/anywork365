@@ -52,12 +52,13 @@ export default function AdminDisputesPage() {
   }
 
   const investigate = async (id: number) => {
-    await fetch(`/api/admin/disputes/${id}`, {
+    const res = await fetch(`/api/admin/disputes/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'investigating' }),
     })
-    loadData()
+    const d = await res.json()
+    if (d.success) loadData()
   }
 
   return (

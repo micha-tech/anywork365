@@ -3,7 +3,12 @@ import { requireAdmin } from '@/lib/admin'
 import Link from 'next/link'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const _session = await requireAdmin()
+  let _session: { id: string; email: string }
+  try {
+    _session = await requireAdmin()
+  } catch {
+    return <div className="flex items-center justify-center min-h-screen text-sm text-slate-500">Access denied</div>
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50">
