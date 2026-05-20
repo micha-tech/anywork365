@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { CategoryIcon } from '@/components/ui/CategoryIcon'
+import { AppFooter } from '@/components/layout/AppFooter'
 import { SkeletonProCard, SkeletonJobCard } from '@/components/ui/Skeleton'
 import type { User, Job, AuthUser } from '@/types'
 
@@ -465,6 +466,7 @@ export default function HomePage() {
           </div>
         </section>
       )}
+      <AppFooter />
     </div>
   )
 }
