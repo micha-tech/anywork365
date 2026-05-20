@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
 import { ToastProvider } from '@/components/ui/Toast'
 import { OnboardingGuard } from '@/components/OnboardingGuard'
+import { AppFooter } from '@/components/layout/AppFooter'
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Navbar />
             <OfflineBanner />
             <main className="page-enter">{children}</main>
+            <AppFooter />
           </OnboardingGuard>
         </ToastProvider>
       </body>
