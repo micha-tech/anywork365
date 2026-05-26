@@ -31,7 +31,7 @@ export default function AdminAnalyticsPage() {
   }, [])
 
   if (loading) return <div className="text-sm text-slate-500">Loading...</div>
-  if (!stats) return <div className="text-sm text-red-500">Failed to load stats</div>
+  if (!stats) return <div className="text-sm text-amber-600">Couldn\u2019t load stats</div>
 
   return (
     <div className="space-y-6">

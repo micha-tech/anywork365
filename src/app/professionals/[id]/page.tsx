@@ -4,6 +4,7 @@ import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { notFound } from 'next/navigation'
+import { toast } from 'sonner'
 import { Avatar, Badge, Stars } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
 import { getInitials } from '@/lib/utils'
@@ -92,10 +93,10 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
       if (data.success) {
         router.push(`/messages?id=${data.data.conversation.id}`)
       } else {
-        alert(data.error || 'Failed to start chat')
+        toast.error(data.error || 'Failed to start chat')
       }
     } catch {
-      alert('Failed to start chat. Please try again.')
+      toast.error('Failed to start chat')
     } finally {
       setStartingChat(false)
     }
@@ -103,7 +104,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
   function handleCall(type: 'voice' | 'video') {
     if (!pro?.phone) {
-      alert('This vendor has not shared their phone number')
+      toast.error('This vendor hasn\u2019t shared their phone number')
       return
     }
     setCalling(type)
@@ -123,7 +124,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
         
         window.open(url, '_blank', 'noopener,noreferrer')
       } catch {
-        alert('Failed to initiate call. Please try again.')
+        toast.error('Failed to initiate call')
       } finally {
         setCalling(null)
       }
@@ -132,7 +133,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
   function handleQuickConnect() {
     if (!pro?.phone) {
-      alert('This vendor has not shared their phone number')
+      toast.error('This vendor hasn\u2019t shared their phone number')
       return
     }
     setQuickConnecting(true)
@@ -152,7 +153,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
         
         window.open(targetUrl, '_blank', 'noopener,noreferrer')
       } catch {
-        alert('Failed to open WhatsApp. Please try again.')
+        toast.error('Failed to open WhatsApp')
       } finally {
         setQuickConnecting(false)
       }
@@ -394,7 +395,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
       <Modal open={bookOpen} onClose={() => { setBookOpen(false); setBookingError('') }} title={`Book ${pro.firstName} ${pro.lastName}`}>
         <form onSubmit={handleBook}>
           {bookingError && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
+            <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-xl mb-4">
               {bookingError}
             </div>
           )}

@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signupSchema, type SignupInput, COUNTRY_CODES } from '@/lib/validators/auth'
 import { signUp } from '@/lib/firebase/auth'
+import { toErrorMessage } from '@/lib/utils'
 import { NIGERIAN_STATE_NAMES } from '@/types'
 import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
@@ -45,12 +46,7 @@ export default function SignupPage() {
       })
 
       if (error || !result || !fbUser) {
-        const messages: Record<string, string> = {
-          'auth/email-already-in-use': 'An account with this email already exists',
-          'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
-          'auth/invalid-email': 'Invalid email address',
-        }
-        setServerError(messages[error?.code ?? ''] ?? 'Signup failed. Please try again.')
+        setServerError(toErrorMessage(error))
         return
       }
 

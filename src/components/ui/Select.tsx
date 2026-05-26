@@ -24,7 +24,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           id={inputId}
           className={cn(
             'input-field appearance-none bg-white',
-            error && 'border-red-400',
+            error && 'border-amber-300',
             className
           )}
           {...props}
@@ -36,7 +36,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+        {error && <p className="mt-1.5 text-xs text-amber-600">{error}</p>}
       </div>
     )
   }

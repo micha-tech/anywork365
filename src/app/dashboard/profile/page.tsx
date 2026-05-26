@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { toast } from 'sonner'
 import { Avatar } from '@/components/ui'
 import { NIGERIAN_STATE_NAMES } from '@/types'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
@@ -15,12 +16,9 @@ export default function ProfilePage() {
   const [photoUrl,      setPhotoUrl]      = useState<string | null>(null)
   const [photoPreview,  setPhotoPreview]  = useState<string | null>(null)
   const [uploading,     setUploading]     = useState(false)
-  const [photoError,    setPhotoError]    = useState('')
   const [dragOver,      setDragOver]      = useState(false)
 
   // Form state
-  const [saved,    setSaved]    = useState(false)
-  const [saveError, setSaveError] = useState('')
 
   const initials    = getInitialsFromUser(user)
   const fullName    = user ? `${user.firstName} ${user.lastName}` : ''
@@ -31,16 +29,13 @@ export default function ProfilePage() {
   // ─── Handle file selection (from input or drag-drop) ─────────────────────
 
   const handleFile = useCallback(async (file: File) => {
-    setPhotoError('')
-
-    // Client-side validation before upload
     const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
     if (!ALLOWED.includes(file.type)) {
-      setPhotoError('Only JPEG, PNG, or WebP images are allowed.')
+      toast.error('Only JPEG, PNG, or WebP images are allowed.')
       return
     }
     if (file.size > 5 * 1024 * 1024) {
-      setPhotoError('Image must be smaller than 5MB.')
+      toast.error('Image must be smaller than 5MB.')
       return
     }
 
@@ -62,11 +57,11 @@ export default function ProfilePage() {
         URL.revokeObjectURL(objectUrl)
         setPhotoPreview(null)
       } else {
-        setPhotoError(data.error ?? 'Upload failed')
+        toast.error('Couldn\u2019t upload photo')
         setPhotoPreview(null)
       }
     } catch {
-      setPhotoError('Network error. Please try again.')
+      toast.error('Network error')
       setPhotoPreview(null)
     } finally {
       setUploading(false)
@@ -90,16 +85,13 @@ export default function ProfilePage() {
   function removePhoto() {
     setPhotoUrl(null)
     setPhotoPreview(null)
-    setPhotoError('')
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   // ─── Save profile ─────────────────────────────────────────────────────────
 
   function handleSave() {
-    setSaveError('')
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+    toast.success('Profile saved')
   }
 
   // ─── Loading state ────────────────────────────────────────────────────────
@@ -196,13 +188,6 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        {/* Photo error */}
-        {photoError && (
-          <p className="mt-3 text-xs text-red-500 bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
-            {photoError}
-          </p>
-        )}
-
         {/* Drag-and-drop zone — shown when no photo */}
         {!currentPhoto && !uploading && (
           <div
@@ -238,18 +223,6 @@ export default function ProfilePage() {
           aria-label="Upload profile photo"
         />
       </div>
-
-      {/* ── Save success / error ──────────────────────────────────────────── */}
-      {saved && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-5 text-sm">
-          ✅ Profile saved successfully
-        </div>
-      )}
-      {saveError && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-5 text-sm">
-          {saveError}
-        </div>
-      )}
 
       {/* ── Profile form ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

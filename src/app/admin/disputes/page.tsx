@@ -98,7 +98,7 @@ export default function AdminDisputesPage() {
                   <td className="p-3 text-xs text-slate-600 max-w-[200px] truncate">{r.reason}</td>
                   <td className="p-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      r.status === 'open' ? 'bg-red-100 text-red-700' :
+                      r.status === 'open' ? 'bg-amber-100 text-amber-700' :
                       r.status === 'investigating' ? 'bg-yellow-100 text-yellow-700' :
                       r.status === 'resolved' ? 'bg-green-100 text-green-700' :
                       'bg-slate-100 text-slate-600'

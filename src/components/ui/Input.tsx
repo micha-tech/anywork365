@@ -23,13 +23,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           className={cn(
             'input-field',
-            error && 'border-red-400 focus:border-red-400 focus:ring-red-400/10',
+            error && 'border-amber-300 focus:border-amber-400 focus:ring-amber-400/10',
             className
           )}
           {...props}
         />
         {error && (
-          <p className="mt-1.5 text-xs text-red-500">{error}</p>
+          <p className="mt-1.5 text-xs text-amber-600">{error}</p>
         )}
         {hint && !error && (
           <p className="mt-1.5 text-xs text-slate-500">{hint}</p>

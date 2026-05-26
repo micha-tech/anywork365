@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { formatCurrency } from '@/lib/utils'
+import { toast } from 'sonner'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import type { Wallet, WalletTransaction, NigerianBank } from '@/types'
 
@@ -15,7 +16,7 @@ interface WalletData {
 const TX_META: Record<string, { label: string; color: string; sign: string }> = {
   credit: { label: 'Credit', color: 'text-green-600', sign: '+' },
   earning: { label: 'Earnings', color: 'text-green-600', sign: '+' },
-  debit: { label: 'Withdrawal', color: 'text-red-500', sign: '-' },
+  debit: { label: 'Withdrawal', color: 'text-amber-600', sign: '-' },
   escrow_lock: { label: 'Escrow Lock', color: 'text-amber-600', sign: '-' },
   escrow_release: { label: 'Escrow Released', color: 'text-green-600', sign: '+' },
   refund: { label: 'Refund', color: 'text-blue-600', sign: '+' },
@@ -39,7 +40,6 @@ function WalletPageContent() {
   const [resolvingBank, setResolvingBank] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const payStatus = searchParams.get('status')
   const payAmount = searchParams.get('amount')
@@ -70,12 +70,12 @@ function WalletPageContent() {
 
   useEffect(() => {
     if (payStatus === 'success' && payAmount) {
-      setMessage({ type: 'success', text: `Wallet funded with ${formatCurrency(Number(payAmount))} successfully.` })
+      toast.success(`Wallet funded with ${formatCurrency(Number(payAmount))}`)
       fetchWallet()
     } else if (payStatus === 'failed') {
-      setMessage({ type: 'error', text: 'Payment was not completed. Please try again.' })
+      toast.error('Payment wasn\u2019t completed')
     } else if (payStatus === 'error') {
-      setMessage({ type: 'error', text: payMsg ? decodeURIComponent(payMsg) : 'Wallet verification failed.' })
+      toast.error('Payment verification failed')
     }
   }, [fetchWallet, payAmount, payMsg, payStatus])
 
@@ -121,12 +121,11 @@ function WalletPageContent() {
     e.preventDefault()
     const amount = Number(fundAmount)
     if (!amount || amount < 100) {
-      setMessage({ type: 'error', text: 'Minimum amount is NGN 100' })
+      toast.error('Minimum amount is NGN 100')
       return
     }
 
     setSubmitting(true)
-    setMessage(null)
     try {
       const res = await fetch('/api/wallet/fund', {
         method: 'POST',
@@ -137,10 +136,10 @@ function WalletPageContent() {
       if (data.success) {
         window.location.href = data.data.authorizationUrl
       } else {
-        setMessage({ type: 'error', text: data.error ?? 'Failed to initialize payment' })
+        toast.error('Couldn\u2019t start payment')
       }
     } catch {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' })
+      toast.error('Network error')
     } finally {
       setSubmitting(false)
     }
@@ -149,13 +148,12 @@ function WalletPageContent() {
   async function handleSaveBankAccount(e: React.FormEvent) {
     e.preventDefault()
     if (!accountNumber || !bankCode) {
-      setMessage({ type: 'error', text: 'Please fill in all fields' })
+      toast.error('Please fill in all fields')
       return
     }
 
     const selectedBank = banks.find((b) => b.code === bankCode)
     setSubmitting(true)
-    setMessage(null)
     try {
       const res = await fetch('/api/wallet/bank-account', {
         method: 'POST',
@@ -164,7 +162,7 @@ function WalletPageContent() {
       })
       const data = await res.json()
       if (data.success) {
-        setMessage({ type: 'success', text: `Bank account verified: ${data.data.accountName} - ${data.data.bankName}` })
+        toast.success('Bank account verified')
         setAccountNumber('')
         setBankCode('')
         setResolvedName('')
@@ -172,10 +170,10 @@ function WalletPageContent() {
         fetchWallet()
         setActiveTab('overview')
       } else {
-        setMessage({ type: 'error', text: data.error ?? 'Verification failed' })
+        toast.error('Couldn\u2019t verify bank account')
       }
     } catch {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' })
+      toast.error('Network error')
     } finally {
       setSubmitting(false)
     }
@@ -185,12 +183,11 @@ function WalletPageContent() {
     e.preventDefault()
     const amount = Number(withdrawAmount)
     if (!amount || amount < 500) {
-      setMessage({ type: 'error', text: 'Minimum withdrawal is NGN 500' })
+      toast.error('Minimum withdrawal is NGN 500')
       return
     }
 
     setSubmitting(true)
-    setMessage(null)
     try {
       const res = await fetch('/api/wallet/withdraw', {
         method: 'POST',
@@ -199,15 +196,15 @@ function WalletPageContent() {
       })
       const data = await res.json()
       if (data.success) {
-        setMessage({ type: 'success', text: `Withdrawal of ${formatCurrency(amount)} initiated. Funds arrive in 1-2 business days.` })
+        toast.success(`Withdrawal of ${formatCurrency(amount)} initiated`)
         setWithdrawAmount('')
         fetchWallet()
         setActiveTab('overview')
       } else {
-        setMessage({ type: 'error', text: data.error ?? 'Withdrawal failed' })
+        toast.error('Couldn\u2019t process withdrawal')
       }
     } catch {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' })
+      toast.error('Network error')
     } finally {
       setSubmitting(false)
     }
@@ -226,18 +223,6 @@ function WalletPageContent() {
           {isPro ? 'Manage your earnings and withdrawals' : 'Manage your payments'}
         </p>
       </div>
-
-      {message && (
-        <div
-          className={`px-4 py-3 rounded-xl mb-5 text-sm border ${
-            message.type === 'success'
-              ? 'bg-green-50 border-green-200 text-green-700'
-              : 'bg-red-50 border-red-200 text-red-600'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
 
       {loadingData || userLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 animate-pulse">
@@ -297,14 +282,13 @@ function WalletPageContent() {
           </div>
           <button
             onClick={async () => {
-              if (!confirm('Remove this bank account?')) return
               const res = await fetch('/api/wallet/bank-account', { method: 'DELETE' })
               const d = await res.json()
               if (d.success) {
-                setMessage({ type: 'success', text: 'Bank account removed' })
+                toast.success('Bank account removed')
                 fetchWallet()
               } else {
-                setMessage({ type: 'error', text: d.error ?? 'Failed to remove' })
+                toast.error('Couldn\u2019t remove bank account')
               }
             }}
             className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium flex-shrink-0"
@@ -328,10 +312,7 @@ function WalletPageContent() {
           ] as { id: typeof activeTab; label: string }[]).map((tab) => (
             <button
               key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id)
-                setMessage(null)
-              }}
+              onClick={() => setActiveTab(tab.id)}
               className={`px-4 sm:px-5 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'border-brand-500 text-brand-500'
@@ -382,7 +363,7 @@ function WalletPageContent() {
                                 tx.status === 'success'
                                   ? 'text-green-600'
                                   : tx.status === 'failed'
-                                    ? 'text-red-500'
+                                    ? 'text-amber-600'
                                     : 'text-amber-600'
                               }`}
                             >
@@ -521,18 +502,17 @@ function WalletPageContent() {
                 </p>
               </div>
               <button
-                onClick={async () => {
-                  if (!confirm('Remove this bank account?')) return
-                  const res = await fetch('/api/wallet/bank-account', { method: 'DELETE' })
-                  const d = await res.json()
-                  if (d.success) {
-                    setMessage({ type: 'success', text: 'Bank account removed' })
-                    setActiveTab('overview')
-                    fetchWallet()
-                  } else {
-                    setMessage({ type: 'error', text: d.error ?? 'Failed to remove' })
-                  }
-                }}
+              onClick={async () => {
+                const res = await fetch('/api/wallet/bank-account', { method: 'DELETE' })
+                const d = await res.json()
+                if (d.success) {
+                  toast.success('Bank account removed')
+                  setActiveTab('overview')
+                  fetchWallet()
+                } else {
+                  toast.error('Couldn\u2019t remove bank account')
+                }
+              }}
                 className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium flex-shrink-0"
               >
                 Remove
@@ -575,7 +555,7 @@ function WalletPageContent() {
                 <p className="text-xs text-green-600 mt-1.5 font-medium">Verified name: {resolvedName}</p>
               )}
               {bankLookupError && !resolvingBank && (
-                <p className="text-xs text-red-500 mt-1.5">{bankLookupError}</p>
+                <p className="text-xs text-amber-600 mt-1.5">{bankLookupError}</p>
               )}
             </div>
 

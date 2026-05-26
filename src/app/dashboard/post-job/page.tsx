@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { jobPostSchema, type JobPostInput } from '@/lib/validators/job'
@@ -22,7 +23,7 @@ export default function PostJobPage() {
   async function onSubmit(data: JobPostInput) {
     const res = await jobsApi.create(data)
     if (res.success) {
-      setSuccess(true)
+      toast.success('Job posted')
       reset()
       setTimeout(() => router.push('/dashboard/jobs'), 1500)
     }
@@ -35,42 +36,34 @@ export default function PostJobPage() {
         <p className="text-sm text-slate-500 mt-1">Fill in the details to attract the right vendors</p>
       </div>
 
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-5 text-sm">
-          ✅ Job posted successfully! Redirecting...
-        </div>
-      )}
-
       <div className="card w-full max-w-2xl">
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="form-group">
             <label className="label">Business Name *</label>
             <input
               {...register('businessName')}
-              className={`input-field ${errors.businessName ? 'border-red-400' : ''}`}
+                className={`input-field ${errors.businessName ? 'border-amber-300' : ''}`}
               placeholder="e.g. Bright Spark Electrical"
             />
-            {errors.businessName && <p className="mt-1.5 text-xs text-red-500">{errors.businessName.message}</p>}
+            {errors.businessName && <p className="mt-1.5 text-xs text-amber-600">{errors.businessName.message}</p>}
           </div>
 
           <div className="form-group">
             <label className="label">Job Title *</label>
             <input
               {...register('title')}
-              className={`input-field ${errors.title ? 'border-red-400' : ''}`}
-              placeholder="e.g. Electrician"
-            />
-            {errors.title && <p className="mt-1.5 text-xs text-red-500">{errors.title.message}</p>}
+                className={`input-field ${errors.title ? 'border-amber-300' : ''}`}
+              />
+              {errors.title && <p className="mt-1.5 text-xs text-amber-600">{errors.title.message}</p>}
           </div>
 
           <div className="form-group">
             <label className="label">Business Address *</label>
             <input
               {...register('businessAddress')}
-              className={`input-field ${errors.businessAddress ? 'border-red-400' : ''}`}
-              placeholder="e.g. 15 Adeola Odeku Street, Victoria Island, Lagos"
-            />
-            {errors.businessAddress && <p className="mt-1.5 text-xs text-red-500">{errors.businessAddress.message}</p>}
+                className={`input-field ${errors.businessAddress ? 'border-amber-300' : ''}`}
+              />
+              {errors.businessAddress && <p className="mt-1.5 text-xs text-amber-600">{errors.businessAddress.message}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -78,21 +71,18 @@ export default function PostJobPage() {
               <label className="label">Job Type *</label>
               <select
                 {...register('jobType')}
-                className={`input-field appearance-none ${errors.jobType ? 'border-red-400' : ''}`}
-              >
-                <option value="full-time">Full-time</option>
-                <option value="contract">Contract</option>
-              </select>
-              {errors.jobType && <p className="mt-1.5 text-xs text-red-500">{errors.jobType.message}</p>}
+                className={`input-field appearance-none ${errors.jobType ? 'border-amber-300' : ''}`}
+              />
+              {errors.jobType && <p className="mt-1.5 text-xs text-amber-600">{errors.jobType.message}</p>}
             </div>
             <div className="form-group">
               <label className="label">Closing Date *</label>
               <input
                 {...register('closingDate')}
                 type="date"
-                className={`input-field ${errors.closingDate ? 'border-red-400' : ''}`}
+                className={`input-field ${errors.closingDate ? 'border-amber-300' : ''}`}
               />
-              {errors.closingDate && <p className="mt-1.5 text-xs text-red-500">{errors.closingDate.message}</p>}
+              {errors.closingDate && <p className="mt-1.5 text-xs text-amber-600">{errors.closingDate.message}</p>}
             </div>
           </div>
 
@@ -100,12 +90,9 @@ export default function PostJobPage() {
             <label className="label">Category *</label>
             <select
               {...register('category')}
-              className={`input-field appearance-none ${errors.category ? 'border-red-400' : ''}`}
-            >
-              <option value="">Select a category</option>
-              {JOB_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            {errors.category && <p className="mt-1.5 text-xs text-red-500">{errors.category.message}</p>}
+                className={`input-field appearance-none ${errors.category ? 'border-amber-300' : ''}`}
+              />
+              {errors.category && <p className="mt-1.5 text-xs text-amber-600">{errors.category.message}</p>}
           </div>
 
           <div className="form-group">
@@ -113,10 +100,9 @@ export default function PostJobPage() {
             <textarea
               {...register('description')}
               rows={4}
-              className={`input-field resize-y ${errors.description ? 'border-red-400' : ''}`}
-              placeholder="Describe the job in detail..."
-            />
-            {errors.description && <p className="mt-1.5 text-xs text-red-500">{errors.description.message}</p>}
+                className={`input-field resize-y ${errors.description ? 'border-amber-300' : ''}`}
+              />
+              {errors.description && <p className="mt-1.5 text-xs text-amber-600">{errors.description.message}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -127,21 +113,17 @@ export default function PostJobPage() {
                 type="number"
                 inputMode="numeric"
                 min="1000"
-                className={`input-field ${errors.budget ? 'border-red-400' : ''}`}
-                placeholder="50000"
+                className={`input-field ${errors.budget ? 'border-amber-300' : ''}`}
               />
-              {errors.budget && <p className="mt-1.5 text-xs text-red-500">{errors.budget.message}</p>}
+              {errors.budget && <p className="mt-1.5 text-xs text-amber-600">{errors.budget.message}</p>}
             </div>
             <div className="form-group">
               <label className="label">Location *</label>
               <select
                 {...register('city')}
-                className={`input-field appearance-none ${errors.city ? 'border-red-400' : ''}`}
-              >
-                <option value="">Select state</option>
-                {NIGERIAN_STATE_NAMES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-              {errors.city && <p className="mt-1.5 text-xs text-red-500">{errors.city.message}</p>}
+                className={`input-field appearance-none ${errors.city ? 'border-amber-300' : ''}`}
+              />
+              {errors.city && <p className="mt-1.5 text-xs text-amber-600">{errors.city.message}</p>}
             </div>
           </div>
 

@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { sendVerificationEmail, reloadUser } from '@/lib/firebase/auth'
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -57,10 +58,11 @@ export default function VerifyEmailPage() {
     setError('')
     const { error: err } = await sendVerificationEmail()
     if (err) {
-      setError(err)
+      toast.error('Couldn\u2019t resend. Please try again.')
     } else {
       setResent(true)
       setPolling(true)
+      toast.success('Verification email resent')
     }
   }
 
@@ -70,20 +72,20 @@ export default function VerifyEmailPage() {
     const { emailVerified, error: err } = await reloadUser()
     setChecking(false)
     if (err) {
-      setError(err)
+      toast.error('Couldn\u2019t check your status. Please try again.')
       return
     }
     if (emailVerified) {
       refreshSessionAndRedirect()
     } else {
-      setError('Email not verified yet. Please check your inbox and click the link.')
+      toast.error('Email not verified yet. Check your inbox and click the link.')
     }
   }
 
   if (loading) {
     return (
       <div className="min-h-dvh bg-surface-base flex items-center justify-center">
-        <p className="text-slate-500">Loading...</p>
+        <div className="animate-pulse text-slate-400">Loading...</div>
       </div>
     )
   }
@@ -102,16 +104,8 @@ export default function VerifyEmailPage() {
             Click the link in the email to activate your account.
           </p>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-5">
-              {error}
-            </div>
-          )}
-
           {resent && (
-            <div className="bg-green-50 border border-green-200 text-green-600 text-sm px-4 py-3 rounded-xl mb-5">
-              Verification email resent. Check your inbox.
-            </div>
+            <p className="text-sm text-amber-600 text-center mb-4">Email resent. Check your inbox.</p>
           )}
 
           <div className="space-y-3">

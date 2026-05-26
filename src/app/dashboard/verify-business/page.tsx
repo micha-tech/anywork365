@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 type DocField = 'photo' | 'nin_card' | 'utility_bill' | 'business_registration' | 'trade_certificate'
@@ -31,7 +32,6 @@ export default function VerifyBusinessPage() {
   const [verification, setVerification] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [urls, setUrls] = useState<Record<DocField, string | null>>({
     photo: null, nin_card: null, utility_bill: null,
     business_registration: null, trade_certificate: null,
@@ -62,12 +62,11 @@ export default function VerifyBusinessPage() {
 
   async function handleFileSelect(field: DocField, file: File) {
     setUploading(prev => ({ ...prev, [field]: true }))
-    setMessage(null)
     const url = await uploadDoc(field, file)
     if (url) {
       setUrls(prev => ({ ...prev, [field]: url }))
     } else {
-      setMessage({ type: 'error', text: `Failed to upload ${DOC_LABELS[field]}` })
+      toast.error(`Couldn\u2019t upload ${DOC_LABELS[field]}`)
     }
     setUploading(prev => ({ ...prev, [field]: false }))
   }
@@ -75,11 +74,10 @@ export default function VerifyBusinessPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (nin.length !== 11) {
-      setMessage({ type: 'error', text: 'NIN must be exactly 11 digits' })
+      toast.error('NIN must be exactly 11 digits')
       return
     }
     setSubmitting(true)
-    setMessage(null)
 
     try {
       const res = await fetch('/api/business/verify', {
@@ -90,12 +88,12 @@ export default function VerifyBusinessPage() {
       const data = await res.json()
       if (data.success) {
         setVerification(data.data)
-        setMessage({ type: 'success', text: data.message || 'Verification submitted!' })
+        toast.success('Verification submitted for review')
       } else {
-        setMessage({ type: 'error', text: data.error || 'Submission failed' })
+        toast.error('Couldn\u2019t submit verification')
       }
     } catch {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' })
+      toast.error('Network error')
     } finally {
       setSubmitting(false)
     }
@@ -117,16 +115,6 @@ export default function VerifyBusinessPage() {
         <h1 className="font-display text-xl sm:text-2xl font-semibold">Business Verification</h1>
         <p className="text-sm text-slate-500 mt-1">Verify your business to build trust with clients</p>
       </div>
-
-      {message && (
-        <div className={`px-4 py-3 rounded-xl mb-5 text-sm border ${
-          message.type === 'success'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-600'
-        }`}>
-          {message.text}
-        </div>
-      )}
 
       {isVerified ? (
         <div className="card text-center py-10">
@@ -180,7 +168,7 @@ export default function VerifyBusinessPage() {
                       <button
                         type="button"
                         onClick={() => setUrls(prev => ({ ...prev, [field]: null }))}
-                        className="text-xs text-red-500 hover:text-red-600 flex-shrink-0"
+                        className="text-xs text-amber-600 hover:text-amber-700 flex-shrink-0"
                       >
                         Remove
                       </button>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { NIGERIAN_STATE_NAMES, JOB_CATEGORIES } from '@/types'
 
@@ -21,7 +22,6 @@ export default function MyBusinessPage() {
   const { user, loading: userLoading } = useCurrentUser()
   const [fetching, setFetching] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const [form, setForm] = useState<BusinessData>({
     businessName: '',
@@ -70,7 +70,6 @@ export default function MyBusinessPage() {
 
   async function handleSave() {
     setSaving(true)
-    setMessage(null)
     try {
       const res = await fetch('/api/business', {
         method: 'PUT',
@@ -89,15 +88,14 @@ export default function MyBusinessPage() {
       })
       const data = await res.json()
       if (data.success) {
-        setMessage({ type: 'success', text: 'Business saved successfully' })
+        toast.success('Business saved')
       } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to save' })
+        toast.error('Couldn\u2019t save business')
       }
     } catch {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' })
+      toast.error('Network error')
     } finally {
       setSaving(false)
-      setTimeout(() => setMessage(null), 3000)
     }
   }
 
@@ -123,16 +121,6 @@ export default function MyBusinessPage() {
         <h1 className="font-display text-xl sm:text-2xl font-semibold">My Business</h1>
         <p className="text-sm text-slate-500 mt-1">Manage your business profile and attract clients</p>
       </div>
-
-      {message && (
-        <div className={`px-4 py-3 rounded-xl mb-5 text-sm border ${
-          message.type === 'success'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-600'
-        }`}>
-          {message.text}
-        </div>
-      )}
 
       {form.verified === 1 && (
         <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl mb-5 flex items-center gap-2">

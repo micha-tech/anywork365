@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginInput } from '@/lib/validators/auth'
 import { signIn } from '@/lib/firebase/auth'
+import { toErrorMessage } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
 
 export default function LoginPage() {
@@ -53,17 +54,7 @@ export default function LoginPage() {
 
       window.location.href = body.data?.role === 'admin' ? '/admin' : '/dashboard'
     } catch (err: unknown) {
-      const e = err as { code?: string; message?: string }
-      const messages: Record<string, string> = {
-        'auth/user-not-found': 'No account found with this email',
-        'auth/wrong-password': 'Incorrect password',
-        'auth/invalid-credential': 'Incorrect email or password',
-        'auth/invalid-login-credentials': 'Incorrect email or password',
-        'auth/too-many-requests': 'Too many attempts. Please try again later.',
-        'auth/user-disabled': 'This account has been disabled',
-        'auth/invalid-email': 'Invalid email address',
-      }
-      setServerError(messages[e?.code ?? ''] ?? 'Login failed. Please check your credentials.')
+      setServerError(toErrorMessage(err))
     }
   }
 

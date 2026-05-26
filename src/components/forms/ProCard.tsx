@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Avatar, Badge, Stars } from '@/components/ui'
-import { getInitials } from '@/lib/utils'
+import { getInitials, toErrorMessage } from '@/lib/utils'
 import type { User } from '@/types'
 
 interface ProCardProps {
@@ -32,10 +33,10 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
       if (data.success) {
         router.push(`/messages?id=${data.data.conversation.id}`)
       } else {
-        alert(data.error || 'Failed to start chat')
+        toast.error(data.error || 'Failed to start chat')
       }
     } catch {
-      alert('Failed to start chat. Please try again.')
+      toast.error('Failed to start chat')
     } finally {
       setStartingChat(false)
     }

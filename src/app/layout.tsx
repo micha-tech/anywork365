@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
-import { ToastProvider } from '@/components/ui/Toast'
+import { Toaster } from 'sonner'
 import { OnboardingGuard } from '@/components/OnboardingGuard'
 
 const jakarta = Plus_Jakarta_Sans({
@@ -40,13 +40,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={jakarta.variable}>
       <body className="font-body bg-surface-base text-slate-900 antialiased capacitor-status-bar">
-        <ToastProvider>
-          <OnboardingGuard>
-            <Navbar />
-            <OfflineBanner />
-            <main className="page-enter">{children}</main>
-          </OnboardingGuard>
-        </ToastProvider>
+        <OnboardingGuard>
+          <Navbar />
+          <OfflineBanner />
+          <main className="page-enter">{children}</main>
+        </OnboardingGuard>
+        <Toaster
+          position="bottom-center"
+          toastOptions={{
+            style: {
+              background: '#1e293b',
+              color: '#f8fafc',
+              border: '1px solid #334155',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              fontSize: '14px',
+              fontWeight: 500,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            },
+          }}
+          duration={3500}
+          closeButton
+          visibleToasts={3}
+        />
       </body>
     </html>
   )

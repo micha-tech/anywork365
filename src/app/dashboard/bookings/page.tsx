@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { Modal } from '@/components/ui/Modal'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
-import { useToast } from '@/components/ui/Toast'
+import { toast } from 'sonner'
 import { EmptyState } from '@/components/ui/EmptyState'
 
 interface BookingItem {
@@ -27,10 +27,8 @@ interface BookingItem {
 
 export default function BookingsPage() {
   const { user, loading } = useCurrentUser()
-  const { toast } = useToast()
   const [bookings, setBookings] = useState<BookingItem[]>([])
   const [fetching, setFetching] = useState(true)
-  const [error, setError] = useState('')
 
   const [reviewBooking, setReviewBooking] = useState<BookingItem | null>(null)
   const [reviewRating, setReviewRating] = useState(0)
@@ -44,9 +42,9 @@ export default function BookingsPage() {
       .then((r) => r.json())
       .then((res) => {
         if (res.success) setBookings(res.data)
-        else setError(res.error || 'Failed to load bookings')
+        else toast.error('Couldn\u2019t load bookings')
       })
-      .catch(() => setError('Failed to load bookings'))
+      .catch(() => toast.error('Couldn\u2019t load bookings'))
       .finally(() => setFetching(false))
   }
 
@@ -63,10 +61,10 @@ export default function BookingsPage() {
     })
     const data = await res.json()
       if (data.success) {
-        toast(data.message || 'Action completed', 'success')
+        toast.success(data.message || 'Action completed')
         loadBookings()
       } else {
-        toast(data.error || 'Action failed', 'error')
+        toast.error(data.error || 'Action failed')
       }
   }
 
@@ -112,7 +110,7 @@ export default function BookingsPage() {
     pending: 'bg-amber-100 text-amber-700',
     confirmed: 'bg-blue-100 text-blue-700',
     completed: 'bg-green-100 text-green-700',
-    cancelled: 'bg-red-100 text-red-700',
+    cancelled: 'bg-slate-100 text-slate-600',
   }
 
   const isVendor = user?.role === 'vendor'
@@ -127,15 +125,17 @@ export default function BookingsPage() {
         </p>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-5">
-          {error}
-        </div>
-      )}
-
       <div className="flex flex-col gap-3 sm:gap-4">
         {fetching ? (
-          <p className="text-sm text-slate-500 py-8 text-center">Loading bookings...</p>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white border border-slate-200 rounded-2xl p-5 animate-pulse">
+                <div className="h-4 bg-slate-200 rounded w-1/3 mb-3" />
+                <div className="h-3 bg-slate-200 rounded w-2/3 mb-2" />
+                <div className="h-3 bg-slate-200 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
         ) : bookings.length === 0 ? (
           <EmptyState
             icon="bookings"
@@ -183,7 +183,7 @@ export default function BookingsPage() {
                 {b.status === 'pending' && (
                   <button
                     onClick={() => handleAction(b.id, 'cancel')}
-                    className="btn-ghost text-xs px-4 py-2 text-red-500 border-red-200 hover:bg-red-50"
+                    className="btn-ghost text-xs px-4 py-2 text-amber-600 border-amber-200 hover:bg-amber-50"
                   >
                     Cancel
                   </button>
@@ -212,7 +212,7 @@ export default function BookingsPage() {
             </p>
 
             {reviewError && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-xl mb-4">
                 {reviewError}
               </div>
             )}
