@@ -71,9 +71,9 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-50 rounded-full blur-3xl opacity-60 translate-y-1/2 -translate-x-1/4" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div className="space-y-7">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14 lg:py-20">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="space-y-5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-100 border border-slate-200">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75" />
@@ -88,7 +88,7 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
               </h1>
             </div>
 
-            <p className="text-lg text-slate-500 leading-relaxed max-w-md">
+            <p className="text-lg text-slate-500 leading-relaxed">
               Book verified artisans, technicians, and service providers near you. Secure payments. Guaranteed quality.
             </p>
 
@@ -250,9 +250,9 @@ export default function HomePage() {
       <HeroSection user={user} loading={loading} />
 
       {/* Categories */}
-      <section className="border-t border-slate-100 bg-white px-4 py-12 sm:px-6 lg:px-8 content-below-fold">
+      <section className="border-t border-slate-100 bg-white px-4 py-8 sm:py-10 sm:px-6 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-7">
+          <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Services</p>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Browse by category</h2>
@@ -278,9 +278,9 @@ export default function HomePage() {
       </section>
 
       {/* Featured Vendors */}
-      <section className="border-t border-slate-100 px-4 py-12 sm:px-6 lg:px-8 content-below-fold">
+      <section className="border-t border-slate-100 px-4 py-8 sm:py-10 sm:px-6 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-7">
+          <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Top Rated</p>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Featured Professionals</h2>
@@ -348,9 +348,9 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="border-t border-slate-100 bg-white px-4 py-12 sm:px-6 lg:px-8 content-below-fold">
+      <section className="border-t border-slate-100 bg-white px-4 py-8 sm:py-10 sm:px-6 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-8">
             <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-2">How it works</p>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Book in three simple steps</h2>
           </div>
@@ -401,9 +401,9 @@ export default function HomePage() {
 
       {/* Latest Jobs */}
       {(jobsLoading || latestJobs.length > 0) && (
-        <section className="border-t border-slate-100 px-4 py-12 sm:px-6 lg:px-8 content-below-fold">
+        <section className="border-t border-slate-100 px-4 py-8 sm:py-10 sm:px-6 lg:px-8 content-below-fold">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-7">
+            <div className="flex items-center justify-between mb-5">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Careers</p>
                 <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Latest Openings</h2>
@@ -447,7 +447,7 @@ export default function HomePage() {
 
       {/* CTA - hidden when signed in */}
       {!user && (
-        <section className="border-t border-slate-100 bg-brand-500 px-4 py-14 sm:px-6 sm:py-16 lg:px-8 content-below-fold">
+        <section className="border-t border-slate-100 bg-brand-500 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 content-below-fold">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
               Ready to get started?
