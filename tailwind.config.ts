@@ -34,7 +34,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ['var(--font-jakarta)', 'sans-serif'],
-        body:    ['var(--font-dm)', 'sans-serif'],
+        body:    ['var(--font-jakarta)', 'sans-serif'],
       },
       borderRadius: {
         xl:  '12px',

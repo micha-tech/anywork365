@@ -50,7 +50,7 @@ export default function SignupPage() {
           'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
           'auth/invalid-email': 'Invalid email address',
         }
-        setServerError(messages[error?.code ?? ''] ?? error?.message ?? 'Signup failed')
+        setServerError(messages[error?.code ?? ''] ?? 'Signup failed. Please try again.')
         return
       }
 
@@ -71,8 +71,7 @@ export default function SignupPage() {
 
       window.location.href = '/verify-email'
     } catch (err: unknown) {
-      const e = err as { code?: string; message?: string }
-      setServerError(e?.message ?? 'An unexpected error occurred')
+      setServerError('An unexpected error occurred. Please try again.')
     }
   }
 
@@ -88,8 +87,11 @@ export default function SignupPage() {
           <p className="text-sm text-slate-500 text-center mb-6">Join Nigeria&apos;s leading work platform</p>
 
           {serverError && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-5">
-              {serverError}
+            <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 animate-toast-in">
+              <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <p className="text-sm text-amber-800">{serverError}</p>
             </div>
           )}
 
@@ -118,20 +120,20 @@ export default function SignupPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="form-group">
                 <label className="label">First name</label>
-                <input {...register('firstName')} className={`input-field ${errors.firstName ? 'border-red-400' : ''}`} placeholder="Emeka" autoComplete="given-name" />
-                {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName.message}</p>}
+                <input {...register('firstName')} className={`input-field ${errors.firstName ? 'border-amber-300' : ''}`} placeholder="Emeka" autoComplete="given-name" />
+                {errors.firstName && <p className="mt-1 text-xs text-amber-600">{errors.firstName.message}</p>}
               </div>
               <div className="form-group">
                 <label className="label">Last name</label>
-                <input {...register('lastName')} className={`input-field ${errors.lastName ? 'border-red-400' : ''}`} placeholder="Obi" autoComplete="family-name" />
-                {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName.message}</p>}
+                <input {...register('lastName')} className={`input-field ${errors.lastName ? 'border-amber-300' : ''}`} placeholder="Obi" autoComplete="family-name" />
+                {errors.lastName && <p className="mt-1 text-xs text-amber-600">{errors.lastName.message}</p>}
               </div>
             </div>
 
             <div className="form-group">
               <label className="label">Email address</label>
-              <input {...register('email')} type="email" inputMode="email" autoComplete="email" className={`input-field ${errors.email ? 'border-red-400' : ''}`} placeholder="you@example.com" />
-              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+              <input {...register('email')} type="email" inputMode="email" autoComplete="email" className={`input-field ${errors.email ? 'border-amber-300' : ''}`} placeholder="you@example.com" />
+              {errors.email && <p className="mt-1 text-xs text-amber-600">{errors.email.message}</p>}
             </div>
 
             <div className="grid grid-cols-3 gap-2">
@@ -145,15 +147,15 @@ export default function SignupPage() {
               </div>
               <div className="form-group col-span-2">
                 <label className="label">Phone number</label>
-                <input {...register('phone')} type="tel" inputMode="tel" autoComplete="tel" className={`input-field ${errors.phone ? 'border-red-400' : ''}`} placeholder="800 000 0000" />
-                {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
+                <input {...register('phone')} type="tel" inputMode="tel" autoComplete="tel" className={`input-field ${errors.phone ? 'border-amber-300' : ''}`} placeholder="800 000 0000" />
+                {errors.phone && <p className="mt-1 text-xs text-amber-600">{errors.phone.message}</p>}
               </div>
             </div>
 
             <div className="form-group">
               <label className="label">11-digit NIN</label>
-              <input {...register('nin')} type="text" inputMode="numeric" className={`input-field ${errors.nin ? 'border-red-400' : ''}`} placeholder="00 0000 0000" />
-              {errors.nin && <p className="mt-1 text-xs text-red-500">{errors.nin.message}</p>}
+              <input {...register('nin')} type="text" inputMode="numeric" className={`input-field ${errors.nin ? 'border-amber-300' : ''}`} placeholder="00 0000 0000" />
+              {errors.nin && <p className="mt-1 text-xs text-amber-600">{errors.nin.message}</p>}
             </div>
 
             <div className="form-group">
@@ -164,7 +166,7 @@ export default function SignupPage() {
                   type={showPw ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="Min 8 chars, 1 uppercase, 1 number"
-                  className={`input-field pr-14 ${errors.password ? 'border-red-400' : ''}`}
+                  className={`input-field pr-14 ${errors.password ? 'border-amber-300' : ''}`}
                 />
                 <button
                   type="button"
@@ -174,22 +176,22 @@ export default function SignupPage() {
                   {showPw ? 'Hide' : 'Show'}
                 </button>
               </div>
-              {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
+              {errors.password && <p className="mt-1 text-xs text-amber-600">{errors.password.message}</p>}
             </div>
 
             <div className="form-group">
               <label className="label">Confirm password</label>
-              <input {...register('confirmPassword')} type="password" autoComplete="new-password" className={`input-field ${errors.confirmPassword ? 'border-red-400' : ''}`} placeholder="Repeat your password" />
-              {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword.message}</p>}
+              <input {...register('confirmPassword')} type="password" autoComplete="new-password" className={`input-field ${errors.confirmPassword ? 'border-amber-300' : ''}`} placeholder="Repeat your password" />
+              {errors.confirmPassword && <p className="mt-1 text-xs text-amber-600">{errors.confirmPassword.message}</p>}
             </div>
 
             <div className="form-group">
               <label className="label">State</label>
-              <select {...register('city')} className={`input-field appearance-none ${errors.city ? 'border-red-400' : ''}`}>
+              <select {...register('city')} className={`input-field appearance-none ${errors.city ? 'border-amber-300' : ''}`}>
                 <option value="">Select your state</option>
                 {NIGERIAN_STATE_NAMES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
-              {errors.city && <p className="mt-1 text-xs text-red-500">{errors.city.message}</p>}
+              {errors.city && <p className="mt-1 text-xs text-amber-600">{errors.city.message}</p>}
             </div>
 
             <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-3 text-base justify-center mt-2">

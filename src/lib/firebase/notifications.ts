@@ -54,8 +54,8 @@ export function usePushNotifications() {
       }
 
       return null
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get token')
+    } catch {
+      setError('Failed to enable notifications. Please try again.')
       return null
     } finally {
       setLoading(false)

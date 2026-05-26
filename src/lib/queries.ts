@@ -763,9 +763,8 @@ export async function saveFcmToken(uid: string, token: string) {
       [uid, token]
     )
     return { error: null }
-  } catch (err: unknown) {
-    const e = err as { message?: string }
-    return { error: e?.message || 'Failed to save token' }
+  } catch {
+    return { error: 'Failed to save notification token' }
   }
 }
 
@@ -773,9 +772,8 @@ export async function deleteFcmToken(token: string) {
   try {
     await execute('DELETE FROM user_fcm_tokens WHERE token = ?', [token])
     return { error: null }
-  } catch (err: unknown) {
-    const e = err as { message?: string }
-    return { error: e?.message || 'Failed to delete token' }
+  } catch {
+    return { error: 'Failed to remove notification token' }
   }
 }
 
@@ -803,25 +801,29 @@ export async function getDashboardStats(uid: string, role: string): Promise<Dash
 
   if (business) {
     const [activeJobs] = await query<CountRow[]>('SELECT COUNT(*) AS c FROM vacancies WHERE company_id = ? AND closed = 0', [business.businessId])
-    const [apps] = await query<CountRow[]>('SELECT COUNT(*) AS c FROM bookings WHERE businessId = ?', [business.businessId])
-    const [hired] = await query<CountRow[]>('SELECT COUNT(*) AS c FROM bookings WHERE businessId = ? AND bookingStatus = ?', [business.businessId, 'Confirmed'])
-    const [done] = await query<CountRow[]>('SELECT COUNT(*) AS c FROM bookings WHERE businessId = ? AND bookingStatus = ?', [business.businessId, 'Closed'])
+    const [[appsRow], [hiredRow], [doneRow]] = await Promise.all([
+      query<CountRow[]>('SELECT COUNT(*) AS c FROM bookings WHERE businessId = ?', [business.businessId]),
+      query<CountRow[]>('SELECT COUNT(*) AS c FROM bookings WHERE businessId = ? AND bookingStatus = ?', [business.businessId, 'Confirmed']),
+      query<CountRow[]>('SELECT COUNT(*) AS c FROM bookings WHERE businessId = ? AND bookingStatus = ?', [business.businessId, 'Closed']),
+    ])
     return {
       activeJobs: Number(activeJobs.c),
-      applications: Number(apps.c),
-      hiredPros: Number(hired.c),
-      jobsCompleted: Number(done.c),
+      applications: Number(appsRow.c),
+      hiredPros: Number(hiredRow.c),
+      jobsCompleted: Number(doneRow.c),
     }
   }
 
-  const [bookings] = await query<CountRow[]>('SELECT COUNT(*) AS c FROM bookings WHERE clientUID = ?', [uid])
-  const [hired] = await query<CountRow[]>("SELECT COUNT(*) AS c FROM bookings WHERE clientUID = ? AND bookingStatus = ?", [uid, 'Confirmed'])
-  const [done] = await query<CountRow[]>("SELECT COUNT(*) AS c FROM bookings WHERE clientUID = ? AND (bookingStatus = ? OR jobStatus = ?)", [uid, 'Closed', 'completed'])
+  const [[bookingsRow], [hiredRow], [doneRow]] = await Promise.all([
+    query<CountRow[]>('SELECT COUNT(*) AS c FROM bookings WHERE clientUID = ?', [uid]),
+    query<CountRow[]>("SELECT COUNT(*) AS c FROM bookings WHERE clientUID = ? AND bookingStatus = ?", [uid, 'Confirmed']),
+    query<CountRow[]>("SELECT COUNT(*) AS c FROM bookings WHERE clientUID = ? AND (bookingStatus = ? OR jobStatus = ?)", [uid, 'Closed', 'completed']),
+  ])
   return {
-    activeJobs: Number(bookings.c),
-    applications: Number(bookings.c),
-    hiredPros: Number(hired.c),
-    jobsCompleted: Number(done.c),
+    activeJobs: Number(bookingsRow.c),
+    applications: Number(bookingsRow.c),
+    hiredPros: Number(hiredRow.c),
+    jobsCompleted: Number(doneRow.c),
   }
 }
 
@@ -892,26 +894,6 @@ interface BusinessVerificationRow extends RowDataPacket {
   reviewed_at: string | null
 }
 
-export async function ensureVerificationTable(): Promise<void> {
-  await execute(
-    `CREATE TABLE IF NOT EXISTS business_verifications (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      businessId INT NOT NULL,
-      nin VARCHAR(11) NOT NULL,
-      photo_url VARCHAR(500),
-      nin_card_url VARCHAR(500),
-      utility_bill_url VARCHAR(500),
-      business_registration_url VARCHAR(500),
-      trade_certificate_url VARCHAR(500),
-      status ENUM('pending','approved','rejected') DEFAULT 'pending',
-      admin_notes TEXT,
-      submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      reviewed_at DATETIME,
-      FOREIGN KEY (businessId) REFERENCES businesses(businessId)
-    )`
-  )
-}
-
 export async function submitVerification(data: {
   businessId: number
   nin: string
@@ -921,7 +903,6 @@ export async function submitVerification(data: {
   business_registration_url: string | null
   trade_certificate_url: string | null
 }): Promise<number> {
-  await ensureVerificationTable()
   const result = await execute(
     `INSERT INTO business_verifications
      (businessId, nin, photo_url, nin_card_url, utility_bill_url, business_registration_url, trade_certificate_url, status, submitted_at)
@@ -932,7 +913,6 @@ export async function submitVerification(data: {
 }
 
 export async function getLatestVerification(businessId: number): Promise<BusinessVerificationRow | null> {
-  await ensureVerificationTable()
   return queryOne<BusinessVerificationRow[]>(
     'SELECT * FROM business_verifications WHERE businessId = ? ORDER BY submitted_at DESC LIMIT 1',
     [businessId]

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getVendorByUid, getReviewsByBusiness, getBusinessByUid } from '@/lib/queries'
+import { cachedQuery, CACHE_TAGS } from '@/lib/cache'
 import type { ApiResponse } from '@/types'
 
 export async function GET(
@@ -7,7 +8,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const vendor = await getVendorByUid(id)
+  const vendor = await cachedQuery(
+    () => getVendorByUid(id),
+    ['vendor', id],
+    [CACHE_TAGS.PROFESSIONAL(id), CACHE_TAGS.PROFESSIONALS],
+    120
+  )
   if (!vendor) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Vendor not found' },
@@ -15,8 +21,20 @@ export async function GET(
     )
   }
 
-  const business = await getBusinessByUid(id)
-  const reviews = business ? await getReviewsByBusiness(business.businessId) : []
+  const business = await cachedQuery(
+    () => getBusinessByUid(id),
+    ['business', id],
+    [CACHE_TAGS.PROFESSIONAL(id), CACHE_TAGS.PROFESSIONALS],
+    120
+  )
+  const reviews = business
+    ? await cachedQuery(
+        () => getReviewsByBusiness(business.businessId),
+        ['reviews', String(business.businessId)],
+        [CACHE_TAGS.PROFESSIONAL(id), CACHE_TAGS.PROFESSIONALS],
+        120
+      )
+    : []
 
   return NextResponse.json({
     success: true,

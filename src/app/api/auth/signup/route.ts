@@ -4,6 +4,7 @@ import { auth as adminAuth } from '@/lib/firebase/admin'
 import { createUser, createBusiness, getUserByUid } from '@/lib/queries'
 import { signupSchema } from '@/lib/validators/auth'
 import { checkRateLimit } from '@/lib/wallet'
+import { revalidateTag, CACHE_TAGS } from '@/lib/cache'
 import type { ApiResponse, AuthUser } from '@/types'
 
 export const runtime = 'nodejs'
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
         businessContact: phone,
         state: city || 'Lagos',
       })
+      revalidateTag(CACHE_TAGS.PROFESSIONALS)
     }
 
     const authUser: AuthUser = {

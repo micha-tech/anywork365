@@ -16,14 +16,15 @@ if (sslMode === 'skip-verify') {
   }
 }
 
+const usePooler = process.env.MYSQL_USE_POOLER === 'true'
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST || 'localhost',
-  port: parseInt(process.env.MYSQL_PORT || '3306'),
+  host: usePooler ? (process.env.MYSQL_POOLER_HOST || process.env.MYSQL_HOST || 'localhost') : (process.env.MYSQL_HOST || 'localhost'),
+  port: usePooler ? parseInt(process.env.MYSQL_POOLER_PORT || '33061') : parseInt(process.env.MYSQL_PORT || '3306'),
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   waitForConnections: true,
-  connectionLimit: 2,
+  connectionLimit: 1,
   queueLimit: 0,
   connectTimeout: 10000,
   enableKeepAlive: true,
@@ -32,7 +33,7 @@ const pool = mysql.createPool({
 })
 
 function slowQueryLog(sql: string, durationMs: number): void {
-  if (durationMs > 200) {
+  if (process.env.LOG_SLOW_QUERIES === '1' && durationMs > 200) {
     console.warn(`[SLOW QUERY] ${durationMs}ms: ${sql.substring(0, 120)}`)
   }
 }

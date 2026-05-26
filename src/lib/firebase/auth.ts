@@ -49,7 +49,7 @@ export async function signUp({
     return { data: authUser, user: cred.user, error: null }
   } catch (err: unknown) {
     const e = err as { code?: string; message?: string }
-    return { data: null, error: { code: e?.code, message: e?.message || 'Signup failed' } }
+    return { data: null, error: { code: e?.code, message: 'Signup failed. Please try again.' } }
   }
 }
 
@@ -60,9 +60,8 @@ export async function sendVerificationEmail(): Promise<{ error: string | null }>
   try {
     await sendEmailVerification(user)
     return { error: null }
-  } catch (err: unknown) {
-    const e = err as { message?: string }
-    return { error: e?.message || 'Failed to send verification email' }
+  } catch {
+    return { error: 'Failed to send verification email. Please try again.' }
   }
 }
 
@@ -74,9 +73,8 @@ export async function reloadUser(): Promise<{ emailVerified: boolean; error: str
     await user.reload()
     const refreshed = fbAuth.currentUser
     return { emailVerified: refreshed?.emailVerified ?? false, error: null }
-  } catch (err: unknown) {
-    const e = err as { message?: string }
-    return { emailVerified: false, error: e?.message || 'Failed to reload user' }
+  } catch {
+    return { emailVerified: false, error: 'Failed to reload user. Please try again.' }
   }
 }
 
@@ -93,8 +91,8 @@ export async function signIn({ email, password }: { email: string; password: str
     }
     return { data: { user: cred.user, profile: authUser }, error: null }
   } catch (err: unknown) {
-    const e = err as { code?: string; message?: string }
-    return { data: null, error: { message: e?.message || 'Login failed' } }
+    const e = err as { code?: string}
+    return { data: null, error: { code: e?.code, message: 'Login failed. Please try again.' } }
   }
 }
 
@@ -131,9 +129,8 @@ export async function resetPassword(email: string) {
   try {
     await sendPasswordResetEmail(fbAuth, email)
     return { error: null }
-  } catch (err: unknown) {
-    const e = err as { message?: string }
-    return { error: e?.message || 'Failed to send reset email' }
+  } catch {
+    return { error: 'Failed to send reset email. Please try again.' }
   }
 }
 
@@ -144,9 +141,8 @@ export async function updatePassword(newPassword: string) {
   try {
     await fUpdatePassword(user, newPassword)
     return { error: null }
-  } catch (err: unknown) {
-    const e = err as { message?: string }
-    return { error: e?.message || 'Failed to update password' }
+  } catch {
+    return { error: 'Failed to update password. Please try again.' }
   }
 }
 

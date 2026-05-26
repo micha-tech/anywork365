@@ -11,6 +11,7 @@ import {
 } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
 import { sendPushNotification } from '@/lib/notifications'
+import { getConnection } from '@/lib/db'
 import type { ApiResponse } from '@/types'
 import type mysql from 'mysql2'
 import type { RowDataPacket } from 'mysql2'
@@ -158,7 +159,6 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Transaction: atomic balance check + booking + escrow ──────────────
-  const { getConnection } = await import('@/lib/db')
   const conn = await getConnection()
   try {
     await conn.beginTransaction()

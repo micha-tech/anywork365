@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import { getBookingById } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
+import { getConnection } from '@/lib/db'
 import type { ApiResponse } from '@/types'
 import type { RowDataPacket } from 'mysql2'
 
@@ -63,7 +64,6 @@ export async function POST(req: NextRequest) {
   }
 
   interface AvgRow extends RowDataPacket { avg: number | null; cnt: number }
-  const { getConnection } = await import('@/lib/db')
   const connection = await getConnection()
   let connReleased = false
   try {

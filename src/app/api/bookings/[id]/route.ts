@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/wallet'
+import { getConnection } from '@/lib/db'
 import type { ApiResponse } from '@/types'
 import type { RowDataPacket } from 'mysql2'
 import mysql from 'mysql2/promise'
@@ -44,7 +45,6 @@ export async function PATCH(
     )
   }
 
-  const { getConnection } = await import('@/lib/db')
   const conn = await getConnection()
   let connReleased = false
 
@@ -53,7 +53,6 @@ export async function PATCH(
     const [rows] = await conn.query<mysql.RowDataPacket[]>('SELECT b.*, bus.uid AS businessUid FROM bookings b JOIN businesses bus ON bus.businessId = b.businessId WHERE b.bookingId = ? FOR UPDATE', [bookingId])
     const booking = rows[0]
     if (!booking) {
-      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Booking not found' },
         { status: 404 }
@@ -64,7 +63,6 @@ export async function PATCH(
     const isVendor = booking.businessUid === session.id
 
     if (!isClient && !isVendor) {
-      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Not authorized to update this booking' },
         { status: 403 }
@@ -72,7 +70,6 @@ export async function PATCH(
     }
 
     if (booking.bookingStatus === 'Closed' || booking.bookingStatus === 'Cancelled') {
-      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Cannot update a completed or cancelled booking' },
         { status: 400 }
@@ -87,7 +84,6 @@ export async function PATCH(
     const newStatus = dbStatusMap[action]
 
     if (action === 'confirm' && !isVendor) {
-      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Only the vendor can confirm a booking' },
         { status: 403 }
@@ -95,7 +91,6 @@ export async function PATCH(
     }
 
     if (action === 'complete' && !isClient) {
-      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Only the client can mark a booking as complete' },
         { status: 403 }
@@ -103,7 +98,6 @@ export async function PATCH(
     }
 
     if (action === 'cancel' && booking.bookingStatus !== 'Pending') {
-      connReleased = true; conn.release()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Only pending bookings can be cancelled' },
         { status: 400 }
@@ -117,7 +111,6 @@ export async function PATCH(
       const [clientRows] = await conn.query<mysql.RowDataPacket[]>('SELECT userId FROM users WHERE uid = ?', [session.id])
       if (clientRows.length === 0) {
         await conn.execute('ROLLBACK')
-        connReleased = true; conn.release()
         return NextResponse.json<ApiResponse<null>>(
           { success: false, error: 'User not found' },
           { status: 404 }
@@ -127,7 +120,6 @@ export async function PATCH(
       const [clientWalletRows] = await conn.query<mysql.RowDataPacket[]>('SELECT id FROM wallets WHERE user_id = ?', [clientRows[0].userId])
       if (clientWalletRows.length === 0) {
         await conn.execute('ROLLBACK')
-        connReleased = true; conn.release()
         return NextResponse.json<ApiResponse<null>>(
           { success: false, error: 'Client wallet not found' },
           { status: 400 }
@@ -185,7 +177,6 @@ export async function PATCH(
     )
 
     await conn.execute('COMMIT')
-    connReleased = true; conn.release()
 
     // Non-critical: push notifications outside transaction
     try {

@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS businesses (
   INDEX idx_businesses_category (category),
   INDEX idx_businesses_state_category_rating (state, category, rating DESC),
   INDEX idx_businesses_category_rating (category, rating DESC, deleted),
-  INDEX idx_businesses_rating_deleted (rating DESC, reviews DESC, deleted)
+  INDEX idx_businesses_rating_deleted (rating DESC, reviews DESC, deleted),
+  FULLTEXT INDEX ft_businesses_search (businessName, description, category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS companies (
@@ -115,7 +116,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   INDEX idx_bookings_clientUID (clientUID),
   INDEX idx_bookings_businessId (businessId),
   INDEX idx_bookings_bookingStatus (bookingStatus),
-  INDEX idx_bookings_business_status (businessId, bookingStatus)
+  INDEX idx_bookings_business_status (businessId, bookingStatus),
+  INDEX idx_bookings_client_status (clientUID, bookingStatus)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS reviews (
@@ -186,7 +188,8 @@ CREATE TABLE IF NOT EXISTS wallet_ledger (
   transaction_id INT DEFAULT NULL,
   created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_wallet_ledger_wallet_id (wallet_id),
-  INDEX idx_wallet_ledger_created (wallet_id, created_at DESC)
+  INDEX idx_wallet_ledger_created (wallet_id, created_at DESC),
+  INDEX idx_wallet_ledger_balance (wallet_id, direction, amount)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS wallet_escrow (

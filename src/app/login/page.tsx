@@ -27,7 +27,7 @@ export default function LoginPage() {
       const { data: result, error } = await signIn(data)
 
       if (error || !result) {
-        setServerError(error?.message ?? 'Login failed')
+        setServerError('Login failed. Please check your credentials.')
         return
       }
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
         'auth/user-disabled': 'This account has been disabled',
         'auth/invalid-email': 'Invalid email address',
       }
-      setServerError(messages[e?.code ?? ''] ?? e?.message ?? 'Login failed. Please check your credentials.')
+      setServerError(messages[e?.code ?? ''] ?? 'Login failed. Please check your credentials.')
     }
   }
 
@@ -80,8 +80,11 @@ export default function LoginPage() {
           <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to your account to continue</p>
 
           {serverError && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-5">
-              {serverError}
+            <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 animate-toast-in">
+              <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <p className="text-sm text-amber-800">{serverError}</p>
             </div>
           )}
 
@@ -94,9 +97,9 @@ export default function LoginPage() {
                 inputMode="email"
                 autoComplete="email"
                 placeholder="you@example.com"
-                className={`input-field ${errors.email ? 'border-red-400' : ''}`}
+                className={`input-field ${errors.email ? 'border-amber-300' : ''}`}
               />
-              {errors.email && <p className="mt-1.5 text-xs text-red-500">{errors.email.message}</p>}
+              {errors.email && <p className="mt-1.5 text-xs text-amber-600">{errors.email.message}</p>}
             </div>
 
             <div className="form-group">
@@ -110,7 +113,7 @@ export default function LoginPage() {
                   type={showPw ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="Enter your password"
-                  className={`input-field pr-14 ${errors.password ? 'border-red-400' : ''}`}
+                  className={`input-field pr-14 ${errors.password ? 'border-amber-300' : ''}`}
                 />
                 <button
                   type="button"
@@ -120,7 +123,7 @@ export default function LoginPage() {
                   {showPw ? 'Hide' : 'Show'}
                 </button>
               </div>
-              {errors.password && <p className="mt-1.5 text-xs text-red-500">{errors.password.message}</p>}
+              {errors.password && <p className="mt-1.5 text-xs text-amber-600">{errors.password.message}</p>}
             </div>
 
             <div className="flex items-center gap-2 mb-6">

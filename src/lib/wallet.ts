@@ -11,7 +11,7 @@ import {
   getUserWithdrawals,
   createDbNotification,
 } from '@/lib/queries'
-import { execute } from '@/lib/db'
+import { execute, getConnection } from '@/lib/db'
 import type { Wallet, WalletTransaction, WithdrawalRequest } from '@/types'
 import { generateReference } from './paystack'
 
@@ -249,33 +249,52 @@ export async function rollbackWithdrawal(
   withdrawalId: string,
   reason = 'Transfer failed'
 ): Promise<void> {
+  const conn = await getConnection()
   try {
-    const { query, execute } = await import('@/lib/db')
-    const rows = await query(
-      'SELECT * FROM withdrawals WHERE id = ?',
+    await conn.execute('START TRANSACTION')
+
+    const [rows] = await conn.execute(
+      'SELECT * FROM withdrawals WHERE id = ? FOR UPDATE',
       [withdrawalId]
-    ) as { user_id: number; amount: number; status: string; id: number }[]
-    const withdrawal = rows[0]
-    if (!withdrawal || withdrawal.status === 'failed') return
+    ) as any
+    const withdrawal = rows[0] as { user_id: number; amount: number; status: string; id: number } | undefined
+    if (!withdrawal || withdrawal.status === 'failed') {
+      await conn.execute('ROLLBACK')
+      return
+    }
 
-    const wallet = await getWalletByUserId(withdrawal.user_id)
-    if (!wallet) return
+    const [walletRows] = await conn.execute(
+      'SELECT id FROM wallets WHERE user_id = ? AND wallet_type = ? FOR UPDATE',
+      [withdrawal.user_id, 'user']
+    ) as any
+    if (walletRows.length === 0) {
+      await conn.execute('ROLLBACK')
+      return
+    }
+    const walletId = (walletRows[0] as { id: number }).id
 
-    const balance = await getWalletBalance(wallet.id)
-    await addLedgerEntry({
-      wallet_id: wallet.id,
-      amount: withdrawal.amount,
-      direction: 'credit',
-      balance_after: balance + withdrawal.amount,
-      description: `Withdrawal reversal - ${reason}`,
-    })
+    const [balRows] = await conn.execute(
+      'SELECT COALESCE(SUM(CASE WHEN direction = ? THEN amount ELSE -amount END), 0) AS balance FROM wallet_ledger WHERE wallet_id = ?',
+      ['credit', walletId]
+    ) as any
+    const balance = (balRows[0] as { balance: number } | undefined)?.balance ?? 0
 
-    await execute(
+    await conn.execute(
+      'INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+      [walletId, withdrawal.amount, 'credit', balance + withdrawal.amount, `Withdrawal reversal - ${reason}`]
+    )
+
+    await conn.execute(
       'UPDATE withdrawals SET status = ? WHERE id = ?',
       ['failed', withdrawal.id]
     )
+
+    await conn.execute('COMMIT')
   } catch (err) {
+    await conn.execute('ROLLBACK').catch(() => {})
     console.error('[ROLLBACK WITHDRAWAL ERROR]', err)
+  } finally {
+    conn.release()
   }
 }
 

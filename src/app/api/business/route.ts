@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import { getBusinessByUid, updateBusiness } from '@/lib/queries'
+import { revalidateTag, CACHE_TAGS } from '@/lib/cache'
 import type { ApiResponse } from '@/types'
 
 export const runtime = 'nodejs'
@@ -103,6 +104,9 @@ export async function PUT(req: NextRequest) {
     }
 
     await updateBusiness(session.id, parsed.data)
+
+    revalidateTag(CACHE_TAGS.PROFESSIONAL(session.id))
+    revalidateTag(CACHE_TAGS.PROFESSIONALS)
 
     return NextResponse.json<ApiResponse<null>>(
       { success: true, message: 'Business updated successfully' },
