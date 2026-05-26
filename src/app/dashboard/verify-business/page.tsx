@@ -43,7 +43,10 @@ export default function VerifyBusinessPage() {
 
   useEffect(() => {
     if (userLoading) return
-    if (user?.role !== 'vendor') return
+    if (user?.role !== 'vendor') {
+      setLoading(false)
+      return
+    }
 
     fetch('/api/business/verify')
       .then(r => r.json())

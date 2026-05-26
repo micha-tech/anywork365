@@ -142,6 +142,13 @@ export async function DELETE() {
       )
     }
 
+    if (session.role !== 'vendor') {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Only vendors can remove bank accounts' },
+        { status: 403 }
+      )
+    }
+
     await deleteBankAccount(session.id)
 
     return NextResponse.json({ success: true })

@@ -11,7 +11,7 @@ import {
   getUserWithdrawals,
   createDbNotification,
 } from '@/lib/queries'
-import { execute, getConnection } from '@/lib/db'
+import { getConnection } from '@/lib/db'
 import type { Wallet, WalletTransaction, WithdrawalRequest } from '@/types'
 import { generateReference } from './paystack'
 
@@ -22,7 +22,7 @@ interface BankDetails {
   accountName: string
 }
 
-// ─── In-memory rate limiter (stays in-memory, no DB dependency) ──────────
+// ─── In-memory rate limiter ──────────────────────────────────────────────
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT_WINDOW = 60 * 1000
 const RATE_LIMIT_MAX = 5
@@ -91,52 +91,94 @@ export async function creditWallet(
   reference: string,
   _isJobEarnings = false
 ): Promise<WalletTransaction> {
-  const { walletId } = await resolveUserWallet(userId)
-
-  const balance = await getWalletBalance(walletId)
-  const newBalance = balance + amountNGN
-
-  await addLedgerEntry({
-    wallet_id: walletId,
-    amount: amountNGN,
-    direction: 'credit',
-    balance_after: newBalance,
-    description: _isJobEarnings ? 'Job earnings received' : 'Wallet funded via Paystack',
-  })
-
-  await createWalletTransaction({
-    reference,
-    type: _isJobEarnings ? 'earning' : 'credit',
-    status: 'success',
-    metadata: JSON.stringify({ userId, source: 'paystack' }),
-  })
-
-  const amountFormatted = `₦${amountNGN.toLocaleString()}`
-  const notificationBody = _isJobEarnings
-    ? `Job earnings of ${amountFormatted} received`
-    : `Wallet funded with ${amountFormatted}`
-  try {
-    await createDbNotification(userId, notificationBody)
-    const { sendPushNotification } = await import('./notifications')
-    await sendPushNotification(userId, 'Anywork365', notificationBody)
-  } catch {
-    // Notifications are non-critical; silently ignore if they fail
+  // Resolve wallet outside the transaction (doesn't need serialization)
+  const user = await getUserRowByUid(userId)
+  if (!user) throw new Error('User not found')
+  let wallet = await getWalletByUserId(user.userId)
+  if (!wallet) {
+    wallet = await getOrCreateWalletDb(user.userId, user.email)
   }
+  const walletId = wallet.id
 
-  return {
-    id: reference,
-    userId,
-    type: _isJobEarnings ? 'earning' : 'credit',
-    amount: amountNGN * 100,
-    amountNGN,
-    description: _isJobEarnings ? 'Job earnings received' : 'Wallet funded via Paystack',
-    reference,
-    status: 'success',
-    createdAt: new Date().toISOString(),
+  const conn = await getConnection()
+  try {
+    await conn.execute('START TRANSACTION')
+
+    // Lock row for this reference to prevent concurrent duplicates.
+    // With connectionLimit:1 the pool serializes naturally, but this guards
+    // against future pool size increases or dual-path (webhook + redirect) races.
+    const [existing] = await conn.execute(
+      'SELECT 1 FROM wallet_transactions WHERE reference = ? AND status = ? FOR UPDATE',
+      [reference, 'success']
+    ) as any
+    if ((existing as any[]).length > 0) {
+      await conn.execute('ROLLBACK')
+      return {
+        id: reference,
+        userId,
+        type: _isJobEarnings ? 'earning' : 'credit',
+        amount: amountNGN * 100,
+        amountNGN,
+        description: _isJobEarnings ? 'Job earnings received' : 'Wallet funded via Paystack',
+        reference,
+        status: 'success',
+        createdAt: new Date().toISOString(),
+      }
+    }
+
+    const [balRows] = await conn.execute(
+      'SELECT COALESCE(SUM(CASE WHEN direction = ? THEN amount ELSE -amount END), 0) AS balance FROM wallet_ledger WHERE wallet_id = ?',
+      ['credit', walletId]
+    ) as any
+    const balance = (balRows[0]?.balance ?? 0) as number
+    const newBalance = balance + amountNGN
+
+    await conn.execute(
+      `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      [walletId, amountNGN, 'credit', newBalance, _isJobEarnings ? 'Job earnings received' : 'Wallet funded via Paystack']
+    )
+
+    await conn.execute(
+      `INSERT INTO wallet_transactions (reference, type, status, metadata, created_at)
+       VALUES (?, ?, ?, ?, NOW())`,
+      [reference, _isJobEarnings ? 'earning' : 'credit', 'success', JSON.stringify({ userId, source: 'paystack' })]
+    )
+
+    await conn.execute('COMMIT')
+
+    const amountFormatted = `₦${amountNGN.toLocaleString()}`
+    const notificationBody = _isJobEarnings
+      ? `Job earnings of ${amountFormatted} received`
+      : `Wallet funded with ${amountFormatted}`
+    try {
+      await createDbNotification(userId, notificationBody)
+      const { sendPushNotification } = await import('./notifications')
+      await sendPushNotification(userId, 'Anywork365', notificationBody)
+    } catch {
+      // Notifications are non-critical; silently ignore failures
+    }
+
+    return {
+      id: reference,
+      userId,
+      type: _isJobEarnings ? 'earning' : 'credit',
+      amount: amountNGN * 100,
+      amountNGN,
+      description: _isJobEarnings ? 'Job earnings received' : 'Wallet funded via Paystack',
+      reference,
+      status: 'success',
+      createdAt: new Date().toISOString(),
+    }
+  } catch (err) {
+    await conn.execute('ROLLBACK').catch(() => {})
+    throw err
+  } finally {
+    conn.release()
   }
 }
 
-// ─── Check for duplicate reference ──────────────────────────────────────
+// ─── Check for duplicate reference (early-exit optimization) ────────────
 
 export async function hasSuccessfulTransactionReference(
   reference: string
@@ -159,6 +201,7 @@ export async function hasSuccessfulTransactionReference(
 export async function deleteBankAccount(userId: string): Promise<void> {
   const userRow = await getUserRowByUid(userId)
   if (!userRow) throw new Error('User not found')
+  const { execute } = await import('@/lib/db')
   await execute('DELETE FROM withdrawal_accounts WHERE user_id = ?', [userRow.userId])
 }
 
@@ -194,52 +237,87 @@ export async function requestWithdrawal(
   amountNGN: number,
   bankDetails: BankDetails
 ): Promise<WithdrawalRequest | { error: string }> {
-  const { user, walletId } = await resolveUserWallet(userId)
+  const user = await getUserRowByUid(userId)
+  if (!user) return { error: 'User not found' }
 
-  const balance = await getWalletBalance(walletId)
-
-  if (amountNGN > balance) {
-    return { error: `Insufficient available balance` }
+  let wallet = await getWalletByUserId(user.userId)
+  if (!wallet) {
+    wallet = await getOrCreateWalletDb(user.userId, user.email)
   }
+  const walletId = wallet.id
 
-  if (amountNGN < 500) {
-    return { error: 'Minimum withdrawal amount is ₦500' }
-  }
+  const conn = await getConnection()
+  try {
+    await conn.execute('START TRANSACTION')
 
-  const newBalance = balance - amountNGN
+    // Lock wallet ledger to serialize balance operations
+    const [balRows] = await conn.execute(
+      'SELECT COALESCE(SUM(CASE WHEN direction = ? THEN amount ELSE -amount END), 0) AS balance FROM wallet_ledger WHERE wallet_id = ? FOR UPDATE',
+      ['credit', walletId]
+    ) as any
+    const balance = (balRows[0]?.balance ?? 0) as number
 
-  const accounts = await getWithdrawalAccounts(user.userId)
-  if (accounts.length === 0) {
-    return { error: 'Please verify your bank account before withdrawing' }
-  }
+    if (amountNGN > balance) {
+      await conn.execute('ROLLBACK')
+      return { error: `Insufficient available balance` }
+    }
 
-  await addLedgerEntry({
-    wallet_id: walletId,
-    amount: amountNGN,
-    direction: 'debit',
-    balance_after: newBalance,
-    description: `Withdrawal to ${bankDetails.bankName} ••••${bankDetails.accountNumber.slice(-4)}`,
-  })
+    if (amountNGN < 500) {
+      await conn.execute('ROLLBACK')
+      return { error: 'Minimum withdrawal amount is ₦500' }
+    }
 
-  const withdrawalId = await createWithdrawal({
-    user_id: user.userId,
-    wallet_id: walletId,
-    amount: amountNGN,
-    account_id: accounts[0].id,
-  })
+    // Dedup: check for a pending withdrawal of the same amount within 5 minutes
+    const [dupRows] = await conn.execute(
+      `SELECT 1 FROM withdrawals WHERE user_id = ? AND amount = ? AND status = ? AND created_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE) LIMIT 1`,
+      [user.userId, amountNGN, 'pending']
+    ) as any
+    if ((dupRows as any[]).length > 0) {
+      await conn.execute('ROLLBACK')
+      return { error: 'A withdrawal request with the same amount is already being processed. Please wait.' }
+    }
 
-  return {
-    id: String(withdrawalId),
-    userId,
-    amount: amountNGN,
-    amountKobo: amountNGN * 100,
-    bankAccountNumber: bankDetails.accountNumber,
-    bankCode: bankDetails.bankCode,
-    bankName: bankDetails.bankName,
-    accountName: bankDetails.accountName,
-    status: 'pending',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    const accounts = await getWithdrawalAccounts(user.userId)
+    if (accounts.length === 0) {
+      await conn.execute('ROLLBACK')
+      return { error: 'Please verify your bank account before withdrawing' }
+    }
+
+    const newBalance = balance - amountNGN
+
+    await conn.execute(
+      `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      [walletId, amountNGN, 'debit', newBalance, `Withdrawal to ${bankDetails.bankName} ••••${bankDetails.accountNumber.slice(-4)}`]
+    )
+
+    const [withdrawalResult] = await conn.execute(
+      'INSERT INTO withdrawals (wallet_id, user_id, amount, account_id, status, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+      [walletId, user.userId, amountNGN, accounts[0].id, 'pending']
+    ) as any
+    const withdrawalId = withdrawalResult.insertId as number
+
+    await conn.execute('COMMIT')
+
+    return {
+      id: String(withdrawalId),
+      userId,
+      amount: amountNGN,
+      amountKobo: amountNGN * 100,
+      bankAccountNumber: bankDetails.accountNumber,
+      bankCode: bankDetails.bankCode,
+      bankName: bankDetails.bankName,
+      accountName: bankDetails.accountName,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+  } catch (err) {
+    await conn.execute('ROLLBACK').catch(() => {})
+    console.error('[WITHDRAWAL REQUEST ERROR]', err)
+    return { error: 'Withdrawal request failed. Please try again.' }
+  } finally {
+    conn.release()
   }
 }
 
@@ -356,29 +434,49 @@ export async function lockEscrow(
 ): Promise<WalletTransaction> {
   const { walletId } = await resolveUserWallet(clientId)
 
-  const balance = await getWalletBalance(walletId)
-  const newBalance = balance - amountNGN
-
-  await addLedgerEntry({
-    wallet_id: walletId,
-    amount: amountNGN,
-    direction: 'debit',
-    balance_after: newBalance,
-    description: `Payment locked in escrow for job #${jobId}`,
-  })
-
   const ref = generateReference('ESC')
 
-  return {
-    id: ref,
-    userId: clientId,
-    type: 'escrow_lock',
-    amount: amountNGN * 100,
-    amountNGN,
-    description: `Payment locked in escrow for job #${jobId}`,
-    reference: ref,
-    status: 'success',
-    createdAt: new Date().toISOString(),
+  const conn = await getConnection()
+  try {
+    await conn.execute('START TRANSACTION')
+
+    const [balRows] = await conn.execute(
+      'SELECT COALESCE(SUM(CASE WHEN direction = ? THEN amount ELSE -amount END), 0) AS balance FROM wallet_ledger WHERE wallet_id = ? FOR UPDATE',
+      ['credit', walletId]
+    ) as any
+    const balance = (balRows[0]?.balance ?? 0) as number
+
+    if (amountNGN > balance) {
+      await conn.execute('ROLLBACK')
+      throw new Error('Insufficient balance to lock escrow')
+    }
+
+    const newBalance = balance - amountNGN
+
+    await conn.execute(
+      `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      [walletId, amountNGN, 'debit', newBalance, `Payment locked in escrow for job #${jobId}`]
+    )
+
+    await conn.execute('COMMIT')
+
+    return {
+      id: ref,
+      userId: clientId,
+      type: 'escrow_lock',
+      amount: amountNGN * 100,
+      amountNGN,
+      description: `Payment locked in escrow for job #${jobId}`,
+      reference: ref,
+      status: 'success',
+      createdAt: new Date().toISOString(),
+    }
+  } catch (err) {
+    await conn.execute('ROLLBACK').catch(() => {})
+    throw err
+  } finally {
+    conn.release()
   }
 }
 
@@ -397,51 +495,70 @@ export async function releaseEscrow(
   const platformFee = Math.round(amountNGN * PLATFORM_FEE_PERCENT / 100)
   const proAmount = amountNGN - platformFee
 
-  const clientBalance = await getWalletBalance(clientWalletId)
-  await addLedgerEntry({
-    wallet_id: clientWalletId,
-    amount: amountNGN,
-    direction: 'debit',
-    balance_after: clientBalance - amountNGN,
-    description: `Escrow released for job #${jobId}`,
-  })
+  const conn = await getConnection()
+  try {
+    await conn.execute('START TRANSACTION')
 
-  const proBalance = await getWalletBalance(proWalletId)
-  await addLedgerEntry({
-    wallet_id: proWalletId,
-    amount: proAmount,
-    direction: 'credit',
-    balance_after: proBalance + proAmount,
-    description: `Job earnings - job #${jobId}`,
-  })
+    // Lock both wallets
+    const [clientBalRows] = await conn.execute(
+      'SELECT COALESCE(SUM(CASE WHEN direction = ? THEN amount ELSE -amount END), 0) AS balance FROM wallet_ledger WHERE wallet_id = ? FOR UPDATE',
+      ['credit', clientWalletId]
+    ) as any
+    const clientBalance = (clientBalRows[0]?.balance ?? 0) as number
 
-  const ref = generateReference('REL')
+    const [proBalRows] = await conn.execute(
+      'SELECT COALESCE(SUM(CASE WHEN direction = ? THEN amount ELSE -amount END), 0) AS balance FROM wallet_ledger WHERE wallet_id = ? FOR UPDATE',
+      ['credit', proWalletId]
+    ) as any
+    const proBalance = (proBalRows[0]?.balance ?? 0) as number
 
-  const clientTx: WalletTransaction = {
-    id: ref,
-    userId: clientId,
-    type: 'escrow_release',
-    amount: amountNGN * 100,
-    amountNGN,
-    description: `Escrow released for job #${jobId}`,
-    reference: ref,
-    status: 'success',
-    createdAt: new Date().toISOString(),
+    await conn.execute(
+      `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      [clientWalletId, amountNGN, 'debit', clientBalance - amountNGN, `Escrow released for job #${jobId}`]
+    )
+
+    await conn.execute(
+      `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      [proWalletId, proAmount, 'credit', proBalance + proAmount, `Job earnings - job #${jobId}`]
+    )
+
+    await conn.execute('COMMIT')
+
+    const ref = generateReference('REL')
+
+    const clientTx: WalletTransaction = {
+      id: ref,
+      userId: clientId,
+      type: 'escrow_release',
+      amount: amountNGN * 100,
+      amountNGN,
+      description: `Escrow released for job #${jobId}`,
+      reference: ref,
+      status: 'success',
+      createdAt: new Date().toISOString(),
+    }
+
+    const proTx: WalletTransaction = {
+      id: generateReference('PAY'),
+      userId: proId,
+      type: 'earning',
+      amount: proAmount * 100,
+      amountNGN: proAmount,
+      description: `Job earnings - job #${jobId}`,
+      reference: generateReference('PAY'),
+      status: 'success',
+      createdAt: new Date().toISOString(),
+    }
+
+    return { clientTx, proTx }
+  } catch (err) {
+    await conn.execute('ROLLBACK').catch(() => {})
+    throw err
+  } finally {
+    conn.release()
   }
-
-  const proTx: WalletTransaction = {
-    id: generateReference('PAY'),
-    userId: proId,
-    type: 'earning',
-    amount: proAmount * 100,
-    amountNGN: proAmount,
-    description: `Job earnings - job #${jobId}`,
-    reference: generateReference('PAY'),
-    status: 'success',
-    createdAt: new Date().toISOString(),
-  }
-
-  return { clientTx, proTx }
 }
 
 // ─── Credit user for refund ─────────────────────────────────────────────
@@ -454,24 +571,39 @@ export async function creditUser(
 ): Promise<WalletTransaction> {
   const { walletId } = await resolveUserWallet(userId)
 
-  const balance = await getWalletBalance(walletId)
-  await addLedgerEntry({
-    wallet_id: walletId,
-    amount: amountNGN,
-    direction: 'credit',
-    balance_after: balance + amountNGN,
-    description,
-  })
+  const conn = await getConnection()
+  try {
+    await conn.execute('START TRANSACTION')
 
-  return {
-    id: reference,
-    userId,
-    type: 'refund',
-    amount: amountNGN * 100,
-    amountNGN,
-    description,
-    reference,
-    status: 'success',
-    createdAt: new Date().toISOString(),
+    const [balRows] = await conn.execute(
+      'SELECT COALESCE(SUM(CASE WHEN direction = ? THEN amount ELSE -amount END), 0) AS balance FROM wallet_ledger WHERE wallet_id = ? FOR UPDATE',
+      ['credit', walletId]
+    ) as any
+    const balance = (balRows[0]?.balance ?? 0) as number
+
+    await conn.execute(
+      `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      [walletId, amountNGN, 'credit', balance + amountNGN, description]
+    )
+
+    await conn.execute('COMMIT')
+
+    return {
+      id: reference,
+      userId,
+      type: 'refund',
+      amount: amountNGN * 100,
+      amountNGN,
+      description,
+      reference,
+      status: 'success',
+      createdAt: new Date().toISOString(),
+    }
+  } catch (err) {
+    await conn.execute('ROLLBACK').catch(() => {})
+    throw err
+  } finally {
+    conn.release()
   }
 }

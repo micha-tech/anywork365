@@ -2,16 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { jobPostSchema, type JobPostInput } from '@/lib/validators/job'
 import { jobsApi } from '@/lib/api'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 
 export default function PostJobPage() {
+  const { user, loading } = useCurrentUser()
   const router = useRouter()
-  const [success, setSuccess] = useState(false)
 
   const {
     register,
@@ -27,6 +29,25 @@ export default function PostJobPage() {
       reset()
       setTimeout(() => router.push('/dashboard/jobs'), 1500)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-pulse text-sm text-slate-400">Loading...</div>
+      </div>
+    )
+  }
+
+  if (user?.role !== 'vendor') {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-sm text-slate-500 mb-4">Only vendors can post jobs.</p>
+        <Link href="/dashboard" className="text-sm text-brand-500 font-medium">
+          Back to Dashboard
+        </Link>
+      </div>
+    )
   }
 
   return (
