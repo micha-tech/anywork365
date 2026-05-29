@@ -47,21 +47,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </OnboardingGuard>
         <Toaster
           position="top-center"
+          gap={12}
+          offset="80px"
+          visibleToasts={4}
+          closeButton
           toastOptions={{
+            duration: 3500,
             style: {
               background: '#1e293b',
               color: '#f8fafc',
               border: '1px solid #334155',
-              borderRadius: '12px',
-              padding: '12px 16px',
-              fontSize: '14px',
+              borderRadius: '16px',
+              padding: '16px 20px',
+              fontSize: '15px',
               fontWeight: 500,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+              lineHeight: 1.5,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.15)',
+              WebkitFontSmoothing: 'antialiased',
             },
-          }}
-          duration={3500}
-          closeButton
-          visibleToasts={3}
+            success: {
+              style: { background: '#0f172a', border: '1px solid #166534' },
+            },
+            error: {
+              style: { background: '#0f172a', border: '1px solid #854d0e' },
+            },
+          } as any}
+          style={{ padding: '0 max(env(safe-area-inset-right), 12px) 0 max(env(safe-area-inset-left), 12px)' }}
         />
       </body>
     </html>
