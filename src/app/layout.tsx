@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="page-enter">{children}</main>
         </OnboardingGuard>
         <Toaster
-          position="bottom-center"
+          position="top-center"
           toastOptions={{
             style: {
               background: '#1e293b',
