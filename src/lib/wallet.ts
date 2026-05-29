@@ -69,15 +69,24 @@ async function resolveUserWallet(uid: string): Promise<{
 // ─── Get or create wallet ───────────────────────────────────────────────
 
 export async function getOrCreateWallet(uid: string): Promise<Wallet> {
-  const { wallet } = await resolveUserWallet(uid)
+  const { user, wallet } = await resolveUserWallet(uid)
   const balance = await getWalletBalance(wallet.id)
+
+  const accounts = await getWithdrawalAccounts(user.userId)
+  const account = accounts.length > 0 ? accounts[accounts.length - 1] : null
 
   return {
     userId: uid,
     availableBalance: balance,
     escrowBalance: 0,
     totalEarned: 0,
-    isVerified: false,
+    isVerified: !!account,
+    paystackRecipientCode: account?.recipient_code || undefined,
+    bankAccountNumber: account?.account_number
+      ? '****' + account.account_number.slice(-4)
+      : undefined,
+    bankCode: account?.bank_code || undefined,
+    bankName: account?.bank_name || undefined,
     createdAt: wallet.created_at,
     updatedAt: wallet.created_at,
   }
@@ -213,6 +222,7 @@ export async function saveBankAccount(
     accountNumber: string
     bankCode: string
     bankName: string
+    accountName: string
     recipientCode: string
   }
 ): Promise<Wallet> {
@@ -224,7 +234,8 @@ export async function saveBankAccount(
     bank_name: bankDetails.bankName,
     bank_code: bankDetails.bankCode,
     account_number: bankDetails.accountNumber,
-    account_name: '',
+    account_name: bankDetails.accountName,
+    recipient_code: bankDetails.recipientCode,
   })
 
   return getOrCreateWallet(userId)

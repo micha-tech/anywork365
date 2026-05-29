@@ -108,6 +108,7 @@ export async function POST(req: NextRequest) {
       accountNumber,
       bankCode,
       bankName,
+      accountName,
       recipientCode,
     })
 

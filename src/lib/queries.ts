@@ -183,6 +183,7 @@ interface WithdrawalAccountRow extends RowDataPacket {
   bank_code: string
   account_number: string
   account_name: string
+  recipient_code: string
 }
 
 interface WithdrawalRow extends RowDataPacket {
@@ -679,11 +680,12 @@ export async function saveWithdrawalAccount(data: {
   bank_code: string
   account_number: string
   account_name: string
+  recipient_code: string
 }): Promise<number> {
   const result = await execute(
-    `INSERT INTO withdrawal_accounts (user_id, bank_name, bank_code, account_number, account_name)
-     VALUES (?, ?, ?, ?, ?)`,
-    [data.user_id, data.bank_name, data.bank_code, data.account_number, data.account_name]
+    `INSERT INTO withdrawal_accounts (user_id, bank_name, bank_code, account_number, account_name, recipient_code)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [data.user_id, data.bank_name, data.bank_code, data.account_number, data.account_name, data.recipient_code]
   )
   return result.insertId
 }

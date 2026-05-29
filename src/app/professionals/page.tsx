@@ -10,14 +10,14 @@ const CATEGORIES = ['All', ...JOB_CATEGORIES]
 const PAGE_SIZE = 12
 
 interface Props {
-  searchParams?: Promise<{ category?: string; city?: string; search?: string; page?: string }>
+  searchParams?: Promise<{ category?: string; state?: string; search?: string; page?: string }>
 }
 
 export default async function ProfessionalsPage({ searchParams }: Props) {
-  const { category, city, search, page } = (await searchParams) ?? {}
+  const { category, state, search, page } = (await searchParams) ?? {}
   const currentPage = Math.max(1, parseInt(page || '1'))
 
-  const allVendors = await listVendors({ category, state: city, search })
+  const allVendors = await listVendors({ category, state, search })
   const vendors = allVendors.slice(0, currentPage * PAGE_SIZE)
   const totalCount = allVendors.length
   const hasMore = totalCount > currentPage * PAGE_SIZE
@@ -40,7 +40,7 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
             placeholder="Search by skill, name, or keyword..."
           />
           <div className="flex gap-2">
-            <select name="state" defaultValue={city} className="input-field flex-1 sm:w-44 appearance-none">
+            <select name="state" defaultValue={state} className="input-field flex-1 sm:w-44 appearance-none">
               <option value="">All States</option>
               {NIGERIAN_STATE_NAMES.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -77,7 +77,7 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
             {hasMore && (
               <div className="flex justify-center mt-6 sm:mt-8">
                 <a
-                  href={`/professionals?${new URLSearchParams({ ...(category ? { category } : {}), ...(city ? { state: city } : {}), ...(search ? { search } : {}), page: String(currentPage + 1) }).toString()}`}
+                  href={`/professionals?${new URLSearchParams({ ...(category ? { category } : {}), ...(state ? { state } : {}), ...(search ? { search } : {}), page: String(currentPage + 1) }).toString()}`}
                   className="btn-outline px-8 py-3"
                 >
                   Load More ({totalCount - currentPage * PAGE_SIZE} remaining)
