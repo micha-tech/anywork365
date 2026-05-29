@@ -64,7 +64,14 @@ function WalletPageContent() {
     fetch('/api/wallet/banks')
       .then((r) => r.json())
       .then((d) => {
-        if (d.success) setBanks(d.data)
+        if (d.success) {
+          const seen = new Set<string>()
+          setBanks(d.data.filter((b: NigerianBank) => {
+            if (seen.has(b.code)) return false
+            seen.add(b.code)
+            return true
+          }))
+        }
       })
   }, [])
 
@@ -531,7 +538,7 @@ function WalletPageContent() {
               >
                 <option value="">Select your bank</option>
                 {banks.map((b) => (
-                  <option key={b.code} value={b.code}>
+                  <option key={`${b.code}-${b.name}`} value={b.code}>
                     {b.name}
                   </option>
                 ))}

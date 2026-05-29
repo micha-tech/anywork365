@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: "Anywork365 – Nigeria's Work Platform",
+  title: "Anywork365 - Nigeria's Work Platform",
   description: 'Connect with verified artisans, technicians, and vendors across Nigeria.',
   keywords: ['Nigeria', 'freelance', 'artisans', 'technicians', 'vendors', 'Lagos', 'Abuja'],
   openGraph: {

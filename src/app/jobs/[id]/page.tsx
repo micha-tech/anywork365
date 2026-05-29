@@ -140,7 +140,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             </div>
             <div className="text-xs text-slate-500 space-y-1.5">
               <p>⭐ Verified client</p>
-              <p>📋 12 jobs posted</p>
+              <p>12 jobs posted</p>
               <p>✅ 10 jobs completed</p>
             </div>
           </div>

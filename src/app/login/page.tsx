@@ -57,16 +57,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-surface-base flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-7">
           <BrandLogo size="lg" priority imageClassName="mx-auto object-contain" />
         </div>
 
-        <div className="card">
+        <div className="card p-6 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Welcome back</h1>
-          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to your account to continue</p>
+          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to continue managing your work</p>
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="form-group">
@@ -85,7 +85,7 @@ export default function LoginPage() {
             <div className="form-group">
               <div className="flex items-center justify-between mb-1.5">
                 <label className="label mb-0">Password</label>
-                <span className="text-xs text-brand-500 cursor-pointer">Forgot password?</span>
+                <span className="text-xs font-semibold text-brand-500 cursor-pointer">Forgot password?</span>
               </div>
               <div className="relative">
                 <input

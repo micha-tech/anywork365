@@ -65,16 +65,14 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
   const [searchFocused, setSearchFocused] = useState(false)
 
   return (
-    <section className="relative bg-white overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-50 rounded-full blur-3xl opacity-60 -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-50 rounded-full blur-3xl opacity-60 translate-y-1/2 -translate-x-1/4" />
-      </div>
+    <section className="relative overflow-hidden bg-white">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#FAFBFC_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-slate-100" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14 lg:py-20">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-100 border border-slate-200">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 shadow-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
@@ -83,30 +81,30 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
             </div>
 
             <div>
-              <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold leading-[1.1] tracking-tight text-slate-900">
+              <h1 className="max-w-2xl font-display text-4xl sm:text-5xl lg:text-[3.65rem] font-extrabold leading-[1.06] text-slate-900">
                 Connect with <span className="text-brand-500">trusted</span> professionals
               </h1>
             </div>
 
-            <p className="text-lg text-slate-500 leading-relaxed">
+            <p className="max-w-xl text-lg text-slate-600 leading-relaxed">
               Book verified artisans, technicians, and service providers near you. Secure payments. Guaranteed quality.
             </p>
 
-            <form action="/professionals" method="GET" className="flex flex-col sm:flex-row gap-2.5">
+            <form action="/professionals" method="GET" className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:flex-row">
               <div className={`relative flex-1 transition-all duration-200 ${searchFocused ? 'scale-[1.01]' : ''}`}>
                 <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
                   name="search"
                   placeholder="What service do you need?"
-                  className="w-full h-[52px] pl-12 pr-4 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all text-[16px]"
+                  className="w-full h-[52px] pl-12 pr-4 rounded-lg border border-transparent bg-slate-50 text-[16px] text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-brand-300 focus:bg-white focus:ring-4 focus:ring-brand-500/10"
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
                 />
               </div>
               <select
                 name="state"
-                className="h-[52px] px-4 rounded-xl border-2 border-slate-200 bg-white text-slate-700 focus:border-brand-400 outline-none transition-all cursor-pointer text-sm font-medium"
+                className="h-[52px] rounded-lg border border-transparent bg-slate-50 px-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-brand-300 focus:bg-white focus:ring-4 focus:ring-brand-500/10 sm:w-40"
               >
                 <option value="">All states</option>
                 {NIGERIAN_STATE_NAMES.map((s) => (
@@ -115,18 +113,18 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
               </select>
               <button
                 type="submit"
-                className="h-[52px] px-7 rounded-xl bg-brand-500 text-white font-semibold text-sm hover:bg-brand-600 active:scale-[0.98] transition-all shadow-sm hover:shadow-md whitespace-nowrap"
+                className="h-[52px] whitespace-nowrap rounded-lg bg-brand-500 px-7 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(15,79,74,0.16)] transition-all hover:bg-brand-600 hover:shadow-[0_14px_28px_rgba(15,79,74,0.20)] active:scale-[0.98]"
               >
                 Search
               </button>
             </form>
 
             {!loading && !user && (
-              <div className="flex gap-3">
-                <Link href="/signup" className="h-[48px] px-6 rounded-xl bg-brand-500 text-white font-semibold text-sm flex items-center justify-center hover:bg-brand-600 active:scale-[0.98] transition-all">
+              <div className="flex flex-wrap gap-3">
+                <Link href="/signup" className="h-[48px] px-6 rounded-lg bg-brand-500 text-white font-semibold text-sm flex items-center justify-center hover:bg-brand-600 active:scale-[0.98] transition-all shadow-[0_10px_22px_rgba(15,79,74,0.16)]">
                   Get Started Free
                 </Link>
-                <Link href="/login" className="h-[48px] px-6 rounded-xl border-2 border-slate-200 text-slate-700 font-semibold text-sm flex items-center justify-center hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all">
+                <Link href="/login" className="h-[48px] px-6 rounded-lg border border-slate-200 text-slate-700 font-semibold text-sm flex items-center justify-center hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all">
                   Sign In
                 </Link>
               </div>
@@ -150,7 +148,7 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
 
           <div className="flex justify-center lg:justify-end">
             <div className="relative w-full max-w-[420px]">
-              <div className="absolute inset-0 bg-brand-100 rounded-[2.5rem] blur-3xl opacity-50 scale-95" />
+              <div className="absolute inset-x-8 inset-y-10 rounded-[2rem] bg-brand-50" />
 
               <div className="relative z-10">
                   <Image
@@ -161,12 +159,12 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
                   priority
                   sizes="(max-width: 768px) 100vw, 480px"
                   className="w-full h-auto object-contain"
-                  style={{ filter: 'drop-shadow(0 20px 40px rgba(15,79,74,0.12))' }}
+                  style={{ filter: 'drop-shadow(0 22px 36px rgba(15,79,74,0.14))' }}
                 />
               </div>
 
-              <div className="absolute top-[18%] -left-3 sm:left-0 z-20 bg-white rounded-xl shadow-card-md p-3 flex items-center gap-3 border border-slate-100">
-                <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center">
+              <div className="absolute top-[18%] -left-2 sm:left-0 z-20 bg-white rounded-lg shadow-card-md p-3 flex items-center gap-3 border border-slate-100">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
                   <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
@@ -177,7 +175,7 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
                 </div>
               </div>
 
-              <div className="absolute bottom-[28%] -right-2 sm:right-0 z-20 bg-white rounded-xl shadow-card-md p-3 border border-slate-100">
+              <div className="absolute bottom-[28%] -right-1 sm:right-0 z-20 bg-white rounded-lg shadow-card-md p-3 border border-slate-100">
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map((s) => (
                     <svg key={s} className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
@@ -188,9 +186,9 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
                 <p className="text-[10px] text-slate-400 mt-0.5">4.9/5 from 2,000+ reviews</p>
               </div>
 
-              <div className="absolute bottom-[8%] -left-3 sm:left-0 z-20 bg-white rounded-xl shadow-card-md p-3 border border-slate-100">
+              <div className="absolute bottom-[8%] -left-2 sm:left-0 z-20 bg-white rounded-lg shadow-card-md p-3 border border-slate-100">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center">
                     <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -250,7 +248,7 @@ export default function HomePage() {
       <HeroSection user={user} loading={loading} />
 
       {/* Categories */}
-      <section className="border-t border-slate-100 bg-white px-4 py-8 sm:py-10 sm:px-6 lg:px-8 content-below-fold">
+      <section className="border-t border-slate-100 bg-white px-4 py-10 sm:px-6 sm:py-12 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -267,7 +265,7 @@ export default function HomePage() {
               <Link
                 key={service}
                 href={`/professionals?category=${encodeURIComponent(service)}`}
-                className="group flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-surface-100 p-4 text-center transition-all duration-200 hover:border-brand-300 hover:shadow-card-md hover:bg-white hover:-translate-y-0.5"
+                className="group flex min-h-[132px] flex-col items-center justify-center rounded-lg border border-slate-200 bg-white p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md"
               >
                 <CategoryIcon category={service} size={40} />
                 <span className="text-xs font-semibold text-slate-700 line-clamp-2 mt-2 group-hover:text-brand-600 transition-colors">{service}</span>
@@ -278,7 +276,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Vendors */}
-      <section className="border-t border-slate-100 px-4 py-8 sm:py-10 sm:px-6 lg:px-8 content-below-fold">
+      <section className="border-t border-slate-100 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -299,11 +297,11 @@ export default function HomePage() {
               <Link
                 key={vendor.id}
                 href={`/professionals/${vendor.id}`}
-                className="card group hover:border-brand-300 hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5"
+                  className="card group hover:border-brand-300 hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5"
               >
                 <div className="flex items-start gap-3 mb-3">
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-brand-500 text-white font-bold text-base flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-lg bg-brand-500 text-white font-bold text-base flex items-center justify-center">
                       {vendor.firstName[0]}{vendor.lastName[0]}
                     </div>
                     {vendor.isVerified && (
@@ -328,7 +326,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mb-3">
-                  <span className="px-2 py-0.5 rounded-full bg-surface-100 border border-slate-200 text-xs font-medium text-slate-600 line-clamp-1">
+                    <span className="px-2 py-1 rounded-md bg-surface-100 border border-slate-200 text-xs font-medium text-slate-600 line-clamp-1">
                     {vendor.skills?.[0]}
                   </span>
                 </div>
@@ -348,7 +346,7 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="border-t border-slate-100 bg-white px-4 py-8 sm:py-10 sm:px-6 lg:px-8 content-below-fold">
+      <section className="border-t border-slate-100 bg-white px-4 py-10 sm:px-6 sm:py-12 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-2">How it works</p>
@@ -389,7 +387,7 @@ export default function HomePage() {
               },
             ].map((item) => (
               <div key={item.step} className="card-sm flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4">{item.icon}</div>
+                <div className="w-12 h-12 rounded-lg bg-brand-50 flex items-center justify-center mb-4">{item.icon}</div>
                 <span className="text-xs font-bold text-slate-300 mb-2 tracking-widest">{item.step}</span>
                 <h3 className="font-display font-bold text-slate-900 mb-2">{item.title}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
@@ -401,7 +399,7 @@ export default function HomePage() {
 
       {/* Latest Jobs */}
       {(jobsLoading || latestJobs.length > 0) && (
-        <section className="border-t border-slate-100 px-4 py-8 sm:py-10 sm:px-6 lg:px-8 content-below-fold">
+        <section className="border-t border-slate-100 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 content-below-fold">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-5">
               <div>
@@ -423,7 +421,7 @@ export default function HomePage() {
                   className="card hover:border-brand-300 hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5"
                 >
                   <div className="flex items-start justify-between gap-2 mb-3">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${job.jobType === 'full-time' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'}`}>
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${job.jobType === 'full-time' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'}`}>
                       {job.jobType === 'full-time' ? 'Full-time' : 'Contract'}
                     </span>
                     {job.closingDate && (
@@ -456,10 +454,10 @@ export default function HomePage() {
               Join thousands of Nigerians who trust Anywork365 to connect them with quality professionals.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="h-[52px] px-8 rounded-xl bg-white text-brand-600 font-bold text-sm flex items-center justify-center hover:bg-brand-50 active:scale-[0.98] transition-all shadow-sm">
+              <Link href="/signup" className="h-[52px] px-8 rounded-lg bg-white text-brand-600 font-bold text-sm flex items-center justify-center hover:bg-brand-50 active:scale-[0.98] transition-all shadow-sm">
                 Create Free Account
               </Link>
-              <Link href="/professionals" className="h-[52px] px-8 rounded-xl border-2 border-white/30 text-white font-semibold text-sm flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
+              <Link href="/professionals" className="h-[52px] px-8 rounded-lg border border-white/30 text-white font-semibold text-sm flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
                 Browse Professionals
               </Link>
             </div>

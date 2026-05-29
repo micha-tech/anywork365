@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-[calc(100dvh-64px)]">
-      {/* Sidebar — desktop only */}
+      {/* Sidebar - desktop only */}
       <DashboardSidebar />
 
       {/* Main content */}
@@ -24,7 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {children}
       </main>
 
-      {/* Bottom nav — mobile only */}
+      {/* Bottom nav - mobile only */}
       <MobileBottomNav />
     </div>
   )

@@ -155,7 +155,7 @@ export function ChatWindow({ conversation, currentUserId, onSend }: ChatWindowPr
                   </p>
                   <p className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-slate-500'}`}>
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    {msg.status === 'read' && isMe && ' · Read'}
+                    {msg.status === 'read' && isMe && ' - Read'}
                   </p>
                 </div>
               </div>
@@ -180,7 +180,11 @@ export function ChatWindow({ conversation, currentUserId, onSend }: ChatWindowPr
             disabled={sending || !newMessage.trim()}
             className="btn-primary px-4 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
-            {sending ? '...' : '→'}
+            {sending ? '...' : (
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            )}
           </button>
         </div>
       </form>

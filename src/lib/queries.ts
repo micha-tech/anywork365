@@ -368,7 +368,13 @@ export async function listVendors(filters?: {
   if (filters?.limit && filters.limit > 0) { sql += ` LIMIT ${filters.limit}` }
 
   const rows = await query<VendorJoinRow[]>(sql, params)
-  return rows.map((r) => {
+  const seenUids = new Set<string>()
+
+  return rows.filter((r) => {
+    if (seenUids.has(r.uid)) return false
+    seenUids.add(r.uid)
+    return true
+  }).map((r) => {
     const name = r.user_fullName || r.businessName
     const parts = name.split(' ')
     return {

@@ -75,25 +75,29 @@ export default async function JobsPage({ searchParams }: Props) {
   const loadMoreHref = `/jobs?${new URLSearchParams({ ...(search ? { search } : {}), ...(category ? { category } : {}), ...(city ? { state: city } : {}), page: String(currentPage + 1) }).toString()}`
 
   return (
-    <div>
-      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-5 sm:py-7">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+    <div className="bg-surface-base">
+      <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#FAFBFC_100%)] px-4 py-8 sm:px-6 sm:py-10">
+        <div className="max-w-5xl mx-auto flex items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-xl sm:text-2xl font-semibold mb-1">Browse Jobs</h1>
-            <p className="text-sm text-slate-500">Open opportunities across Nigeria</p>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Browse Jobs</h1>
+            <p className="mt-2 text-sm text-slate-600">Open opportunities across Nigeria</p>
           </div>
           <Link href="/dashboard/post-job" className="btn-primary text-sm flex-shrink-0">
-            + Post Job
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+            </svg>
+            Post Job
           </Link>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <form className="flex flex-col gap-2 sm:gap-3 mb-6" method="GET">
+        <form className="mb-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:p-4" method="GET">
           <input
             name="search"
             defaultValue={search}
             className="input-field w-full"
+            placeholder="Search by role, company, or keyword..."
           />
           <div className="flex gap-2">
             <select name="category" defaultValue={category} className="input-field flex-1 appearance-none">
@@ -123,7 +127,7 @@ export default async function JobsPage({ searchParams }: Props) {
                   className="card hover:border-brand-300 hover:shadow-card-md transition-all duration-200"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${job.jobType === 'full-time' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'}`}>
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${job.jobType === 'full-time' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'}`}>
                       {job.jobType === 'full-time' ? 'Full-time' : 'Contract'}
                     </span>
                     {job.closingDate && (
@@ -154,7 +158,7 @@ export default async function JobsPage({ searchParams }: Props) {
           </>
         ) : (
           <EmptyState
-            icon="💼"
+            icon="jobs"
             title="No jobs found"
             description="Try different search terms or browse all jobs"
             action={<Link href="/jobs" className="btn-outline px-6">Clear filters</Link>}

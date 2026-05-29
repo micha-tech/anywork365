@@ -10,12 +10,12 @@ interface JobCardProps {
 
 export function JobCard({ job, showApply = true }: JobCardProps) {
   return (
-    <div className="card hover:border-brand-500 transition-colors">
+    <div className="card hover:border-brand-300 hover:shadow-card-md transition-all duration-200">
       <div className="flex items-start justify-end gap-2 mb-2">
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+        <span className={`rounded-md px-2.5 py-1 text-xs font-semibold border ${
           job.jobType === 'full-time' 
-            ? 'bg-blue-100 text-blue-700' 
-            : 'bg-purple-100 text-purple-700'
+            ? 'bg-blue-50 text-blue-700 border-blue-100'
+            : 'bg-purple-50 text-purple-700 border-purple-100'
         }`}>
           {job.jobType === 'full-time' ? 'Full-time' : 'Contract'}
         </span>
@@ -39,7 +39,7 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
         <span className="line-clamp-1">{job.businessAddress}</span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-200">
+      <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
         <Badge variant="green">Open</Badge>
         {job.timeline === 'urgent' && <Badge variant="red">Urgent</Badge>}
         <span className="text-xs text-slate-500">
@@ -51,7 +51,7 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
       </div>
 
       {showApply && (
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200 gap-3">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 gap-3">
           <span className="text-xs text-slate-500 truncate">
             {timeAgo(job.createdAt)}
           </span>

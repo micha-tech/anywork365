@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -9,7 +9,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { jobPostSchema, type JobPostInput } from '@/lib/validators/job'
 import { jobsApi } from '@/lib/api'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 
 export default function PostJobPage() {
   const { user, loading } = useCurrentUser()
@@ -167,7 +166,7 @@ export default function PostJobPage() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6 pt-4 border-t border-slate-200">
             <button type="submit" disabled={isSubmitting} className="btn-primary px-8 py-3 w-full sm:w-auto justify-center">
-              {isSubmitting ? 'Posting...' : 'Post Job →'}
+              {isSubmitting ? 'Posting...' : 'Post Job'}
             </button>
             <button type="button" onClick={() => router.back()} className="btn-ghost px-6 py-3 w-full sm:w-auto justify-center">
               Cancel

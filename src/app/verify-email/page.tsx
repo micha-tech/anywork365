@@ -105,7 +105,7 @@ export default function VerifyEmailPage() {
               disabled={checking}
               className="btn-primary w-full py-3 text-base justify-center"
             >
-              {checking ? 'Checking...' : 'I\'ve verified, continue →'}
+              {checking ? 'Checking...' : 'I\'ve verified, continue'}
             </button>
 
             <button

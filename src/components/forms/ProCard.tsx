@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Avatar, Badge, Stars } from '@/components/ui'
-import { getInitials, toErrorMessage } from '@/lib/utils'
+import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 
 interface ProCardProps {
@@ -43,7 +43,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
   }
 
   return (
-    <div className="card hover:border-brand-500 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer group">
+    <div className="card hover:border-brand-300 hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 cursor-pointer group">
       <div className="relative">
         <Avatar
           initials={initials}
@@ -69,7 +69,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
         )}
       </div>
       <p className="text-sm text-slate-500 mt-0.5">
-        {pro.skills?.[0]} · {pro.city}
+        {[pro.skills?.[0], pro.city].filter(Boolean).join(' - ')}
       </p>
 
       {pro.rating && (
@@ -92,7 +92,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
         </p>
       )}
 
-      <div className="flex gap-2 pt-2 border-t border-slate-200">
+      <div className="flex gap-2 pt-3 border-t border-slate-100">
         <Link
           href={`/professionals/${pro.id}`}
           className="btn-primary text-xs px-3 py-1.5 flex-1 text-center"

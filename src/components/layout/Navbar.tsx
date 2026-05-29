@@ -29,7 +29,7 @@ function NotificationBell({ unreadCount, onClick }: { unreadCount: number; onCli
   return (
     <button
       onClick={onClick}
-      className="relative p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-500"
+      className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
       aria-label="Notifications"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,7 +100,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white border-b border-slate-200 navbar">
+      <header className="sticky top-0 z-50 bg-white/90 border-b border-slate-100 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-xl navbar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 h-16">
 
@@ -112,7 +112,7 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'text-sm font-medium px-4 py-2 rounded-xl transition-all duration-150',
+                    'text-sm font-medium px-4 py-2 rounded-lg transition-all duration-150',
                     pathname.startsWith(link.href)
                       ? 'text-brand-600 bg-brand-50 font-semibold'
                       : 'text-slate-500 hover:text-brand-600 hover:bg-brand-50'
@@ -131,7 +131,7 @@ export function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setDropOpen(!dropOpen)}
-                    className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+                    className="flex items-center gap-2 rounded-lg border border-transparent py-1.5 pl-1.5 pr-3 transition-colors hover:border-slate-200 hover:bg-white"
                   >
                     <div className="w-8 h-8 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                       {user?.avatarUrl
@@ -145,7 +145,7 @@ export function Navbar() {
                   </button>
 
                   {dropOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-card-lg py-1.5 z-50">
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-card-lg py-1.5 z-50">
                       <div className="px-4 py-3 border-b border-slate-100">
                         <p className="text-sm font-semibold text-slate-900">{user?.firstName} {user?.lastName}</p>
                         <p className="text-xs text-slate-400 capitalize mt-0.5">{user?.role}</p>
@@ -205,7 +205,7 @@ export function Navbar() {
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 aria-label="Toggle menu"
-                className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
               >
                 {menuOpen ? (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -235,7 +235,7 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors',
+                    'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
                     pathname.startsWith(link.href)
                       ? 'bg-brand-50 text-brand-600 font-semibold'
                       : 'text-slate-700 hover:bg-brand-50 hover:text-brand-600'
@@ -255,14 +255,14 @@ export function Navbar() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600"
                       >
                         {item.label}
                       </Link>
                     ))}
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50"
+                      className="w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50"
                     >
                       Log out
                     </button>

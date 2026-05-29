@@ -319,8 +319,8 @@ export default function ProfilePage() {
             <div className="space-y-3">
               {[
                 { label: 'Account Type', value: roleLabel },
-                { label: 'City',         value: user?.city  ?? '—' },
-                { label: 'Email',        value: user?.email ?? '—' },
+                { label: 'City',         value: user?.city  ?? '-' },
+                { label: 'Email',        value: user?.email ?? '-' },
               ].map((s) => (
                 <div
                   key={s.label}

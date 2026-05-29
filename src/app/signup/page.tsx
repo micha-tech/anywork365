@@ -64,19 +64,19 @@ export default function SignupPage() {
       }
 
       window.location.href = '/verify-email'
-    } catch (err: unknown) {
+    } catch {
       toast.error('An unexpected error occurred. Please try again.')
     }
   }
 
   return (
-    <div className="min-h-dvh bg-surface-base flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-lg">
         <div className="text-center mb-7">
           <BrandLogo size="lg" priority imageClassName="mx-auto object-contain" />
         </div>
 
-        <div className="card">
+        <div className="card p-6 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Create your account</h1>
           <p className="text-sm text-slate-500 text-center mb-6">Join Nigeria&apos;s leading work platform</p>
 
@@ -89,13 +89,13 @@ export default function SignupPage() {
                   type="button"
                   onClick={() => handleRoleSelect(r)}
                   className={cn(
-                    'py-3 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[52px]',
+                    'py-3 px-3 rounded-lg border text-sm font-semibold transition-all min-h-[52px]',
                     role === r
-                      ? 'border-brand-500 bg-surface-50 text-brand-600'
-                      : 'border-slate-200 bg-surface-base text-slate-500'
+                      ? 'border-brand-500 bg-brand-50 text-brand-600'
+                      : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
                   )}
                 >
-                  {r === 'client' ? '👤 Register as User' : '🛠️ Register as Vendor'}
+                  {r === 'client' ? 'Register as User' : 'Register as Vendor'}
                 </button>
               ))}
             </div>
@@ -180,7 +180,7 @@ export default function SignupPage() {
             </div>
 
             <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-3 text-base justify-center mt-2">
-              {isSubmitting ? 'Creating account...' : 'Create account →'}
+              {isSubmitting ? 'Creating account...' : 'Create account'}
             </button>
           </form>
 

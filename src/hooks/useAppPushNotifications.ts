@@ -82,7 +82,7 @@ export function useAppPushNotifications(onConversationOpen?: (conversationId: st
           })
         }
       } catch (err) {
-        console.error('[Web Push] Registration error', err)
+        console.warn('[Web Push] Registration skipped', err)
       }
     }
   }, [])

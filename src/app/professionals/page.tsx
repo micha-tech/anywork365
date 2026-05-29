@@ -23,23 +23,28 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
   const hasMore = totalCount > currentPage * PAGE_SIZE
 
   return (
-    <div>
-      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-5 sm:py-7">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="font-display text-xl sm:text-2xl font-semibold mb-1">Find Vendors</h1>
-          <p className="text-sm text-slate-500">{totalCount.toLocaleString()}+ verified vendors across Nigeria</p>
+    <div className="bg-surface-base">
+      <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#FAFBFC_100%)] px-4 py-8 sm:px-6 sm:py-10">
+        <div className="max-w-7xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Find Vendors</h1>
+            <p className="mt-2 text-sm text-slate-600">{totalCount.toLocaleString()} verified vendors across Nigeria</p>
+          </div>
+          <div className="inline-flex w-fit items-center rounded-lg border border-brand-100 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-600">
+            Verified professionals
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <form className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-5 sm:mb-6" method="GET">
+        <form className="mb-5 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-6 sm:grid-cols-[1fr_auto] sm:p-4" method="GET">
           <input
             name="search"
             defaultValue={search}
             className="input-field flex-1"
             placeholder="Search by skill, name, or keyword..."
           />
-          <div className="flex gap-2">
+          <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex">
             <select name="state" defaultValue={state} className="input-field flex-1 sm:w-44 appearance-none">
               <option value="">All States</option>
               {NIGERIAN_STATE_NAMES.map((c) => (
@@ -55,7 +60,7 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
             <a
               key={cat}
               href={cat === 'All' ? '/professionals' : `/professionals?category=${cat}`}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors flex-shrink-0 min-h-[36px] flex items-center ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors flex-shrink-0 min-h-[38px] flex items-center ${
                 (category === cat) || (cat === 'All' && !category)
                   ? 'border-brand-500 bg-brand-50 text-brand-600'
                   : 'border-slate-200 bg-white text-slate-500 hover:border-brand-500 hover:text-brand-500'
@@ -87,7 +92,7 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
           </>
         ) : (
           <EmptyState
-            icon="🔍"
+            icon="search"
             title="No vendors found"
             description="Try adjusting your filters or search terms"
           />
