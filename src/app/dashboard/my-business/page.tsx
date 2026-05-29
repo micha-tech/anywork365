@@ -60,7 +60,7 @@ export default function MyBusinessPage() {
           })
         }
       })
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load business data'))
       .finally(() => setFetching(false))
   }, [user, userLoading])
 

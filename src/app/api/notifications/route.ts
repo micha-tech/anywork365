@@ -17,10 +17,10 @@ export async function GET() {
     const notifications = await getUserNotifications(session.id)
     const unreadCount = await getUnreadNotificationCount(session.id)
 
-    return NextResponse.json({
-      success: true,
-      data: { notifications, unreadCount },
-    })
+    return NextResponse.json(
+      { success: true, data: { notifications, unreadCount } },
+      { headers: { 'Cache-Control': 'private, no-cache' } }
+    )
   } catch (error) {
     console.error('Notifications GET error:', error)
     return NextResponse.json<ApiResponse<null>>(

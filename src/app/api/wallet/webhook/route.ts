@@ -37,8 +37,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log(`[WEBHOOK] Event received: ${event.event}`)
-
     switch (event.event) {
       case 'charge.success': {
         const { reference, amount, metadata } = event.data
@@ -48,7 +46,6 @@ export async function POST(req: NextRequest) {
 
         if (userId && type === 'wallet_fund' && !(await hasSuccessfulTransactionReference(reference))) {
           await creditWallet(userId, amountNGN, reference)
-          console.log(`[WEBHOOK] Wallet credited: userId=${userId} amount=NGN ${amountNGN}`)
         }
         break
       }
@@ -58,7 +55,6 @@ export async function POST(req: NextRequest) {
         const withdrawalId = extractWithdrawalId(event.data.reference || '')
         if (withdrawalId) {
           await confirmWithdrawalById(withdrawalId)
-          console.log(`[WEBHOOK] Withdrawal confirmed: id=${withdrawalId}`)
         } else if (transferCode) {
           console.warn(`[WEBHOOK] Received transfer.success without WD_ reference, transferCode=${transferCode}`)
         }
@@ -71,7 +67,6 @@ export async function POST(req: NextRequest) {
         const withdrawalId = extractWithdrawalId(event.data.reference || '')
         if (withdrawalId) {
           await rollbackWithdrawal(withdrawalId, 'Transfer failed or reversed by Paystack')
-          console.log(`[WEBHOOK] Withdrawal rolled back: id=${withdrawalId}`)
         } else {
           console.warn(`[WEBHOOK] Transfer failed/reversed: ${transferCode}, no WD_ reference found`)
         }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { toast } from 'sonner'
 import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
@@ -58,7 +59,7 @@ export default function DashboardPage() {
       }
       setActivity(acts)
     } catch {
-      // ignore
+      toast.error('Failed to load dashboard')
     } finally {
       setDashboardLoading(false)
     }

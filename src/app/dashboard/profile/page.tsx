@@ -173,9 +173,6 @@ export default function ProfilePage() {
             {uploading && (
               <p className="text-xs text-brand-600 mt-1.5">Uploading photo...</p>
             )}
-            {photoUrl && !uploading && (
-              <p className="text-xs text-green-600 mt-1.5">✓ Photo updated</p>
-            )}
           </div>
 
           {/* Upload button */}

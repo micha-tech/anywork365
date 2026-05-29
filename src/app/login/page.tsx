@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginInput } from '@/lib/validators/auth'
@@ -13,7 +14,6 @@ import { BrandLogo } from '@/components/layout/BrandLogo'
 
 export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
-  const [serverError, setServerError] = useState('')
 
   const {
     register,
@@ -22,13 +22,11 @@ export default function LoginPage() {
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) })
 
   async function onSubmit(data: LoginInput) {
-    setServerError('')
-
     try {
       const { data: result, error } = await signIn(data)
 
       if (error || !result) {
-        setServerError('Login failed. Please check your credentials.')
+        toast.error('Login failed. Please check your credentials.')
         return
       }
 
@@ -43,7 +41,7 @@ export default function LoginPage() {
       const body = await res.json()
 
       if (!res.ok) {
-        setServerError(body.error ?? 'Failed to establish session')
+        toast.error(body.error ?? 'Failed to establish session')
         return
       }
 
@@ -54,7 +52,7 @@ export default function LoginPage() {
 
       window.location.href = body.data?.role === 'admin' ? '/admin' : '/dashboard'
     } catch (err: unknown) {
-      setServerError(toErrorMessage(err))
+      toast.error(toErrorMessage(err))
     }
   }
 
@@ -69,15 +67,6 @@ export default function LoginPage() {
         <div className="card">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Welcome back</h1>
           <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to your account to continue</p>
-
-          {serverError && (
-            <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 animate-toast-in">
-              <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-              </svg>
-              <p className="text-sm text-amber-800">{serverError}</p>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="form-group">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { toast } from 'sonner'
 
 interface DisputeRow {
   id: number
@@ -48,7 +49,8 @@ export default function AdminDisputesPage() {
       body: JSON.stringify({ status, resolution }),
     })
     const d = await res.json()
-    if (d.success) loadData()
+    if (d.success) { toast.success('Dispute resolved'); loadData() }
+    else toast.error(d.error || 'Action failed')
   }
 
   const investigate = async (id: number) => {
@@ -58,7 +60,8 @@ export default function AdminDisputesPage() {
       body: JSON.stringify({ status: 'investigating' }),
     })
     const d = await res.json()
-    if (d.success) loadData()
+    if (d.success) { toast.success('Marked as investigating'); loadData() }
+    else toast.error(d.error || 'Action failed')
   }
 
   return (

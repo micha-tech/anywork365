@@ -20,6 +20,6 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json<ApiResponse<User[]>>(
     { success: true, data: sliced },
-    { status: 200 }
+    { status: 200, headers: { 'Cache-Control': 'public, max-age=60, s-maxage=120' } }
   )
 }

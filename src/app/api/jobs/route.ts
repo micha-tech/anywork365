@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json<ApiResponse<Job[]>>(
     { success: true, data: jobs },
-    { status: 200 }
+    { status: 200, headers: { 'Cache-Control': 'public, max-age=60, s-maxage=120' } }
   )
 }
 

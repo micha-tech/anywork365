@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
@@ -229,9 +229,9 @@ export default function HomePage() {
       .finally(() => setJobsLoading(false))
   }, [])
 
-  const featuredVendors = vendors.slice(0, 8)
-  const latestJobs = jobs.slice(0, 3)
-  const displayCategories = JOB_CATEGORIES.slice(0, 12)
+  const featuredVendors = useMemo(() => vendors.slice(0, 8), [vendors])
+  const latestJobs = useMemo(() => jobs.slice(0, 3), [jobs])
+  const displayCategories = useMemo(() => JOB_CATEGORIES.slice(0, 12), [])
   const [favorites, setFavorites] = useState<string[]>([])
 
   function toggleFavorite(e: React.MouseEvent, vendorId: string) {

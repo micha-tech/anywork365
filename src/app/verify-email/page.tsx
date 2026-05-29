@@ -12,9 +12,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 export default function VerifyEmailPage() {
   const router = useRouter()
   const { user, loading } = useCurrentUser()
-  const [resent, setResent] = useState(false)
   const [checking, setChecking] = useState(false)
-  const [error, setError] = useState('')
   const [polling, setPolling] = useState(true)
 
   const refreshSessionAndRedirect = useCallback(async () => {
@@ -55,12 +53,10 @@ export default function VerifyEmailPage() {
   }, [polling, refreshSessionAndRedirect])
 
   async function handleResend() {
-    setError('')
     const { error: err } = await sendVerificationEmail()
     if (err) {
       toast.error('Couldn\u2019t resend. Please try again.')
     } else {
-      setResent(true)
       setPolling(true)
       toast.success('Verification email resent')
     }
@@ -68,7 +64,6 @@ export default function VerifyEmailPage() {
 
   async function handleCheckNow() {
     setChecking(true)
-    setError('')
     const { emailVerified, error: err } = await reloadUser()
     setChecking(false)
     if (err) {
@@ -103,10 +98,6 @@ export default function VerifyEmailPage() {
           <p className="text-sm text-slate-500 text-center mb-6">
             Click the link in the email to activate your account.
           </p>
-
-          {resent && (
-            <p className="text-sm text-amber-600 text-center mb-4">Email resent. Check your inbox.</p>
-          )}
 
           <div className="space-y-3">
             <button

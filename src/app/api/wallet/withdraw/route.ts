@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     // Security: sufficient balance check
     if (amountNGN > wallet.availableBalance) {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: `Insufficient balance. Available: ₦${wallet.availableBalance.toLocaleString()}` },
+        { success: false, error: 'Insufficient balance' },
         { status: 400 }
       )
     }

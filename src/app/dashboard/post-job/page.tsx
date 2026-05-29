@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -14,6 +14,11 @@ import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 export default function PostJobPage() {
   const { user, loading } = useCurrentUser()
   const router = useRouter()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current)
+  }, [])
 
   const {
     register,
@@ -27,7 +32,9 @@ export default function PostJobPage() {
     if (res.success) {
       toast.success('Job posted')
       reset()
-      setTimeout(() => router.push('/dashboard/jobs'), 1500)
+      timerRef.current = setTimeout(() => router.push('/dashboard/jobs'), 1500)
+    } else {
+      toast.error(res.error || 'Failed to post job')
     }
   }
 

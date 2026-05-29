@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import { getOrCreateConversation, getUserConversations } from '@/lib/chat'
 import { findUserById } from '@/lib/users'
+import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse, ChatConversation } from '@/types'
 
 const startSchema = z.object({
@@ -54,6 +55,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },
       { status: 401 }
+    )
+  }
+
+  const rateLimit = checkRateLimit(`chat:${session.id}`, 10, 60 * 1000)
+  if (!rateLimit.allowed) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: `Too many requests. Please try again in ${rateLimit.retryAfter} seconds.` },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfter) } }
     )
   }
 

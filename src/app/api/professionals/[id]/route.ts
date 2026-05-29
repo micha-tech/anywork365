@@ -36,8 +36,8 @@ export async function GET(
       )
     : []
 
-  return NextResponse.json({
-    success: true,
-    data: { vendor, reviews },
-  })
+  return NextResponse.json(
+    { success: true, data: { vendor, reviews } },
+    { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=120' } }
+  )
 }

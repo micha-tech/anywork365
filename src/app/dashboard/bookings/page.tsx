@@ -33,7 +33,6 @@ export default function BookingsPage() {
   const [reviewBooking, setReviewBooking] = useState<BookingItem | null>(null)
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewComment, setReviewComment] = useState('')
-  const [reviewError, setReviewError] = useState('')
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
 
   function loadBookings() {
@@ -70,7 +69,6 @@ export default function BookingsPage() {
 
   async function handleSubmitReview() {
     if (!reviewBooking || reviewRating === 0 || !reviewComment.trim()) return
-    setReviewError('')
     setReviewSubmitting(true)
 
     try {
@@ -85,15 +83,16 @@ export default function BookingsPage() {
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
-        setReviewError(data.error || 'Failed to submit review')
+        toast.error(data.error || 'Failed to submit review')
         return
       }
       setReviewBooking(null)
       setReviewRating(0)
       setReviewComment('')
+      toast.success('Review submitted')
       loadBookings()
     } catch {
-      setReviewError('Network error. Please try again.')
+      toast.error('Network error. Please try again.')
     } finally {
       setReviewSubmitting(false)
     }
@@ -103,7 +102,6 @@ export default function BookingsPage() {
     setReviewBooking(b)
     setReviewRating(0)
     setReviewComment('')
-    setReviewError('')
   }
 
   const statusColors: Record<string, string> = {
@@ -210,12 +208,6 @@ export default function BookingsPage() {
             <p className="text-sm text-slate-500 mb-4">
               Rate your experience with <strong>{reviewBooking.businessName || 'this vendor'}</strong>
             </p>
-
-            {reviewError && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-xl mb-4">
-                {reviewError}
-              </div>
-            )}
 
             <div className="flex gap-1 mb-4">
               {[1, 2, 3, 4, 5].map((star) => (

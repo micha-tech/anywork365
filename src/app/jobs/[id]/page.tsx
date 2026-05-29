@@ -1,6 +1,7 @@
 'use client'
 
 import { use, useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui'
@@ -34,7 +35,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   function handleApply(e: React.FormEvent) {
     e.preventDefault()
     setApplyOpen(false)
-    setSubmitted(true)
+    toast.success('Application submitted! The client will review and get back to you.')
   }
 
   return (
@@ -42,12 +43,6 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       <Link href="/jobs" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-500 mb-5">
         ← Back to Jobs
       </Link>
-
-      {submitted && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-5 text-sm">
-          ✅ Application submitted! The client will review and get back to you.
-        </div>
-      )}
 
       <div className="sm:hidden bg-white border border-slate-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
         <div>

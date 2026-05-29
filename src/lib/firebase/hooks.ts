@@ -71,7 +71,6 @@ export function useNotifications(userId?: string) {
           await saveFcmToken(userId, token)
         }
 
-        console.log('FCM Token:', token)
         return token
       }
 

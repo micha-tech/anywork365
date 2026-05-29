@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { toast } from 'sonner'
 
 interface UserRow {
   uid: string
@@ -50,6 +51,7 @@ export default function AdminUsersPage() {
     })
     const d = await res.json()
     if (d.success) fetchUsers()
+    else toast.error(d.error || 'Action failed')
   }
 
   const totalPages = Math.ceil(total / limit)

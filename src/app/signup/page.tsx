@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signupSchema, type SignupInput, COUNTRY_CODES } from '@/lib/validators/auth'
@@ -16,7 +17,6 @@ import { BrandLogo } from '@/components/layout/BrandLogo'
 export default function SignupPage() {
   const [showPw, setShowPw] = useState(false)
   const [role, setRole] = useState<'client' | 'vendor'>('client')
-  const [serverError, setServerError] = useState('')
 
   const {
     register,
@@ -31,8 +31,6 @@ export default function SignupPage() {
   }
 
   async function onSubmit(data: SignupInput) {
-    setServerError('')
-
     try {
       const { data: result, user: fbUser, error } = await signUp({
         email: data.email,
@@ -46,7 +44,7 @@ export default function SignupPage() {
       })
 
       if (error || !result || !fbUser) {
-        setServerError(toErrorMessage(error))
+        toast.error(toErrorMessage(error))
         return
       }
 
@@ -61,13 +59,13 @@ export default function SignupPage() {
       const body = await res.json()
 
       if (!res.ok) {
-        setServerError(body.error ?? 'Failed to complete signup')
+        toast.error(body.error ?? 'Failed to complete signup')
         return
       }
 
       window.location.href = '/verify-email'
     } catch (err: unknown) {
-      setServerError('An unexpected error occurred. Please try again.')
+      toast.error('An unexpected error occurred. Please try again.')
     }
   }
 
@@ -81,15 +79,6 @@ export default function SignupPage() {
         <div className="card">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Create your account</h1>
           <p className="text-sm text-slate-500 text-center mb-6">Join Nigeria&apos;s leading work platform</p>
-
-          {serverError && (
-            <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 animate-toast-in">
-              <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-              </svg>
-              <p className="text-sm text-amber-800">{serverError}</p>
-            </div>
-          )}
 
           <div className="mb-5">
             <p className="label mb-2">I want to...</p>

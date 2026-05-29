@@ -37,6 +37,7 @@ export default function OnboardingPage() {
   const router = useRouter()
   const [active, setActive] = useState(0)
   const touchX = useRef(0)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     if (localStorage.getItem(ONBOARDING_KEY)) {
@@ -47,7 +48,7 @@ export default function OnboardingPage() {
   const complete = useCallback(() => {
     localStorage.setItem(ONBOARDING_KEY, 'true')
     document.documentElement.classList.add('page-exit')
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       document.documentElement.classList.remove('page-exit')
       router.replace('/login')
     }, 300)

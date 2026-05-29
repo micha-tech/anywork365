@@ -17,6 +17,7 @@ import {
 } from '@/lib/chat'
 import { findUserById } from '@/lib/users'
 import { sendPushNotification } from '@/lib/notifications'
+import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse, ChatParticipantInfo } from '@/types'
 
 const sendSchema = z.object({
@@ -107,6 +108,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },
       { status: 401 }
+    )
+  }
+
+  const rateLimit = checkRateLimit(`chat:${session.id}`, 20, 60 * 1000)
+  if (!rateLimit.allowed) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: `Too many requests. Please try again in ${rateLimit.retryAfter} seconds.` },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfter) } }
     )
   }
 

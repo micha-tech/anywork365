@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { toast } from 'sonner'
 
 interface VerificationRow {
   id: number
@@ -53,7 +54,8 @@ export default function AdminVerificationsPage() {
       body: JSON.stringify({ action, adminNotes }),
     })
     const d = await res.json()
-    if (d.success) loadData()
+    if (d.success) { toast.success('Verification updated'); loadData() }
+    else toast.error(d.error || 'Action failed')
   }
 
   return (

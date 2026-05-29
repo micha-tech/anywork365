@@ -43,9 +43,8 @@ export async function GET() {
     createdAt: entry.created_at,
   }))
 
-  return NextResponse.json({
-    success: true,
-    data: {
+  return NextResponse.json(
+    { success: true, data: {
       wallet: {
         id: String(wallet.id),
         userId: session.id,
@@ -59,6 +58,7 @@ export async function GET() {
         updatedAt: wallet.created_at,
       },
       transactions,
-    },
-  })
+    }},
+    { headers: { 'Cache-Control': 'private, no-cache' } }
+  )
 }

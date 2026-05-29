@@ -186,7 +186,7 @@ export async function POST(req: NextRequest) {
     if (currentBalance < budget) {
       await conn.rollback()
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: `Insufficient balance. You need ₦${budget.toLocaleString()} but your wallet has ₦${currentBalance.toLocaleString()}. Please fund your wallet first.` },
+        { success: false, error: 'Insufficient balance. Please fund your wallet and try again.' },
         { status: 400 }
       )
     }

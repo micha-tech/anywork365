@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { useNotifications } from '@/lib/firebase/hooks'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
@@ -9,7 +10,6 @@ export function NotificationSettings() {
   const { requestPermission, saveToken, isSupported } = useNotifications(user?.id)
   const [loading, setLoading] = useState(false)
   const [enabled, setEnabled] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const handleToggle = async () => {
     if (enabled) {
@@ -18,18 +18,18 @@ export function NotificationSettings() {
     }
 
     setLoading(true)
-    setError(null)
 
     try {
       const token = await requestPermission()
       if (token) {
         await saveToken(token)
         setEnabled(true)
+        toast.success('Push notifications enabled')
       } else {
-        setError('Failed to enable notifications. Please check your browser settings.')
+        toast.error('Failed to enable notifications. Please check your browser settings.')
       }
-    } catch (err) {
-      setError('An error occurred while enabling notifications.')
+    } catch {
+      toast.error('An error occurred while enabling notifications.')
     } finally {
       setLoading(false)
     }
@@ -74,9 +74,6 @@ export function NotificationSettings() {
           )}
         </button>
       </div>
-      {error && (
-        <p className="mt-2 text-sm text-amber-600">{error}</p>
-      )}
     </div>
   )
 }

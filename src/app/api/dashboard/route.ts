@@ -28,6 +28,6 @@ export async function GET() {
 
   return NextResponse.json<ApiResponse<{ stats: typeof stats; activity: typeof activity; changeMap: typeof changeMap }>>(
     { success: true, data: { stats, activity, changeMap } },
-    { status: 200 }
+    { status: 200, headers: { 'Cache-Control': 'private, no-cache' } }
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useEffect } from 'react'
+import { use, useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { notFound } from 'next/navigation'
@@ -17,11 +17,15 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
   const [reviews, setReviews] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [bookOpen, setBookOpen] = useState(false)
-  const [booked,   setBooked]   = useState(false)
-  const [bookingError, setBookingError] = useState('')
+  const [booked, setBooked] = useState(false)
   const [bookingLoading, setBookingLoading] = useState(false)
   const [startingChat, setStartingChat] = useState(false)
   const [calling, setCalling] = useState<'voice' | 'video' | null>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current)
+  }, [])
   const [quickConnecting, setQuickConnecting] = useState(false)
 
   useEffect(() => {
@@ -46,7 +50,6 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
     e.preventDefault()
     if (!pro) return
 
-    setBookingError('')
     setBookingLoading(true)
     const form = e.currentTarget as HTMLFormElement
     const formData = new FormData(form)
@@ -66,15 +69,16 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
       const data = await res.json()
       if (!res.ok || !data.success) {
-        setBookingError(data.error || 'Failed to create booking')
+        toast.error(data.error || 'Failed to create booking')
         setBookingLoading(false)
         return
       }
 
       setBookOpen(false)
       setBooked(true)
+      toast.success('Booking request sent!')
     } catch {
-      setBookingError('Network error. Please try again.')
+      toast.error('Network error. Please try again.')
     } finally {
       setBookingLoading(false)
     }
@@ -110,7 +114,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
     setCalling(type)
     const phone = pro.phone
     
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       try {
         const digits = phone.replace(/\D/g, '')
         let url: string
@@ -139,7 +143,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
     setQuickConnecting(true)
     const phone = pro.phone
     
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       try {
         const digits = phone.replace(/\D/g, '')
         const message = encodeURIComponent(`Hi ${pro.firstName}, I found your profile on Anywork365 and I'm interested in your services. Can we discuss?`)
@@ -167,12 +171,6 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
       <Link href="/professionals" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-500 mb-5">
         ← Back to Vendors
       </Link>
-
-      {booked && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-5 text-sm">
-          ✅ Booking request sent! {pro.firstName} will respond shortly.
-        </div>
-      )}
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-50 pb-safe">
         <div className="flex items-center justify-between gap-2 max-w-lg mx-auto">
@@ -392,13 +390,8 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
-      <Modal open={bookOpen} onClose={() => { setBookOpen(false); setBookingError('') }} title={`Book ${pro.firstName} ${pro.lastName}`}>
+      <Modal open={bookOpen} onClose={() => setBookOpen(false)} title={`Book ${pro.firstName} ${pro.lastName}`}>
         <form onSubmit={handleBook}>
-          {bookingError && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-xl mb-4">
-              {bookingError}
-            </div>
-          )}
           <div className="form-group">
             <label className="label">Describe your job *</label>
             <textarea
@@ -424,7 +417,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
             <input name="location" type="text" className="input-field" placeholder="e.g. Lekki Phase 1, Lagos" />
           </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-end mt-6">
-            <button type="button" onClick={() => { setBookOpen(false); setBookingError('') }} className="btn-ghost w-full sm:w-auto px-6 justify-center">Cancel</button>
+            <button type="button" onClick={() => setBookOpen(false)} className="btn-ghost w-full sm:w-auto px-6 justify-center">Cancel</button>
             <button type="submit" disabled={bookingLoading} className="btn-primary w-full sm:w-auto px-8 justify-center">
               {bookingLoading ? 'Sending...' : 'Send Request'}
             </button>
