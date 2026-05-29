@@ -76,7 +76,7 @@ export default function OnboardingPage() {
   }, [goNext, goPrev])
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-brand-50 via-white to-white" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <div className="absolute top-0 inset-x-0 z-10 flex justify-end px-5 pt-safe">
         <button
           onClick={complete}
