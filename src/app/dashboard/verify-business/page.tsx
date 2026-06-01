@@ -86,11 +86,18 @@ export default function VerifyBusinessPage() {
       const res = await fetch('/api/business/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nin, ...urls }),
+        body: JSON.stringify({
+          nin,
+          photo_url: urls.photo,
+          nin_card_url: urls.nin_card,
+          utility_bill_url: urls.utility_bill,
+          business_registration_url: urls.business_registration,
+          trade_certificate_url: urls.trade_certificate,
+        }),
       })
       const data = await res.json()
       if (data.success) {
-        setVerification(data.data)
+        setVerification({ ...data.data, status: 'pending', submitted_at: new Date().toISOString() })
         toast.success('Verification submitted for review')
       } else {
         toast.error('Couldn\u2019t submit verification')

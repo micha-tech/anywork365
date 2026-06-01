@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth'
 import { getBusinessByUid, submitVerification, getLatestVerification } from '@/lib/queries'
+import { isAllowedVerificationDocUrl } from '@/lib/verification-docs'
 import type { ApiResponse } from '@/types'
 
 export async function POST(req: NextRequest) {
@@ -29,13 +30,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const docUrlSchema = z.string().refine(
+      (url) => isAllowedVerificationDocUrl(url, session.id),
+      'Invalid document URL'
+    )
     const schema = z.object({
       nin: z.string().length(11, 'NIN must be exactly 11 digits').regex(/^\d+$/, 'NIN must contain only numbers'),
-      photo_url: z.string().url().nullable().optional(),
-      nin_card_url: z.string().url().nullable().optional(),
-      utility_bill_url: z.string().url().nullable().optional(),
-      business_registration_url: z.string().url().nullable().optional(),
-      trade_certificate_url: z.string().url().nullable().optional(),
+      photo_url: docUrlSchema.nullable().optional(),
+      nin_card_url: docUrlSchema.nullable().optional(),
+      utility_bill_url: docUrlSchema.nullable().optional(),
+      business_registration_url: docUrlSchema.nullable().optional(),
+      trade_certificate_url: docUrlSchema.nullable().optional(),
     })
 
     const parsed = schema.safeParse(await req.json())

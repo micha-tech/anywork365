@@ -25,9 +25,18 @@ export async function POST(
     const { action } = body
 
     if (action === 'mark_paid') {
-      await execute("UPDATE withdrawals SET status = 'paid' WHERE id = ?", [id])
+      if (withdrawal.status !== 'pending') {
+        return NextResponse.json({ success: false, error: 'Only pending withdrawals can be marked paid' }, { status: 409 })
+      }
+      const result = await execute("UPDATE withdrawals SET status = 'paid' WHERE id = ? AND status = 'pending'", [id])
+      if (result.affectedRows === 0) {
+        return NextResponse.json({ success: false, error: 'Withdrawal was already updated' }, { status: 409 })
+      }
       await logAdminAction(session.id, 'mark_withdrawal_paid', 'withdrawal', id)
     } else if (action === 'mark_failed') {
+      if (withdrawal.status !== 'pending') {
+        return NextResponse.json({ success: false, error: 'Only pending withdrawals can be marked failed' }, { status: 409 })
+      }
       await rollbackWithdrawal(id, body.reason || 'Transfer failed')
       await logAdminAction(session.id, 'mark_withdrawal_failed', 'withdrawal', id, { reason: body.reason })
     } else {

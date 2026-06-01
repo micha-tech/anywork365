@@ -36,13 +36,21 @@ const slides = [
 export default function OnboardingPage() {
   const router = useRouter()
   const [active, setActive] = useState(0)
+  const [showSplash, setShowSplash] = useState(true)
   const touchX = useRef(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     if (localStorage.getItem(ONBOARDING_KEY)) {
       router.replace('/login')
+      return
     }
+
+    const splashTimer = setTimeout(() => {
+      setShowSplash(false)
+    }, 1200)
+
+    return () => clearTimeout(splashTimer)
   }, [router])
 
   const complete = useCallback(() => {
@@ -74,6 +82,10 @@ export default function OnboardingPage() {
     if (dx > 50) goPrev()
     else if (dx < -50) goNext()
   }, [goNext, goPrev])
+
+  if (showSplash) {
+    return <OnboardingSplash />
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-brand-50 via-white to-white" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -155,6 +167,37 @@ export default function OnboardingPage() {
             Get started
           </button>
         )}
+      </div>
+    </div>
+  )
+}
+
+function OnboardingSplash() {
+  return (
+    <div className="fixed inset-0 z-50 flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-white px-6 text-center">
+      <div className="absolute inset-x-0 top-0 h-2 bg-brand-500" />
+      <div className="relative flex flex-col items-center">
+        <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-lg border border-slate-100 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.10)]">
+          <Image
+            src="/anyworks-logo.png"
+            alt="Anywork365.ng"
+            width={180}
+            height={56}
+            priority
+            className="h-auto w-24 object-contain"
+          />
+        </div>
+
+        <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand-600">Anywork365</p>
+        <h1 className="mt-3 max-w-xs text-2xl font-extrabold leading-tight text-slate-950">
+          Nigeria&apos;s trusted work platform
+        </h1>
+
+        <div className="mt-8 flex items-center justify-center gap-2" aria-label="Loading onboarding">
+          <span className="h-2 w-2 animate-bounce rounded-full bg-brand-500 [animation-delay:-0.2s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-amber-500 [animation-delay:-0.1s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
+        </div>
       </div>
     </div>
   )

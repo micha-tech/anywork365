@@ -545,10 +545,11 @@ export async function getWalletBalance(walletId: number): Promise<number> {
   return row?.balance ?? 0
 }
 
-export async function getWalletLedger(walletId: number): Promise<WalletLedgerRow[]> {
+export async function getWalletLedger(walletId: number, limit = 100): Promise<WalletLedgerRow[]> {
+  const safeLimit = Math.min(200, Math.max(1, Math.floor(limit)))
   return query<WalletLedgerRow[]>(
-    'SELECT * FROM wallet_ledger WHERE wallet_id = ? ORDER BY created_at DESC',
-    [walletId]
+    'SELECT * FROM wallet_ledger WHERE wallet_id = ? ORDER BY created_at DESC LIMIT ?',
+    [walletId, safeLimit]
   )
 }
 

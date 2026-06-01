@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/wallet'
+import {
+  createVerificationDocFilename,
+  getVerificationDocOwnerSegment,
+  getVerificationDocUrl,
+  resolveVerificationDocPath,
+  VERIFICATION_DOC_FIELDS,
+  type VerificationDocField,
+} from '@/lib/verification-docs'
 import type { ApiResponse } from '@/types'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']
@@ -25,8 +32,6 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
     return sig.every((byte, i) => byte === 0x00 || buffer[i] === byte)
   })
 }
-
-const DOC_FIELDS = ['photo', 'nin_card', 'utility_bill', 'business_registration', 'trade_certificate'] as const
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,7 +62,7 @@ export async function POST(req: NextRequest) {
     const field = formData.get('field') as string
     const file = formData.get('file') as File | null
 
-    if (!field || !DOC_FIELDS.includes(field as typeof DOC_FIELDS[number])) {
+    if (!field || !VERIFICATION_DOC_FIELDS.includes(field as VerificationDocField)) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Invalid document field' },
         { status: 400 }
@@ -85,19 +90,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const extMap: Record<string, string> = {
-      'image/jpeg': '.jpg',
-      'image/jpg': '.jpg',
-      'image/png': '.png',
-      'image/webp': '.webp',
-      'application/pdf': '.pdf',
-    }
-    const ext = extMap[file.type] ?? '.jpg'
-    const timestamp = Date.now()
-    const filename = `verify_${session.id}_${field}${ext}`
+    const ownerSegment = getVerificationDocOwnerSegment(session.id)
+    const filename = createVerificationDocFilename(field as VerificationDocField, file.type)
+    const target = resolveVerificationDocPath(ownerSegment, filename)
 
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'verify')
-    await mkdir(uploadsDir, { recursive: true })
+    if (!target) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Invalid upload path' },
+        { status: 400 }
+      )
+    }
+
+    await mkdir(target.directory, { recursive: true })
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
@@ -107,13 +111,12 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    const filepath = join(uploadsDir, filename)
-    await writeFile(filepath, buffer)
+    await writeFile(target.filepath, buffer)
 
-    const publicUrl = `/uploads/verify/${filename}`
+    const privateUrl = getVerificationDocUrl(ownerSegment, filename)
 
     return NextResponse.json<ApiResponse<{ url: string }>>(
-      { success: true, data: { url: publicUrl } },
+      { success: true, data: { url: privateUrl } },
       { status: 200 }
     )
   } catch (err) {

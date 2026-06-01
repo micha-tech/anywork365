@@ -227,10 +227,11 @@ export async function POST(req: NextRequest) {
 
     await conn.commit()
 
+    const clientName = clientRow.fullName || 'A client'
     await sendPushNotification(
       vendorId,
       'New Booking Request',
-      `${clientRow.firstName} ${clientRow.lastName} wants to book your service — ₦${budget.toLocaleString()}`,
+      `${clientName} wants to book your service — ₦${budget.toLocaleString()}`,
       { type: 'booking', bookingId: String(bookingId) }
     )
 

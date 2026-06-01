@@ -35,6 +35,9 @@ yarn-debug.log*
 yarn-error.log*
 *.log
 
+# Runtime uploads
+storage/
+
 # Editor
 .vscode/
 .idea/
