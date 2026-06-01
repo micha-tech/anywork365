@@ -1,0 +1,21 @@
+
+> anywork365@0.1.0 dev
+> next dev --turbopack -p 3002
+
+   ▲ Next.js 15.5.15 (Turbopack)
+   - Local:        http://localhost:3002
+   - Network:      http://100.92.239.28:3002
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 1795ms
+ ✓ Ready in 9.2s
+ ○ Compiling /onboarding ...
+ ✓ Compiled /onboarding in 19.1s
+ GET /onboarding 200 in 1200ms
+ GET /onboarding 200 in 3543ms
+ ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /onboarding 200 in 3424ms
+ ○ Compiling /api/auth/me ...
