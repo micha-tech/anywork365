@@ -2,16 +2,14 @@
 > anywork365@0.1.0 dev
 > next dev --turbopack -p 3001
 
-Error: spawn EPERM
-    at ChildProcess.spawn (node:internal/child_process:421:11)
-    at spawn (node:child_process:796:9)
-    at fork (node:child_process:174:10)
-    at C:\Users\Admin\Downloads\anywork365-v7-photo\anywork365\node_modules\next\dist\cli\next-dev.js:237:45
-    at new Promise (<anonymous>)
-    at startServer (C:\Users\Admin\Downloads\anywork365-v7-photo\anywork365\node_modules\next\dist\cli\next-dev.js:213:16)
-    at runDevServer (C:\Users\Admin\Downloads\anywork365-v7-photo\anywork365\node_modules\next\dist\cli\next-dev.js:322:23)
-    at Module.nextDev (C:\Users\Admin\Downloads\anywork365-v7-photo\anywork365\node_modules\next\dist\cli\next-dev.js:330:11) {
-  errno: -4048,
-  code: 'EPERM',
-  syscall: 'spawn'
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3001
+    at <unknown> (Error: listen EADDRINUSE: address already in use :::3001)
+    at new Promise (<anonymous>) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
 }
+[?25h
