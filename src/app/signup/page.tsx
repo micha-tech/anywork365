@@ -39,7 +39,7 @@ export default function SignupPage() {
         lastName: data.lastName,
         phone: data.phone,
         countryCode: data.countryCode,
-        nin: data.nin,
+        nin: data.nin || undefined,
         role: data.role,
       })
 
@@ -138,8 +138,8 @@ export default function SignupPage() {
             </div>
 
             <div className="form-group">
-              <label className="label">11-digit NIN</label>
-              <input {...register('nin')} type="text" inputMode="numeric" className={`input-field ${errors.nin ? 'border-amber-300' : ''}`} placeholder="00 0000 0000" />
+              <label className="label">11-digit NIN (optional)</label>
+              <input {...register('nin')} type="text" inputMode="numeric" maxLength={11} className={`input-field ${errors.nin ? 'border-amber-300' : ''}`} placeholder="12345678901" />
               {errors.nin && <p className="mt-1 text-xs text-amber-600">{errors.nin.message}</p>}
             </div>
 

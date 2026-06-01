@@ -19,6 +19,21 @@ export const loginSchema = z.object({
     .min(8, 'Password must be at least 8 characters'),
 })
 
+export const optionalNinSchema = z
+  .union([
+    z.string().trim().length(0),
+    z
+      .string()
+      .trim()
+      .length(11, 'NIN must be 11 digits')
+      .regex(/^\d+$/, 'NIN must be only numbers'),
+  ])
+  .optional()
+  .transform((value) => {
+    if (!value) return undefined
+    return value.trim()
+  })
+
 export const signupSchema = z
   .object({
     firstName: z
@@ -38,10 +53,7 @@ export const signupSchema = z
       .string()
       .min(10, 'Please enter a valid phone number')
       .max(15, 'Phone number is too long'),
-    nin: z
-      .string()
-      .length(11, 'NIN must be 11 digits')
-      .regex(/^\d+$/, 'NIN must be only numbers'),
+    nin: optionalNinSchema,
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')

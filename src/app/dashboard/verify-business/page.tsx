@@ -54,9 +54,6 @@ export default function VerifyBusinessPage() {
         if (d.success) {
           setIsVerified(d.data.isVerified)
           setVerification(d.data.verification)
-          if (d.data.verification) {
-            setNin(d.data.verification.nin || '')
-          }
         }
       })
       .catch(() => console.error('Failed to load verification status'))
@@ -76,8 +73,9 @@ export default function VerifyBusinessPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (nin.length !== 11) {
-      toast.error('NIN must be exactly 11 digits')
+    const normalizedNin = nin.trim()
+    if (normalizedNin && !/^\d{11}$/.test(normalizedNin)) {
+      toast.error('Enter an 11-digit NIN or leave it blank')
       return
     }
     setSubmitting(true)
@@ -87,7 +85,7 @@ export default function VerifyBusinessPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nin,
+          nin: normalizedNin || undefined,
           photo_url: urls.photo,
           nin_card_url: urls.nin_card,
           utility_bill_url: urls.utility_bill,
@@ -150,11 +148,11 @@ export default function VerifyBusinessPage() {
       ) : (
         <div className="card max-w-2xl">
           <h2 className="font-medium text-base mb-1">Submit Your Documents</h2>
-          <p className="text-sm text-slate-500 mb-6">All fields are required for verification</p>
+          <p className="text-sm text-slate-500 mb-6">Submit your details and documents for review</p>
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
-              <label className="label">National Identity Number (NIN)</label>
+              <label className="label">National Identity Number (NIN) (optional)</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -163,9 +161,8 @@ export default function VerifyBusinessPage() {
                 className="input-field"
                 placeholder="12345678901"
                 maxLength={11}
-                required
               />
-              <p className="text-xs text-slate-500 mt-1.5">Enter your 11-digit NIN</p>
+              <p className="text-xs text-slate-500 mt-1.5">Add 11 digits or leave this blank</p>
             </div>
 
             {(['photo', 'nin_card', 'utility_bill', 'business_registration', 'trade_certificate'] as DocField[]).map((field) => (

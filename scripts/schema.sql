@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS business_ratings (
 CREATE TABLE IF NOT EXISTS business_verifications (
   id                       INT AUTO_INCREMENT PRIMARY KEY,
   businessId               INT NOT NULL,
-  nin                      VARCHAR(11) NOT NULL,
+  nin                      VARCHAR(11) DEFAULT NULL,
   photo_url                VARCHAR(500) DEFAULT NULL,
   nin_card_url             VARCHAR(500) DEFAULT NULL,
   utility_bill_url         VARCHAR(500) DEFAULT NULL,

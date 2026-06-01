@@ -19,3 +19,8 @@
 Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
  GET /onboarding 200 in 3424ms
  ○ Compiling /api/auth/me ...
+ ✓ Compiled /api/auth/me in 10.5s
+ GET /api/auth/me 401 in 14014ms
+ GET /api/auth/me 401 in 14167ms
+ GET /api/auth/me 401 in 1027ms
+ GET /api/auth/me 401 in 1163ms

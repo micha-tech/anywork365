@@ -13,7 +13,7 @@ interface VerificationRow {
   fullName: string
   email: string
   phoneNumber: string
-  nin: string
+  nin: string | null
   photo_url: string | null
   nin_card_url: string | null
   utility_bill_url: string | null

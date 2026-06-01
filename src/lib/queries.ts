@@ -891,7 +891,7 @@ export async function getRecentActivity(uid: string, role: string): Promise<Acti
 interface BusinessVerificationRow extends RowDataPacket {
   id: number
   businessId: number
-  nin: string
+  nin: string | null
   photo_url: string | null
   nin_card_url: string | null
   utility_bill_url: string | null
@@ -905,7 +905,7 @@ interface BusinessVerificationRow extends RowDataPacket {
 
 export async function submitVerification(data: {
   businessId: number
-  nin: string
+  nin: string | null
   photo_url: string | null
   nin_card_url: string | null
   utility_bill_url: string | null
