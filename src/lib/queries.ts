@@ -4,6 +4,7 @@ import type {
   User, AuthUser,
   Booking, BookingStatus,
 } from '@/types'
+import { getAvatarUrl } from '@/lib/avatar'
 
 // ─── Row Types (mirror MySQL columns) ──────────────────────────────────────
 
@@ -216,7 +217,7 @@ function userRowToAuthUser(row: UserRow): AuthUser {
     phone: row.phoneNumber || undefined,
     city: row.state || undefined,
     bio: undefined,
-    avatarUrl: row.profileImage ? `/uploads/${row.profileImage}` : undefined,
+    avatarUrl: getAvatarUrl(row.profileImage),
   }
 }
 
@@ -230,7 +231,7 @@ function userRowToUser(row: UserRow): User {
     phone: row.phoneNumber || undefined,
     role: resolveRole(row),
     city: row.state || '',
-    avatarUrl: row.profileImage ? `/uploads/${row.profileImage}` : undefined,
+    avatarUrl: getAvatarUrl(row.profileImage),
     nin: row.nin || undefined,
     isVerified: row.verified === 1,
     createdAt: row.dateJoined,

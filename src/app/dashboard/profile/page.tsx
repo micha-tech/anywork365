@@ -116,10 +116,11 @@ export default function ProfilePage() {
       const data = await res.json()
 
       if (data.success) {
-        setPhotoUrl(`${data.data.url}?v=${Date.now()}`)
+        const cacheSeparator = data.data.url.includes('?') ? '&' : '?'
+        setPhotoUrl(`${data.data.url}${cacheSeparator}v=${Date.now()}`)
         setPhotoPreview(null)
       } else {
-        toast.error('Couldn\u2019t upload photo')
+        toast.error(data.error || 'Couldn\u2019t upload photo')
         setPhotoPreview(null)
       }
     } catch {

@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import type { AuthUser } from '@/types'
 import { auth as adminAuth } from '@/lib/firebase/admin'
 import { getUserRowByUid } from '@/lib/queries'
+import { getAvatarUrl } from '@/lib/avatar'
 
 const COOKIE_NAME = '__session'
 const COOKIE_MAX_AGE = 60 * 60 * 24
@@ -43,7 +44,7 @@ export async function getUserFromFirebase(uid: string): Promise<AuthUser | null>
       role,
       phone: user.phoneNumber,
       city: user.state || '',
-      avatarUrl: user.profileImage ? `/uploads/${user.profileImage}` : undefined,
+      avatarUrl: getAvatarUrl(user.profileImage),
     }
   } catch {
     return null

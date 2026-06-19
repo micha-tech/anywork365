@@ -2,15 +2,14 @@
  * POST /api/upload/avatar
  * Accepts a multipart/form-data image upload
  * Validates: file type, file size, authenticated session
- * Saves to /public/uploads/{userId}.{ext}
+ * Saves to Firebase Storage and returns its download URL
  * Returns the public URL of the uploaded photo
- *
- * Production note: replace local disk save with S3/Firebase Storage upload
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
+import { randomUUID } from 'crypto'
+import { getStorage } from 'firebase-admin/storage'
 import { getSession } from '@/lib/auth'
+import { firebaseAdminApp } from '@/lib/firebase/admin'
 import { updateUserProfile } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
@@ -94,11 +93,7 @@ export async function POST(req: NextRequest) {
     // Use userId as filename so re-uploading overwrites the old photo
     const filename = `${session.id}${ext}`
 
-    // ── Ensure uploads directory exists ────────────────────────────────────
-    const uploadsDir = join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadsDir, { recursive: true })
-
-    // ── Write file to disk ──────────────────────────────────────────────────
+    // ── Validate and upload image ───────────────────────────────────────────
     const bytes  = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     if (!validateMagicBytes(buffer, file.type)) {
@@ -107,13 +102,27 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    const filepath = join(uploadsDir, filename)
-    await writeFile(filepath, buffer)
+    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    if (!bucketName) {
+      throw new Error('Firebase Storage bucket is not configured')
+    }
+
+    const objectPath = `avatars/${filename}`
+    const downloadToken = randomUUID()
+    const bucket = getStorage(firebaseAdminApp).bucket(bucketName)
+    await bucket.file(objectPath).save(buffer, {
+      resumable: false,
+      contentType: file.type,
+      metadata: {
+        cacheControl: 'public, max-age=31536000, immutable',
+        metadata: { firebaseStorageDownloadTokens: downloadToken },
+      },
+    })
+
+    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucketName)}/o/${encodeURIComponent(objectPath)}?alt=media&token=${downloadToken}`
 
     // ── Return public URL ───────────────────────────────────────────────────
-    await updateUserProfile(session.id, { profileImage: filename })
-
-    const publicUrl = `/uploads/${filename}`
+    await updateUserProfile(session.id, { profileImage: publicUrl })
 
     return NextResponse.json<ApiResponse<{ url: string }>>(
       { success: true, data: { url: publicUrl }, message: 'Photo uploaded successfully' },

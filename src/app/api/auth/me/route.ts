@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession, clearSession } from '@/lib/auth'
 import { getUserRowByUid } from '@/lib/queries'
+import { getAvatarUrl } from '@/lib/avatar'
 import type { ApiResponse, AuthUser } from '@/types'
 
 export const runtime = 'nodejs'
@@ -35,7 +36,7 @@ export async function GET() {
     ...session,
     phone: row.phoneNumber || session.phone,
     city: row.state || session.city,
-    avatarUrl: row.profileImage ? `/uploads/${row.profileImage}` : session.avatarUrl,
+    avatarUrl: getAvatarUrl(row.profileImage) ?? session.avatarUrl,
   }
 
   return NextResponse.json<ApiResponse<AuthUser>>(

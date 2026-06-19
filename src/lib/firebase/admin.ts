@@ -24,5 +24,6 @@ function getApp(): admin.app.App {
 
 const app = getApp()
 
+export const firebaseAdminApp = app
 export const auth = admin.auth(app)
 export default admin
