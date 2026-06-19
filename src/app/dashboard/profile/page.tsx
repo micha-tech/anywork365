@@ -8,6 +8,63 @@ import { Avatar } from '@/components/ui'
 import { NIGERIAN_STATE_NAMES } from '@/types'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 
+const MAX_AVATAR_DIMENSION = 512
+const MAX_SOURCE_IMAGE_BYTES = 15 * 1024 * 1024
+const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024
+const AVATAR_IMAGE_TYPE = 'image/webp'
+const AVATAR_IMAGE_QUALITY = 0.82
+
+async function optimizeAvatarFile(file: File): Promise<File> {
+  if (!file.type.startsWith('image/')) return file
+
+  const objectUrl = URL.createObjectURL(file)
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new window.Image()
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error('Could not read image'))
+      img.src = objectUrl
+    })
+
+    const maxSourceDimension = Math.max(image.naturalWidth, image.naturalHeight)
+    const scale = Math.min(1, MAX_AVATAR_DIMENSION / maxSourceDimension)
+    const width = Math.max(1, Math.round(image.naturalWidth * scale))
+    const height = Math.max(1, Math.round(image.naturalHeight * scale))
+
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+
+    const context = canvas.getContext('2d')
+    if (!context) return file
+
+    context.drawImage(image, 0, 0, width, height)
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, AVATAR_IMAGE_TYPE, AVATAR_IMAGE_QUALITY)
+    })
+
+    if (!blob) return file
+
+    const optimizedType = blob.type || AVATAR_IMAGE_TYPE
+    const extension = optimizedType === 'image/webp' ? 'webp' : file.name.split('.').pop() || 'jpg'
+    const baseName = file.name.replace(/\.[^/.]+$/, '') || 'avatar'
+    const optimizedFile = new File([blob], `${baseName}.${extension}`, {
+      type: optimizedType,
+      lastModified: Date.now(),
+    })
+
+    return optimizedFile.size < file.size || maxSourceDimension > MAX_AVATAR_DIMENSION
+      ? optimizedFile
+      : file
+  } catch {
+    return file
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
+}
+
 export default function ProfilePage() {
   const { user, loading }   = useCurrentUser()
   const fileInputRef        = useRef<HTMLInputElement>(null)
@@ -34,8 +91,8 @@ export default function ProfilePage() {
       toast.error('Only JPEG, PNG, or WebP images are allowed.')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be smaller than 5MB.')
+    if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+      toast.error('Image must be smaller than 15MB.')
       return
     }
 
@@ -45,16 +102,21 @@ export default function ProfilePage() {
     setUploading(true)
 
     try {
+      const uploadFile = await optimizeAvatarFile(file)
+      if (uploadFile.size > MAX_UPLOAD_IMAGE_BYTES) {
+        toast.error('Image is still too large after optimization. Try a smaller photo.')
+        setPhotoPreview(null)
+        return
+      }
+
       const form = new FormData()
-      form.append('avatar', file)
+      form.append('avatar', uploadFile)
 
       const res  = await fetch('/api/upload/avatar', { method: 'POST', body: form })
       const data = await res.json()
 
       if (data.success) {
-        setPhotoUrl(data.data.url)
-        // Revoke the object URL now that we have the real URL
-        URL.revokeObjectURL(objectUrl)
+        setPhotoUrl(`${data.data.url}?v=${Date.now()}`)
         setPhotoPreview(null)
       } else {
         toast.error('Couldn\u2019t upload photo')
@@ -64,6 +126,7 @@ export default function ProfilePage() {
       toast.error('Network error')
       setPhotoPreview(null)
     } finally {
+      URL.revokeObjectURL(objectUrl)
       setUploading(false)
     }
   }, [])
@@ -206,7 +269,7 @@ export default function ProfilePage() {
             <p className="text-sm text-slate-500">
               <span className="font-medium text-brand-600">Click to upload</span> or drag and drop
             </p>
-            <p className="text-xs text-slate-500 mt-1">JPEG, PNG or WebP · Max 5MB</p>
+            <p className="text-xs text-slate-500 mt-1">JPEG, PNG or WebP · Max 15MB</p>
           </div>
         )}
 
