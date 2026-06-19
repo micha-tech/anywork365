@@ -29,10 +29,30 @@ export const metadata: Metadata = {
   title: "Anywork365 - Nigeria's Work Platform",
   description: 'Connect with verified artisans, technicians, and vendors across Nigeria.',
   keywords: ['Nigeria', 'freelance', 'artisans', 'technicians', 'vendors', 'Lagos', 'Abuja'],
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/icons/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icons/icon-512.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', type: 'image/png', sizes: '180x180' },
+    ],
+    shortcut: ['/favicon.ico'],
+  },
   openGraph: {
     title: 'Anywork365',
     description: 'Find skilled vendors for any job in Nigeria',
     type: 'website',
+    images: [
+      {
+        url: '/icons/icon-512.png',
+        width: 512,
+        height: 512,
+        alt: 'Anywork365',
+      },
+    ],
   },
 }
 
