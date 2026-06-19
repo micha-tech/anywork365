@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: "Anywork365 - Nigeria's Work Platform",
+  title: "Nigeria's trusted work platform",
   description: 'Connect with verified artisans, technicians, and vendors across Nigeria.',
   keywords: ['Nigeria', 'freelance', 'artisans', 'technicians', 'vendors', 'Lagos', 'Abuja'],
   manifest: '/manifest.webmanifest',
