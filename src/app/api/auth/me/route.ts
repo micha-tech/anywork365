@@ -1,10 +1,29 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getSession, clearSession } from '@/lib/auth'
-import { getUserRowByUid } from '@/lib/queries'
+import { getUserRowByUid, updateUserProfile } from '@/lib/queries'
 import { getAvatarUrl } from '@/lib/avatar'
-import type { ApiResponse, AuthUser } from '@/types'
+import { NIGERIAN_STATE_NAMES, type ApiResponse, type AuthUser, type NigerianState } from '@/types'
+import { isLocalGovernmentInState } from '@/lib/nigeria-locations'
 
 export const runtime = 'nodejs'
+
+const profileSchema = z.object({
+  firstName: z.string().trim().min(1, 'First name is required').max(100),
+  lastName: z.string().trim().min(1, 'Last name is required').max(100),
+  phone: z.string().trim().min(7, 'Enter a valid phone number').max(50),
+  state: z.enum(NIGERIAN_STATE_NAMES),
+  lga: z.string().trim().min(1, 'Local government is required').max(100),
+  address: z.string().trim().min(5, 'Street address is required').max(500),
+}).superRefine((data, context) => {
+  if (!isLocalGovernmentInState(data.state as NigerianState, data.lga)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['lga'],
+      message: 'Select a local government in the chosen state',
+    })
+  }
+})
 
 export async function GET() {
   const session = await getSession()
@@ -36,6 +55,8 @@ export async function GET() {
     ...session,
     phone: row.phoneNumber || session.phone,
     city: row.state || session.city,
+    lga: row.lga || session.lga,
+    address: row.address || session.address,
     avatarUrl: getAvatarUrl(row.profileImage) ?? session.avatarUrl,
   }
 
@@ -43,6 +64,46 @@ export async function GET() {
     { success: true, data: hydrated },
     { status: 200 }
   )
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Authentication required' },
+      { status: 401 }
+    )
+  }
+
+  try {
+    const parsed = profileSchema.safeParse(await req.json())
+    if (!parsed.success) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: parsed.error.issues[0]?.message || 'Invalid profile details' },
+        { status: 400 }
+      )
+    }
+
+    const { firstName, lastName, phone, state, lga, address } = parsed.data
+    await updateUserProfile(session.id, {
+      fullName: `${firstName} ${lastName}`,
+      phoneNumber: phone,
+      state,
+      lga,
+      address,
+    })
+
+    return NextResponse.json<ApiResponse<null>>(
+      { success: true, message: 'Profile saved' },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('[PROFILE UPDATE]', error)
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Could not save profile. Please try again.' },
+      { status: 500 }
+    )
+  }
 }
 
 export async function POST() {

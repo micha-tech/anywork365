@@ -216,6 +216,8 @@ function userRowToAuthUser(row: UserRow): AuthUser {
     role: resolveRole(row),
     phone: row.phoneNumber || undefined,
     city: row.state || undefined,
+    lga: row.lga || undefined,
+    address: row.address || undefined,
     bio: undefined,
     avatarUrl: getAvatarUrl(row.profileImage),
   }
@@ -231,6 +233,8 @@ function userRowToUser(row: UserRow): User {
     phone: row.phoneNumber || undefined,
     role: resolveRole(row),
     city: row.state || '',
+    lga: row.lga || undefined,
+    address: row.address || undefined,
     avatarUrl: getAvatarUrl(row.profileImage),
     nin: row.nin || undefined,
     isVerified: row.verified === 1,
@@ -284,6 +288,8 @@ export async function updateUserProfile(uid: string, updates: {
   fullName?: string
   phoneNumber?: string
   state?: string
+  lga?: string
+  address?: string
   profileImage?: string
 }): Promise<void> {
   const sets: string[] = []
@@ -291,6 +297,8 @@ export async function updateUserProfile(uid: string, updates: {
   if (updates.fullName !== undefined) { sets.push('fullName = ?'); params.push(updates.fullName) }
   if (updates.phoneNumber !== undefined) { sets.push('phoneNumber = ?'); params.push(updates.phoneNumber) }
   if (updates.state !== undefined) { sets.push('state = ?'); params.push(updates.state) }
+  if (updates.lga !== undefined) { sets.push('lga = ?'); params.push(updates.lga) }
+  if (updates.address !== undefined) { sets.push('address = ?'); params.push(updates.address) }
   if (updates.profileImage !== undefined) { sets.push('profileImage = ?'); params.push(updates.profileImage) }
   if (sets.length === 0) return
   params.push(uid)

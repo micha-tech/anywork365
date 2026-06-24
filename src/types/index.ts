@@ -12,6 +12,8 @@ export interface User {
   nin?: string
   role: UserRole
   city: string
+  lga?: string
+  address?: string
   bio?: string
   skills?: string[]
   avatarUrl?: string
@@ -36,6 +38,8 @@ export interface AuthUser {
   // Optional profile fields stored in JWT payload
   phone?: string
   city?: string
+  lga?: string
+  address?: string
   bio?: string
   avatarUrl?: string
   emailVerified?: boolean

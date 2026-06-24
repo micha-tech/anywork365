@@ -1,18 +1,28 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/ui'
-import { NIGERIAN_STATE_NAMES } from '@/types'
+import { NIGERIAN_STATE_NAMES, type NigerianState } from '@/types'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
+import { getLocalGovernments } from '@/lib/nigeria-locations'
 
 const MAX_AVATAR_DIMENSION = 512
 const MAX_SOURCE_IMAGE_BYTES = 15 * 1024 * 1024
 const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024
 const AVATAR_IMAGE_TYPE = 'image/webp'
 const AVATAR_IMAGE_QUALITY = 0.82
+
+interface ProfileForm {
+  firstName: string
+  lastName: string
+  phone: string
+  state: NigerianState
+  lga: string
+  address: string
+}
 
 async function optimizeAvatarFile(file: File): Promise<File> {
   if (!file.type.startsWith('image/')) return file
@@ -76,6 +86,35 @@ export default function ProfilePage() {
   const [dragOver,      setDragOver]      = useState(false)
 
   // Form state
+  const [saving, setSaving] = useState(false)
+  const [profileForm, setProfileForm] = useState<ProfileForm>({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    state: 'Lagos',
+    lga: '',
+    address: '',
+  })
+
+  useEffect(() => {
+    if (!user) return
+
+    const state = NIGERIAN_STATE_NAMES.includes(user.city as NigerianState)
+      ? user.city as NigerianState
+      : 'Lagos'
+    const localGovernments = getLocalGovernments(state)
+
+    setProfileForm({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      phone: user.phone || '',
+      state,
+      lga: user.lga && localGovernments.includes(user.lga) ? user.lga : '',
+      address: user.address || '',
+    })
+  }, [user])
+
+  const localGovernments = getLocalGovernments(profileForm.state)
 
   const initials    = getInitialsFromUser(user)
   const fullName    = user ? `${user.firstName} ${user.lastName}` : ''
@@ -154,8 +193,35 @@ export default function ProfilePage() {
 
   // ─── Save profile ─────────────────────────────────────────────────────────
 
-  function handleSave() {
-    toast.success('Profile saved')
+  function updateProfileField<K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) {
+    setProfileForm((current) => ({ ...current, [field]: value }))
+  }
+
+  function handleStateChange(state: NigerianState) {
+    setProfileForm((current) => ({ ...current, state, lga: '' }))
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      const response = await fetch('/api/auth/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileForm),
+      })
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Could not save profile')
+        return
+      }
+
+      toast.success('Profile saved')
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   // ─── Loading state ────────────────────────────────────────────────────────
@@ -295,13 +361,15 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 className="input-field"
-                defaultValue={user?.firstName ?? ''}
+                value={profileForm.firstName}
+                onChange={(event) => updateProfileField('firstName', event.target.value)}
                 placeholder="First name"
                 autoComplete="given-name"
               />
               <input
                 className="input-field"
-                defaultValue={user?.lastName ?? ''}
+                value={profileForm.lastName}
+                onChange={(event) => updateProfileField('lastName', event.target.value)}
                 placeholder="Last name"
                 autoComplete="family-name"
               />
@@ -313,8 +381,9 @@ export default function ProfilePage() {
               className="input-field"
               type="email"
               inputMode="email"
-              defaultValue={user?.email ?? ''}
+              value={user?.email ?? ''}
               placeholder="you@example.com"
+              readOnly
             />
           </div>
           <div className="form-group">
@@ -323,20 +392,56 @@ export default function ProfilePage() {
               className="input-field"
               type="tel"
               inputMode="tel"
-              defaultValue={user?.phone ?? ''}
+              value={profileForm.phone}
+              onChange={(event) => updateProfileField('phone', event.target.value)}
               placeholder="+234 800 000 0000"
+              autoComplete="tel"
             />
           </div>
           <div className="form-group">
-            <label className="label">City</label>
-            <select className="input-field appearance-none" defaultValue={user?.city ?? NIGERIAN_STATE_NAMES[0]}>
+            <label className="label">State</label>
+            <select
+              className="input-field appearance-none"
+              value={profileForm.state}
+              onChange={(event) => handleStateChange(event.target.value as NigerianState)}
+            >
               {NIGERIAN_STATE_NAMES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
-          <button onClick={handleSave} className="btn-primary w-full sm:w-auto px-7 py-2.5">
-            Save changes
+          <div className="form-group">
+            <label className="label">Local Government</label>
+            <select
+              className="input-field appearance-none"
+              value={profileForm.lga}
+              onChange={(event) => updateProfileField('lga', event.target.value)}
+              required
+            >
+              <option value="">Select local government</option>
+              {localGovernments.map((lga) => (
+                <option key={lga} value={lga}>{lga}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="label">Street address</label>
+            <input
+              className="input-field"
+              value={profileForm.address}
+              onChange={(event) => updateProfileField('address', event.target.value)}
+              placeholder="House number and street name"
+              autoComplete="street-address"
+              maxLength={500}
+              required
+            />
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-primary w-full sm:w-auto px-7 py-2.5 disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save changes'}
           </button>
         </div>
 
