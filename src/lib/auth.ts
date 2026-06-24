@@ -46,6 +46,7 @@ export async function getUserFromFirebase(uid: string): Promise<AuthUser | null>
       city: user.state || '',
       lga: user.lga || undefined,
       address: user.address || undefined,
+      bio: user.bio || undefined,
       avatarUrl: getAvatarUrl(user.profileImage),
     }
   } catch {

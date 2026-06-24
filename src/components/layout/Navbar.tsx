@@ -125,7 +125,7 @@ export function Navbar() {
 
             <div className="hidden md:flex items-center gap-2">
               {isLoggedIn && (
-                <NotificationBell unreadCount={unreadCount} onClick={() => router.push('/messages')} />
+                <NotificationBell unreadCount={unreadCount} onClick={() => router.push('/dashboard/notifications')} />
               )}
               {isLoggedIn ? (
                 <div className="relative">
@@ -189,7 +189,7 @@ export function Navbar() {
 
             <div className="flex md:hidden flex-shrink-0 items-center gap-1.5">
               {isLoggedIn && (
-                <NotificationBell unreadCount={unreadCount} onClick={() => router.push('/messages')} />
+                <NotificationBell unreadCount={unreadCount} onClick={() => router.push('/dashboard/notifications')} />
               )}
               {isLoggedIn ? (
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white text-xs font-bold">

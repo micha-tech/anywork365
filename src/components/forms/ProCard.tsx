@@ -69,7 +69,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
         )}
       </div>
       <p className="text-sm text-slate-500 mt-0.5">
-        {[pro.skills?.[0], pro.city].filter(Boolean).join(' - ')}
+        {[pro.skills?.[0], [pro.lga, pro.city].filter(Boolean).join(', ')].filter(Boolean).join(' - ')}
       </p>
 
       {pro.rating && (

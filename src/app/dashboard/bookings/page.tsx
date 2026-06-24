@@ -21,14 +21,63 @@ interface BookingItem {
   priceConfirmed: number
   date: string
   location: string
-  status: string
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
   createdAt: string
+}
+
+const BOOKING_STEPS = [
+  { status: 'pending', label: 'Requested', detail: 'Payment secured' },
+  { status: 'confirmed', label: 'Accepted', detail: 'Vendor confirmed' },
+  { status: 'completed', label: 'Completed', detail: 'Payment released' },
+] as const
+
+function BookingTimeline({ status }: { status: BookingItem['status'] }) {
+  if (status === 'cancelled') {
+    return (
+      <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-3" aria-label="Booking cancelled">
+        <div className="flex min-w-20 flex-col items-center text-center">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">1</span>
+          <span className="mt-1 text-xs font-medium text-slate-700">Requested</span>
+        </div>
+        <div className="h-0.5 bg-red-200" />
+        <div className="flex min-w-20 flex-col items-center text-center">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white">×</span>
+          <span className="mt-1 text-xs font-medium text-red-600">Cancelled</span>
+        </div>
+      </div>
+    )
+  }
+
+  const activeIndex = status === 'completed' ? 2 : status === 'confirmed' ? 1 : 0
+  return (
+    <div className="mt-4 grid grid-cols-[auto_1fr_auto_1fr_auto] items-start" aria-label={`Booking ${status}`}>
+      {BOOKING_STEPS.map((step, index) => (
+        <div key={step.status} className="contents">
+          <div className="flex min-w-20 flex-col items-center text-center">
+            <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+              index <= activeIndex ? 'bg-brand-500 text-white' : 'border border-slate-300 bg-white text-slate-400'
+            }`}>
+              {index < activeIndex ? '✓' : index + 1}
+            </span>
+            <span className={`mt-1 text-xs font-medium ${index <= activeIndex ? 'text-slate-800' : 'text-slate-400'}`}>
+              {step.label}
+            </span>
+            <span className="hidden text-[11px] text-slate-400 sm:block">{step.detail}</span>
+          </div>
+          {index < BOOKING_STEPS.length - 1 && (
+            <div className={`mt-3.5 h-0.5 ${index < activeIndex ? 'bg-brand-500' : 'bg-slate-200'}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 export default function BookingsPage() {
   const { user, loading } = useCurrentUser()
   const [bookings, setBookings] = useState<BookingItem[]>([])
   const [fetching, setFetching] = useState(true)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const [reviewBooking, setReviewBooking] = useState<BookingItem | null>(null)
   const [reviewRating, setReviewRating] = useState(0)
@@ -53,18 +102,26 @@ export default function BookingsPage() {
   }, [user, loading])
 
   async function handleAction(bookingId: number, action: string) {
-    const res = await fetch(`/api/bookings/${bookingId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action }),
-    })
-    const data = await res.json()
+    const actionKey = `${bookingId}:${action}`
+    setActionLoading(actionKey)
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      const data = await res.json()
       if (data.success) {
         toast.success(data.message || 'Action completed')
         loadBookings()
       } else {
         toast.error(data.error || 'Action failed')
       }
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   async function handleSubmitReview() {
@@ -160,30 +217,35 @@ export default function BookingsPage() {
               </span>
             </div>
 
+            <BookingTimeline status={b.status} />
+
             {(b.status === 'pending' || b.status === 'confirmed') && (
               <div className="flex gap-2 mt-4 pt-3 border-t border-slate-200">
                 {isVendor && b.status === 'pending' && (
                   <button
                     onClick={() => handleAction(b.id, 'confirm')}
-                    className="btn-primary text-xs px-4 py-2"
+                    disabled={actionLoading !== null}
+                    className="btn-primary text-xs px-4 py-2 disabled:opacity-50"
                   >
-                    Accept Booking
+                    {actionLoading === `${b.id}:confirm` ? 'Accepting...' : 'Accept Booking'}
                   </button>
                 )}
                 {!isVendor && b.status === 'confirmed' && (
                   <button
                     onClick={() => handleAction(b.id, 'complete')}
-                    className="btn-primary text-xs px-4 py-2"
+                    disabled={actionLoading !== null}
+                    className="btn-primary text-xs px-4 py-2 disabled:opacity-50"
                   >
-                    Mark Complete
+                    {actionLoading === `${b.id}:complete` ? 'Completing...' : 'Mark Complete'}
                   </button>
                 )}
                 {b.status === 'pending' && (
                   <button
                     onClick={() => handleAction(b.id, 'cancel')}
-                    className="btn-ghost text-xs px-4 py-2 text-amber-600 border-amber-200 hover:bg-amber-50"
+                    disabled={actionLoading !== null}
+                    className="btn-ghost text-xs px-4 py-2 text-amber-600 border-amber-200 hover:bg-amber-50 disabled:opacity-50"
                   >
-                    Cancel
+                    {actionLoading === `${b.id}:cancel` ? 'Cancelling...' : 'Cancel'}
                   </button>
                 )}
               </div>

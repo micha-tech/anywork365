@@ -4,6 +4,15 @@ import { getUserNotifications, getUnreadNotificationCount, markNotificationAsRea
 import { savePushSubscription } from '@/lib/chat'
 import type { ApiResponse } from '@/types'
 
+function serializeNotifications(notifications: Awaited<ReturnType<typeof getUserNotifications>>) {
+  return notifications.map((notification) => ({
+    id: notification.id,
+    body: notification.body,
+    createdAt: notification.dateCreated,
+    isRead: notification.seenByReciever === 1,
+  }))
+}
+
 export async function GET() {
   try {
     const session = await getSession()
@@ -18,7 +27,7 @@ export async function GET() {
     const unreadCount = await getUnreadNotificationCount(session.id)
 
     return NextResponse.json(
-      { success: true, data: { notifications, unreadCount } },
+      { success: true, data: { notifications: serializeNotifications(notifications), unreadCount } },
       { headers: { 'Cache-Control': 'private, no-cache' } }
     )
   } catch (error) {
@@ -64,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { notifications, unreadCount },
+      data: { notifications: serializeNotifications(notifications), unreadCount },
     })
   } catch (error) {
     console.error('Notifications POST error:', error)

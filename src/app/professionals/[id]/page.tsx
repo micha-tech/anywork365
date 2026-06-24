@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { notFound } from 'next/navigation'
 import { toast } from 'sonner'
@@ -267,6 +268,31 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
             )}
           </div>
 
+          {pro.portfolio && pro.portfolio.length > 0 && (
+            <section className="card">
+              <h2 className="font-medium text-base mb-4">Portfolio</h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {pro.portfolio.map((item) => (
+                  <article key={item.id} className="overflow-hidden rounded-lg border border-slate-200">
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.title}
+                      width={640}
+                      height={480}
+                      className="aspect-[4/3] w-full object-cover"
+                    />
+                    <div className="p-3">
+                      <h3 className="text-sm font-medium text-slate-900">{item.title}</h3>
+                      {item.description && (
+                        <p className="mt-1 text-xs leading-relaxed text-slate-500">{item.description}</p>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
           <div className="card">
             <h2 className="font-medium text-base mb-4">
               Reviews{' '}
@@ -294,7 +320,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
             </p>
             <div className="space-y-2 text-sm mb-5">
               {[
-                { label: 'Location',     value: pro.city },
+                { label: 'Location',     value: [pro.lga, pro.city].filter(Boolean).join(', ') },
                 { label: 'Rating',       value: `${pro.rating?.toFixed(1)} / 5.0` },
                 { label: 'Reviews',      value: String(pro.reviewCount) },
                 { label: 'Availability', value: 'Available now' },

@@ -6,13 +6,14 @@ import type { ApiResponse, User } from '@/types'
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const category = searchParams.get('category') || ''
-  const state = searchParams.get('city') || ''
+  const state = searchParams.get('state') || searchParams.get('city') || ''
+  const lga = searchParams.get('lga') || ''
   const search = searchParams.get('search') || ''
   const limit = parseInt(searchParams.get('limit') || '0')
 
   const vendors = await cachedQuery(
-    () => listVendors({ category: category || undefined, state: state || undefined, search: search || undefined }),
-    ['professionals', category, state, search],
+    () => listVendors({ category: category || undefined, state: state || undefined, lga: lga || undefined, search: search || undefined }),
+    ['professionals', category, state, lga, search],
     [CACHE_TAGS.PROFESSIONALS],
     60
   )

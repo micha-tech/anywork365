@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, clearSession } from '@/lib/auth'
-import { getUserRowByUid, updateUserProfile } from '@/lib/queries'
+import { getUserRowByUid, updateBusiness, updateUserProfile } from '@/lib/queries'
 import { getAvatarUrl } from '@/lib/avatar'
 import { NIGERIAN_STATE_NAMES, type ApiResponse, type AuthUser, type NigerianState } from '@/types'
 import { isLocalGovernmentInState } from '@/lib/nigeria-locations'
@@ -15,6 +15,7 @@ const profileSchema = z.object({
   state: z.enum(NIGERIAN_STATE_NAMES),
   lga: z.string().trim().min(1, 'Local government is required').max(100),
   address: z.string().trim().min(5, 'Street address is required').max(500),
+  bio: z.string().trim().max(1000, 'Bio must be under 1000 characters'),
 }).superRefine((data, context) => {
   if (!isLocalGovernmentInState(data.state as NigerianState, data.lga)) {
     context.addIssue({
@@ -57,6 +58,7 @@ export async function GET() {
     city: row.state || session.city,
     lga: row.lga || session.lga,
     address: row.address || session.address,
+    bio: row.bio || session.bio,
     avatarUrl: getAvatarUrl(row.profileImage) ?? session.avatarUrl,
   }
 
@@ -84,14 +86,24 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
-    const { firstName, lastName, phone, state, lga, address } = parsed.data
+    const { firstName, lastName, phone, state, lga, address, bio } = parsed.data
     await updateUserProfile(session.id, {
       fullName: `${firstName} ${lastName}`,
       phoneNumber: phone,
       state,
       lga,
       address,
+      bio,
     })
+    if (session.role === 'vendor') {
+      await updateBusiness(session.id, {
+        businessContact: phone,
+        description: bio,
+        location: address,
+        state,
+        lga,
+      })
+    }
 
     return NextResponse.json<ApiResponse<null>>(
       { success: true, message: 'Profile saved' },

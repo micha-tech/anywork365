@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/wallet'
 import { getConnection } from '@/lib/db'
+import { createDbNotification } from '@/lib/queries'
+import { sendPushNotification } from '@/lib/notifications'
 import type { ApiResponse } from '@/types'
 import type { RowDataPacket } from 'mysql2'
 import mysql from 'mysql2/promise'
@@ -192,17 +194,24 @@ export async function PATCH(
 
     await conn.commit()
 
-    // Non-critical: push notifications outside transaction
-    try {
-      const { sendPushNotification } = await import('@/lib/notifications')
-      if (action === 'confirm') {
-        await sendPushNotification(booking.clientUID, 'Booking Confirmed', `Your booking #${bookingId} has been confirmed by the vendor.`)
-      } else if (action === 'complete') {
-        await sendPushNotification(booking.businessUid, 'Job Completed', `Booking #${bookingId} has been marked as complete. Payment released.`)
-      }
-    } catch {
-      // Non-critical
-    }
+    const recipientUid = action === 'confirm'
+      ? booking.clientUID
+      : action === 'complete'
+        ? booking.businessUid
+        : isClient ? booking.businessUid : booking.clientUID
+    const notification = action === 'confirm'
+      ? { title: 'Booking Confirmed', body: `Booking #${bookingId} was accepted by the vendor.` }
+      : action === 'complete'
+        ? { title: 'Booking Completed', body: `Booking #${bookingId} was completed and payment was released.` }
+        : { title: 'Booking Cancelled', body: `Booking #${bookingId} was cancelled.` }
+
+    await Promise.allSettled([
+      createDbNotification(recipientUid, notification.body),
+      sendPushNotification(recipientUid, notification.title, notification.body, {
+        type: 'booking',
+        bookingId: String(bookingId),
+      }),
+    ])
 
     return NextResponse.json<ApiResponse<any>>(
       {

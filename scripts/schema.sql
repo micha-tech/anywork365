@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   profileImage    VARCHAR(500) NOT NULL DEFAULT '',
   nin             VARCHAR(20) DEFAULT NULL,
   address         VARCHAR(500) NOT NULL DEFAULT '',
+  bio             TEXT,
   googleAddress   VARCHAR(500) NOT NULL DEFAULT '',
   hasBusinessAccount TINYINT(1) NOT NULL DEFAULT 0,
   role            ENUM('client','vendor','admin') DEFAULT NULL,
@@ -24,6 +25,16 @@ CREATE TABLE IF NOT EXISTS users (
   deleted         TINYINT(1) NOT NULL DEFAULT 0,
   INDEX idx_users_email (email),
   INDEX idx_users_role_deleted (role, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS user_portfolio (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  uid         VARCHAR(128) NOT NULL,
+  title       VARCHAR(120) NOT NULL,
+  description VARCHAR(500) DEFAULT NULL,
+  imageUrl    VARCHAR(1000) NOT NULL,
+  createdAt   DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_user_portfolio_uid_created (uid, createdAt DESC)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS businesses (

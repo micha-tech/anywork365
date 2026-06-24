@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/ui'
-import { NIGERIAN_STATE_NAMES, type NigerianState } from '@/types'
+import { NIGERIAN_STATE_NAMES, type NigerianState, type PortfolioItem } from '@/types'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 import { getLocalGovernments } from '@/lib/nigeria-locations'
 
@@ -14,6 +14,8 @@ const MAX_SOURCE_IMAGE_BYTES = 15 * 1024 * 1024
 const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024
 const AVATAR_IMAGE_TYPE = 'image/webp'
 const AVATAR_IMAGE_QUALITY = 0.82
+const PORTFOLIO_IMAGE_DIMENSION = 1600
+const PORTFOLIO_IMAGE_QUALITY = 0.86
 
 interface ProfileForm {
   firstName: string
@@ -22,9 +24,10 @@ interface ProfileForm {
   state: NigerianState
   lga: string
   address: string
+  bio: string
 }
 
-async function optimizeAvatarFile(file: File): Promise<File> {
+async function optimizeImageFile(file: File, maxDimension: number, quality: number): Promise<File> {
   if (!file.type.startsWith('image/')) return file
 
   const objectUrl = URL.createObjectURL(file)
@@ -38,7 +41,7 @@ async function optimizeAvatarFile(file: File): Promise<File> {
     })
 
     const maxSourceDimension = Math.max(image.naturalWidth, image.naturalHeight)
-    const scale = Math.min(1, MAX_AVATAR_DIMENSION / maxSourceDimension)
+    const scale = Math.min(1, maxDimension / maxSourceDimension)
     const width = Math.max(1, Math.round(image.naturalWidth * scale))
     const height = Math.max(1, Math.round(image.naturalHeight * scale))
 
@@ -52,7 +55,7 @@ async function optimizeAvatarFile(file: File): Promise<File> {
     context.drawImage(image, 0, 0, width, height)
 
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, AVATAR_IMAGE_TYPE, AVATAR_IMAGE_QUALITY)
+      canvas.toBlob(resolve, AVATAR_IMAGE_TYPE, quality)
     })
 
     if (!blob) return file
@@ -65,7 +68,7 @@ async function optimizeAvatarFile(file: File): Promise<File> {
       lastModified: Date.now(),
     })
 
-    return optimizedFile.size < file.size || maxSourceDimension > MAX_AVATAR_DIMENSION
+    return optimizedFile.size < file.size || maxSourceDimension > maxDimension
       ? optimizedFile
       : file
   } catch {
@@ -78,6 +81,7 @@ async function optimizeAvatarFile(file: File): Promise<File> {
 export default function ProfilePage() {
   const { user, loading }   = useCurrentUser()
   const fileInputRef        = useRef<HTMLInputElement>(null)
+  const portfolioInputRef   = useRef<HTMLInputElement>(null)
 
   // Photo state
   const [photoUrl,      setPhotoUrl]      = useState<string | null>(null)
@@ -94,7 +98,15 @@ export default function ProfilePage() {
     state: 'Lagos',
     lga: '',
     address: '',
+    bio: '',
   })
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([])
+  const [portfolioLoading, setPortfolioLoading] = useState(false)
+  const [portfolioUploading, setPortfolioUploading] = useState(false)
+  const [portfolioTitle, setPortfolioTitle] = useState('')
+  const [portfolioDescription, setPortfolioDescription] = useState('')
+  const [portfolioFile, setPortfolioFile] = useState<File | null>(null)
+  const [portfolioPreview, setPortfolioPreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -111,8 +123,27 @@ export default function ProfilePage() {
       state,
       lga: user.lga && localGovernments.includes(user.lga) ? user.lga : '',
       address: user.address || '',
+      bio: user.bio || '',
     })
   }, [user])
+
+  useEffect(() => {
+    if (user?.role !== 'vendor') return
+    setPortfolioLoading(true)
+    fetch('/api/profile/portfolio')
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) setPortfolio(data.data || [])
+      })
+      .catch(() => toast.error('Could not load portfolio'))
+      .finally(() => setPortfolioLoading(false))
+  }, [user?.role])
+
+  useEffect(() => {
+    return () => {
+      if (portfolioPreview) URL.revokeObjectURL(portfolioPreview)
+    }
+  }, [portfolioPreview])
 
   const localGovernments = getLocalGovernments(profileForm.state)
 
@@ -141,7 +172,7 @@ export default function ProfilePage() {
     setUploading(true)
 
     try {
-      const uploadFile = await optimizeAvatarFile(file)
+      const uploadFile = await optimizeImageFile(file, MAX_AVATAR_DIMENSION, AVATAR_IMAGE_QUALITY)
       if (uploadFile.size > MAX_UPLOAD_IMAGE_BYTES) {
         toast.error('Image is still too large after optimization. Try a smaller photo.')
         setPhotoPreview(null)
@@ -222,6 +253,66 @@ export default function ProfilePage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  function handlePortfolioFile(file: File | null) {
+    if (portfolioPreview) URL.revokeObjectURL(portfolioPreview)
+    setPortfolioFile(file)
+    setPortfolioPreview(file ? URL.createObjectURL(file) : null)
+  }
+
+  async function handlePortfolioUpload() {
+    if (!portfolioFile || !portfolioTitle.trim()) {
+      toast.error('Add an image and title for this portfolio item')
+      return
+    }
+
+    setPortfolioUploading(true)
+    try {
+      const uploadFile = await optimizeImageFile(
+        portfolioFile,
+        PORTFOLIO_IMAGE_DIMENSION,
+        PORTFOLIO_IMAGE_QUALITY
+      )
+      if (uploadFile.size > MAX_UPLOAD_IMAGE_BYTES) {
+        toast.error('Portfolio image is too large. Choose a smaller image.')
+        return
+      }
+
+      const form = new FormData()
+      form.append('image', uploadFile)
+      form.append('title', portfolioTitle.trim())
+      form.append('description', portfolioDescription.trim())
+      const response = await fetch('/api/profile/portfolio', { method: 'POST', body: form })
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Could not add portfolio item')
+        return
+      }
+
+      setPortfolio((items) => [data.data, ...items])
+      setPortfolioTitle('')
+      setPortfolioDescription('')
+      handlePortfolioFile(null)
+      if (portfolioInputRef.current) portfolioInputRef.current.value = ''
+      toast.success('Portfolio item added')
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setPortfolioUploading(false)
+    }
+  }
+
+  async function handlePortfolioDelete(id: string) {
+    const response = await fetch(`/api/profile/portfolio/${id}`, { method: 'DELETE' })
+    const data = await response.json()
+    if (!response.ok || !data.success) {
+      toast.error(data.error || 'Could not remove portfolio item')
+      return
+    }
+    setPortfolio((items) => items.filter((item) => item.id !== id))
+    toast.success('Portfolio item removed')
   }
 
   // ─── Loading state ────────────────────────────────────────────────────────
@@ -454,12 +545,18 @@ export default function ProfilePage() {
               <textarea
                 className="input-field resize-y"
                 rows={4}
-                defaultValue={user?.bio ?? ''}
+                value={profileForm.bio}
+                onChange={(event) => updateProfileField('bio', event.target.value)}
                 placeholder="Tell clients a bit about yourself or your services..."
+                maxLength={1000}
               />
             </div>
-            <button onClick={handleSave} className="btn-primary w-full sm:w-auto px-7 py-2.5">
-              Save
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="btn-primary w-full sm:w-auto px-7 py-2.5 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save bio'}
             </button>
           </div>
 
@@ -505,6 +602,113 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {user?.role === 'vendor' && (
+        <section className="card mt-4 sm:mt-6">
+          <div className="mb-5">
+            <h2 className="font-medium text-base">Portfolio</h2>
+            <p className="text-sm text-slate-500 mt-1">Show clients examples of your completed work</p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,320px)_1fr]">
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => portfolioInputRef.current?.click()}
+                className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500 transition-colors hover:border-brand-500 hover:text-brand-600"
+              >
+                {portfolioPreview ? (
+                  <Image
+                    src={portfolioPreview}
+                    alt="Portfolio preview"
+                    width={640}
+                    height={360}
+                    className="h-full w-full object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <span>Choose work photo</span>
+                )}
+              </button>
+              <input
+                ref={portfolioInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                className="hidden"
+                onChange={(event) => handlePortfolioFile(event.target.files?.[0] || null)}
+              />
+              <input
+                className="input-field"
+                value={portfolioTitle}
+                onChange={(event) => setPortfolioTitle(event.target.value)}
+                placeholder="Project title"
+                maxLength={120}
+              />
+              <textarea
+                className="input-field resize-y"
+                rows={3}
+                value={portfolioDescription}
+                onChange={(event) => setPortfolioDescription(event.target.value)}
+                placeholder="Briefly describe the work"
+                maxLength={500}
+              />
+              <button
+                type="button"
+                onClick={handlePortfolioUpload}
+                disabled={portfolioUploading}
+                className="btn-primary w-full disabled:opacity-50"
+              >
+                {portfolioUploading ? 'Adding...' : 'Add to portfolio'}
+              </button>
+            </div>
+
+            <div>
+              {portfolioLoading ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {[1, 2].map((item) => (
+                    <div key={item} className="aspect-[4/3] animate-pulse rounded-lg bg-slate-100" />
+                  ))}
+                </div>
+              ) : portfolio.length === 0 ? (
+                <div className="flex min-h-44 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-6 text-center text-sm text-slate-500">
+                  Your work samples will appear here.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {portfolio.map((item) => (
+                    <article key={item.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.title}
+                        width={640}
+                        height={480}
+                        className="aspect-[4/3] w-full object-cover"
+                      />
+                      <div className="p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h3 className="truncate text-sm font-medium text-slate-900">{item.title}</h3>
+                            {item.description && (
+                              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">{item.description}</p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handlePortfolioDelete(item.id)}
+                            className="flex-shrink-0 text-xs font-medium text-red-500 hover:text-red-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   )
 }

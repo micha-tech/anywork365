@@ -8,6 +8,7 @@ import {
   getUserRowByUid,
   getWalletByUserId,
   getOrCreateWallet as getOrCreateWalletDb,
+  createDbNotification,
 } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
 import { sendPushNotification } from '@/lib/notifications'
@@ -228,12 +229,16 @@ export async function POST(req: NextRequest) {
     await conn.commit()
 
     const clientName = clientRow.fullName || 'A client'
-    await sendPushNotification(
-      vendorId,
-      'New Booking Request',
-      `${clientName} wants to book your service — ₦${budget.toLocaleString()}`,
-      { type: 'booking', bookingId: String(bookingId) }
-    )
+    const notificationBody = `${clientName} sent booking #${bookingId} for ₦${budget.toLocaleString()}.`
+    await Promise.allSettled([
+      createDbNotification(vendorId, notificationBody),
+      sendPushNotification(
+        vendorId,
+        'New Booking Request',
+        notificationBody,
+        { type: 'booking', bookingId: String(bookingId) }
+      ),
+    ])
 
     return NextResponse.json<ApiResponse<any>>(
       {

@@ -1,7 +1,7 @@
 import { query, queryOne, execute, type SqlValue } from './db'
 import type { RowDataPacket } from 'mysql2/promise'
 import type {
-  User, AuthUser,
+  User, AuthUser, PortfolioItem,
   Booking, BookingStatus,
 } from '@/types'
 import { getAvatarUrl } from '@/lib/avatar'
@@ -20,6 +20,7 @@ interface UserRow extends RowDataPacket {
   profileImage: string
   nin: string | null
   address: string
+  bio: string | null
   hasBusinessAccount: number
   role: 'client' | 'vendor' | 'admin' | null
   verified: number
@@ -177,6 +178,15 @@ interface NotificationRow extends RowDataPacket {
   seenByReciever: number
 }
 
+interface PortfolioRow extends RowDataPacket {
+  id: number
+  uid: string
+  title: string
+  description: string | null
+  imageUrl: string
+  createdAt: string
+}
+
 interface WithdrawalAccountRow extends RowDataPacket {
   id: number
   user_id: number
@@ -218,7 +228,7 @@ function userRowToAuthUser(row: UserRow): AuthUser {
     city: row.state || undefined,
     lga: row.lga || undefined,
     address: row.address || undefined,
-    bio: undefined,
+    bio: row.bio || undefined,
     avatarUrl: getAvatarUrl(row.profileImage),
   }
 }
@@ -235,6 +245,7 @@ function userRowToUser(row: UserRow): User {
     city: row.state || '',
     lga: row.lga || undefined,
     address: row.address || undefined,
+    bio: row.bio || undefined,
     avatarUrl: getAvatarUrl(row.profileImage),
     nin: row.nin || undefined,
     isVerified: row.verified === 1,
@@ -290,6 +301,7 @@ export async function updateUserProfile(uid: string, updates: {
   state?: string
   lga?: string
   address?: string
+  bio?: string
   profileImage?: string
 }): Promise<void> {
   const sets: string[] = []
@@ -299,10 +311,55 @@ export async function updateUserProfile(uid: string, updates: {
   if (updates.state !== undefined) { sets.push('state = ?'); params.push(updates.state) }
   if (updates.lga !== undefined) { sets.push('lga = ?'); params.push(updates.lga) }
   if (updates.address !== undefined) { sets.push('address = ?'); params.push(updates.address) }
+  if (updates.bio !== undefined) { sets.push('bio = ?'); params.push(updates.bio) }
   if (updates.profileImage !== undefined) { sets.push('profileImage = ?'); params.push(updates.profileImage) }
   if (sets.length === 0) return
   params.push(uid)
   await execute(`UPDATE users SET ${sets.join(', ')} WHERE uid = ?`, params)
+}
+
+export async function getPortfolioByUid(uid: string): Promise<PortfolioItem[]> {
+  const rows = await query<PortfolioRow[]>(
+    'SELECT * FROM user_portfolio WHERE uid = ? ORDER BY createdAt DESC',
+    [uid]
+  )
+  return rows.map((row) => ({
+    id: String(row.id),
+    title: row.title,
+    description: row.description || undefined,
+    imageUrl: row.imageUrl,
+    createdAt: row.createdAt,
+  }))
+}
+
+export async function createPortfolioItem(data: {
+  uid: string
+  title: string
+  description?: string
+  imageUrl: string
+}): Promise<PortfolioItem> {
+  const result = await execute(
+    `INSERT INTO user_portfolio (uid, title, description, imageUrl, createdAt)
+     VALUES (?, ?, ?, ?, NOW())`,
+    [data.uid, data.title, data.description || null, data.imageUrl]
+  )
+  return {
+    id: String(result.insertId),
+    title: data.title,
+    description: data.description,
+    imageUrl: data.imageUrl,
+    createdAt: new Date().toISOString(),
+  }
+}
+
+export async function deletePortfolioItem(id: number, uid: string): Promise<string | null> {
+  const row = await queryOne<PortfolioRow[]>(
+    'SELECT * FROM user_portfolio WHERE id = ? AND uid = ?',
+    [id, uid]
+  )
+  if (!row) return null
+  await execute('DELETE FROM user_portfolio WHERE id = ? AND uid = ?', [id, uid])
+  return row.imageUrl
 }
 
 // ─── Businesses (Vendors) ─────────────────────────────────────────────────
@@ -360,11 +417,13 @@ interface VendorJoinRow extends RowDataPacket {
 export async function listVendors(filters?: {
   category?: string
   state?: string
+  lga?: string
   search?: string
   limit?: number
 }): Promise<User[]> {
   let sql = `
-    SELECT b.*, u.email AS user_email, u.phoneNumber AS user_phoneNumber, u.fullName AS user_fullName
+    SELECT b.*, u.email AS user_email, u.phoneNumber AS user_phoneNumber,
+           u.fullName AS user_fullName
     FROM businesses b
     LEFT JOIN users u ON b.uid = u.uid AND u.deleted = 0
     WHERE b.deleted = 0
@@ -372,6 +431,7 @@ export async function listVendors(filters?: {
   const params: SqlValue[] = []
   if (filters?.category) { sql += ' AND b.category LIKE ?'; params.push(`%${filters.category}%`) }
   if (filters?.state) { sql += ' AND b.state = ?'; params.push(filters.state) }
+  if (filters?.lga) { sql += ' AND b.lga = ?'; params.push(filters.lga) }
   if (filters?.search) { sql += ' AND (b.businessName LIKE ? OR b.description LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`) }
   sql += ' ORDER BY b.rating DESC, b.reviews DESC'
   if (filters?.limit && filters.limit > 0) { sql += ` LIMIT ${filters.limit}` }
@@ -394,8 +454,10 @@ export async function listVendors(filters?: {
       phone: r.user_phoneNumber || undefined,
       role: 'vendor',
       city: r.state,
+      lga: r.lga || undefined,
+      address: r.location || undefined,
       bio: r.description,
-      avatarUrl: r.businessLogo ? `/uploads/${r.businessLogo}` : undefined,
+      avatarUrl: getAvatarUrl(r.businessLogo),
       skills: r.category ? [r.category] : [],
       rating: r.rating,
       reviewCount: r.reviews,
@@ -409,7 +471,8 @@ export async function getVendorByUid(uid: string): Promise<User | null> {
   const business = await getBusinessByUid(uid)
   if (!business) return null
   const row = await getUserRowByUid(uid)
-  return businessRowToUser(business, row ?? undefined)
+  const portfolio = await getPortfolioByUid(uid)
+  return { ...businessRowToUser(business, row ?? undefined), portfolio }
 }
 
 function businessRowToUser(b: BusinessRow, user?: UserRow): User {
@@ -423,8 +486,10 @@ function businessRowToUser(b: BusinessRow, user?: UserRow): User {
     phone: user?.phoneNumber || undefined,
     role: 'vendor',
     city: b.state,
-    bio: b.description,
-    avatarUrl: b.businessLogo ? `/uploads/${b.businessLogo}` : undefined,
+    lga: b.lga || undefined,
+    address: b.location || undefined,
+    bio: user?.bio || b.description,
+    avatarUrl: getAvatarUrl(b.businessLogo),
     skills: b.category ? [b.category] : [],
     rating: b.rating,
     reviewCount: b.reviews,
