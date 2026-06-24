@@ -6,7 +6,6 @@
  * Returns the public URL of the uploaded photo
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { randomUUID } from 'crypto'
 import { getStorage } from 'firebase-admin/storage'
 import { getSession } from '@/lib/auth'
 import { firebaseAdminApp } from '@/lib/firebase/admin'
@@ -108,18 +107,18 @@ export async function POST(req: NextRequest) {
     }
 
     const objectPath = `avatars/${filename}`
-    const downloadToken = randomUUID()
     const bucket = getStorage(firebaseAdminApp).bucket(bucketName)
     await bucket.file(objectPath).save(buffer, {
       resumable: false,
       contentType: file.type,
+      predefinedAcl: 'publicRead',
       metadata: {
         cacheControl: 'public, max-age=31536000, immutable',
-        metadata: { firebaseStorageDownloadTokens: downloadToken },
       },
     })
 
-    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucketName)}/o/${encodeURIComponent(objectPath)}?alt=media&token=${downloadToken}`
+    const encodedObjectPath = objectPath.split('/').map(encodeURIComponent).join('/')
+    const publicUrl = `https://storage.googleapis.com/${encodeURIComponent(bucketName)}/${encodedObjectPath}?v=${Date.now()}`
 
     // ── Return public URL ───────────────────────────────────────────────────
     await updateUserProfile(session.id, { profileImage: publicUrl })

@@ -10,6 +10,7 @@ function getApp(): admin.app.App {
       if (sa.private_key) {
         return admin.initializeApp({
           credential: admin.credential.cert(sa),
+          storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
         })
       }
     } catch {
@@ -19,6 +20,7 @@ function getApp(): admin.app.App {
 
   return admin.initializeApp({
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   })
 }
 

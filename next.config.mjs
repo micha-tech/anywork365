@@ -7,6 +7,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
       { protocol: 'https', hostname: 'ui-avatars.com' },
       { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
+      { protocol: 'https', hostname: 'storage.googleapis.com' },
       { protocol: 'https', hostname: 'anywork365-uploads.s3.amazonaws.com' },
     ],
   },
