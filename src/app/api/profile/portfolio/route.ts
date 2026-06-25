@@ -107,16 +107,21 @@ export async function POST(req: NextRequest) {
     if (!bucketName) throw new Error('Firebase Storage bucket is not configured')
 
     const objectPath = `portfolio/${session.id}/${randomUUID()}.${EXTENSIONS[file.type]}`
+    const downloadToken = randomUUID()
     const bucket = getStorage(firebaseAdminApp).bucket(bucketName)
     await bucket.file(objectPath).save(buffer, {
       resumable: false,
       contentType: file.type,
-      predefinedAcl: 'publicRead',
-      metadata: { cacheControl: 'public, max-age=31536000, immutable' },
+      metadata: {
+        cacheControl: 'public, max-age=31536000, immutable',
+        metadata: {
+          firebaseStorageDownloadTokens: downloadToken,
+        },
+      },
     })
 
-    const encodedPath = objectPath.split('/').map(encodeURIComponent).join('/')
-    const imageUrl = `https://storage.googleapis.com/${encodeURIComponent(bucketName)}/${encodedPath}`
+    const encodedPath = encodeURIComponent(objectPath)
+    const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucketName)}/o/${encodedPath}?alt=media&token=${downloadToken}`
     const item = await createPortfolioItem({
       uid: session.id,
       title,

@@ -42,6 +42,12 @@ export async function DELETE(
       if (url.hostname === 'storage.googleapis.com' && url.pathname.startsWith(prefix)) {
         const objectPath = decodeURIComponent(url.pathname.slice(prefix.length))
         await getStorage(firebaseAdminApp).bucket(bucketName).file(objectPath).delete({ ignoreNotFound: true })
+      } else if (url.hostname === 'firebasestorage.googleapis.com') {
+        const firebasePrefix = `/v0/b/${bucketName}/o/`
+        if (url.pathname.startsWith(firebasePrefix)) {
+          const objectPath = decodeURIComponent(url.pathname.slice(firebasePrefix.length))
+          await getStorage(firebaseAdminApp).bucket(bucketName).file(objectPath).delete({ ignoreNotFound: true })
+        }
       }
     } catch (error) {
       console.error('[PORTFOLIO FILE DELETE]', error)
