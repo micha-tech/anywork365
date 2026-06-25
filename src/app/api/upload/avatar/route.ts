@@ -15,6 +15,12 @@ import type { ApiResponse } from '@/types'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
+const MIME_TYPE_BY_EXTENSION: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+}
 
 const MAGIC_BYTES: Record<string, number[][]> = {
   'image/jpeg': [[0xFF, 0xD8, 0xFF]],
@@ -33,6 +39,11 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
   })
 }
 
+function getSupportedMimeType(file: File): string {
+  if (ALLOWED_TYPES.includes(file.type)) return file.type
+  const extension = file.name.split('.').pop()?.toLowerCase() || ''
+  return MIME_TYPE_BY_EXTENSION[extension] || file.type
+}
 
 
 export async function POST(req: NextRequest) {
@@ -66,7 +77,8 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Validate file type ──────────────────────────────────────────────────
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const mimeType = getSupportedMimeType(file)
+    if (!ALLOWED_TYPES.includes(mimeType)) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Only JPEG, PNG, and WebP images are allowed' },
         { status: 400 }
@@ -88,14 +100,14 @@ export async function POST(req: NextRequest) {
       'image/png':  '.png',
       'image/webp': '.webp',
     }
-    const ext      = extMap[file.type] ?? '.jpg'
+    const ext      = extMap[mimeType] ?? '.jpg'
     // Use userId as filename so re-uploading overwrites the old photo
     const filename = `${session.id}${ext}`
 
     // ── Validate and upload image ───────────────────────────────────────────
     const bytes  = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    if (!validateMagicBytes(buffer, file.type)) {
+    if (!validateMagicBytes(buffer, mimeType)) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'File content does not match the expected format' },
         { status: 400 }
@@ -110,7 +122,7 @@ export async function POST(req: NextRequest) {
     const bucket = getStorage(firebaseAdminApp).bucket(bucketName)
     await bucket.file(objectPath).save(buffer, {
       resumable: false,
-      contentType: file.type,
+      contentType: mimeType,
       predefinedAcl: 'publicRead',
       metadata: {
         cacheControl: 'public, max-age=31536000, immutable',

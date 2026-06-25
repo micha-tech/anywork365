@@ -16,6 +16,19 @@ const AVATAR_IMAGE_TYPE = 'image/webp'
 const AVATAR_IMAGE_QUALITY = 0.82
 const PORTFOLIO_IMAGE_DIMENSION = 1600
 const PORTFOLIO_IMAGE_QUALITY = 0.86
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+const IMAGE_TYPE_BY_EXTENSION: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+}
+const EXTENSION_BY_IMAGE_TYPE: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
 
 interface ProfileForm {
   firstName: string
@@ -27,10 +40,29 @@ interface ProfileForm {
   bio: string
 }
 
-async function optimizeImageFile(file: File, maxDimension: number, quality: number): Promise<File> {
-  if (!file.type.startsWith('image/')) return file
+function inferImageType(file: File): string {
+  if (SUPPORTED_IMAGE_TYPES.includes(file.type)) return file.type
+  const extension = file.name.split('.').pop()?.toLowerCase() || ''
+  return IMAGE_TYPE_BY_EXTENSION[extension] || file.type
+}
 
-  const objectUrl = URL.createObjectURL(file)
+function withInferredImageType(file: File): File {
+  const inferredType = inferImageType(file)
+  if (!inferredType || inferredType === file.type) return file
+  return new File([file], file.name, { type: inferredType, lastModified: file.lastModified })
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    canvas.toBlob(resolve, type, quality)
+  })
+}
+
+async function optimizeImageFile(file: File, maxDimension: number, quality: number): Promise<File> {
+  const sourceFile = withInferredImageType(file)
+  if (!sourceFile.type.startsWith('image/')) return sourceFile
+
+  const objectUrl = URL.createObjectURL(sourceFile)
 
   try {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -54,25 +86,29 @@ async function optimizeImageFile(file: File, maxDimension: number, quality: numb
 
     context.drawImage(image, 0, 0, width, height)
 
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, AVATAR_IMAGE_TYPE, quality)
-    })
+    const fallbackType = sourceFile.type === 'image/png' ? 'image/png' : 'image/jpeg'
+    const candidateTypes = Array.from(new Set([AVATAR_IMAGE_TYPE, fallbackType]))
 
-    if (!blob) return file
+    for (const candidateType of candidateTypes) {
+      const blob = await canvasToBlob(canvas, candidateType, quality)
+      if (!blob || blob.size === 0) continue
 
-    const optimizedType = blob.type || AVATAR_IMAGE_TYPE
-    const extension = optimizedType === 'image/webp' ? 'webp' : file.name.split('.').pop() || 'jpg'
-    const baseName = file.name.replace(/\.[^/.]+$/, '') || 'avatar'
-    const optimizedFile = new File([blob], `${baseName}.${extension}`, {
-      type: optimizedType,
-      lastModified: Date.now(),
-    })
+      const optimizedType = blob.type || candidateType
+      const extension = EXTENSION_BY_IMAGE_TYPE[optimizedType] || 'jpg'
+      const baseName = sourceFile.name.replace(/\.[^/.]+$/, '') || 'avatar'
+      const optimizedFile = new File([blob], `${baseName}.${extension}`, {
+        type: optimizedType,
+        lastModified: Date.now(),
+      })
 
-    return optimizedFile.size < file.size || maxSourceDimension > maxDimension
-      ? optimizedFile
-      : file
+      if (optimizedFile.size < sourceFile.size || maxSourceDimension > maxDimension) {
+        return optimizedFile
+      }
+    }
+
+    return sourceFile
   } catch {
-    return file
+    return sourceFile
   } finally {
     URL.revokeObjectURL(objectUrl)
   }
@@ -156,23 +192,23 @@ export default function ProfilePage() {
   // ─── Handle file selection (from input or drag-drop) ─────────────────────
 
   const handleFile = useCallback(async (file: File) => {
-    const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (!ALLOWED.includes(file.type)) {
+    const sourceFile = withInferredImageType(file)
+    if (!SUPPORTED_IMAGE_TYPES.includes(sourceFile.type)) {
       toast.error('Only JPEG, PNG, or WebP images are allowed.')
       return
     }
-    if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+    if (sourceFile.size > MAX_SOURCE_IMAGE_BYTES) {
       toast.error('Image must be smaller than 15MB.')
       return
     }
 
     // Show local preview immediately for snappy UX
-    const objectUrl = URL.createObjectURL(file)
+    const objectUrl = URL.createObjectURL(sourceFile)
     setPhotoPreview(objectUrl)
     setUploading(true)
 
     try {
-      const uploadFile = await optimizeImageFile(file, MAX_AVATAR_DIMENSION, AVATAR_IMAGE_QUALITY)
+      const uploadFile = await optimizeImageFile(sourceFile, MAX_AVATAR_DIMENSION, AVATAR_IMAGE_QUALITY)
       if (uploadFile.size > MAX_UPLOAD_IMAGE_BYTES) {
         toast.error('Image is still too large after optimization. Try a smaller photo.')
         setPhotoPreview(null)
