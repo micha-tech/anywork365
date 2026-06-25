@@ -1,26 +1,56 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { AuthUser } from '@/types'
+
+const CURRENT_USER_CHANGED_EVENT = 'aw365:current-user-changed'
 
 interface CurrentUserState {
   user: AuthUser | null
   loading: boolean
 }
 
-export function useCurrentUser(): CurrentUserState {
+interface CurrentUserResult extends CurrentUserState {
+  refresh: () => Promise<AuthUser | null>
+}
+
+export function useCurrentUser(): CurrentUserResult {
   const [state, setState] = useState<CurrentUserState>({ user: null, loading: true })
 
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        setState({ user: data?.data ?? null, loading: false })
-      })
-      .catch(() => setState({ user: null, loading: false }))
+  const refresh = useCallback(async (): Promise<AuthUser | null> => {
+    try {
+      const response = await fetch('/api/auth/me', { cache: 'no-store' })
+      const data = response.ok ? await response.json() : null
+      const user = data?.data ?? null
+      setState({ user, loading: false })
+      return user
+    } catch {
+      setState({ user: null, loading: false })
+      return null
+    }
   }, [])
 
-  return state
+  useEffect(() => {
+    void refresh()
+
+    const refreshCurrentUser = () => {
+      void refresh()
+    }
+
+    window.addEventListener(CURRENT_USER_CHANGED_EVENT, refreshCurrentUser)
+    window.addEventListener('focus', refreshCurrentUser)
+
+    return () => {
+      window.removeEventListener(CURRENT_USER_CHANGED_EVENT, refreshCurrentUser)
+      window.removeEventListener('focus', refreshCurrentUser)
+    }
+  }, [refresh])
+
+  return { ...state, refresh }
+}
+
+export function notifyCurrentUserChanged(): void {
+  window.dispatchEvent(new Event(CURRENT_USER_CHANGED_EVENT))
 }
 
 // Derive initials from first + last name, e.g. "Michael Eze" → "ME"

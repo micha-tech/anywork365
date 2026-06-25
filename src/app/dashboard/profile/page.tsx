@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/ui'
 import { NIGERIAN_STATE_NAMES, type NigerianState, type PortfolioItem } from '@/types'
-import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
+import { useCurrentUser, getInitialsFromUser, notifyCurrentUserChanged } from '@/hooks/useCurrentUser'
 import { getLocalGovernments } from '@/lib/nigeria-locations'
 
 const MAX_AVATAR_DIMENSION = 512
@@ -225,6 +225,7 @@ export default function ProfilePage() {
         const cacheSeparator = data.data.url.includes('?') ? '&' : '?'
         setPhotoUrl(`${data.data.url}${cacheSeparator}v=${Date.now()}`)
         setPhotoPreview(null)
+        notifyCurrentUserChanged()
       } else {
         toast.error(data.error || 'Couldn\u2019t upload photo')
         setPhotoPreview(null)
@@ -252,12 +253,6 @@ export default function ProfilePage() {
     if (file) handleFile(file)
   }
 
-  function removePhoto() {
-    setPhotoUrl(null)
-    setPhotoPreview(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
   // ─── Save profile ─────────────────────────────────────────────────────────
 
   function updateProfileField<K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) {
@@ -283,6 +278,7 @@ export default function ProfilePage() {
         return
       }
 
+      notifyCurrentUserChanged()
       toast.success('Profile saved')
     } catch {
       toast.error('Network error. Please try again.')
@@ -411,16 +407,6 @@ export default function ProfilePage() {
               )}
             </button>
 
-            {/* Remove button when photo exists */}
-            {currentPhoto && !uploading && (
-              <button
-                onClick={removePhoto}
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shadow hover:bg-red-600 transition-colors"
-                aria-label="Remove photo"
-              >
-                ×
-              </button>
-            )}
           </div>
 
           {/* Name + role */}
