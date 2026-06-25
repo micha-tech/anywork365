@@ -71,10 +71,13 @@ async function main() {
     }
 
     const sql = readFileSync(filePath, 'utf8')
+      .split('\n')
+      .filter(line => !line.trim().startsWith('--'))
+      .join('\n')
     const statements = sql
       .split(';')
       .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'))
+      .filter(s => s.length > 0)
 
     for (const stmt of statements) {
       try {
