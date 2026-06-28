@@ -8,28 +8,40 @@ const ONBOARDING_KEY = 'anywork365_onboarding_done'
 
 const slides = [
   {
-    image: '/images/onboarding-1.webp',
-    title: 'Find Trusted Professionals',
+    image: '/images/onboarding-plumber.jpg',
+    eyebrow: 'Home services',
+    title: 'Trusted help is closer than you think',
     description:
-      'Browse verified artisans, technicians, and vendors across Nigeria. Read reviews and compare ratings before you book.',
+      'Find skilled plumbers, electricians, cleaners, installers, and repair experts near you, with reviews that help you choose confidently.',
+    proof: 'Verified profiles. Real reviews.',
+    align: 'object-center',
   },
   {
-    image: '/images/onboarding-2.webp',
-    title: 'Book & Pay with Confidence',
+    image: '/images/onboarding-carpenter.jpg',
+    eyebrow: 'Quality work',
+    title: 'Book professionals who take pride in the details',
     description:
-      "Payments are held securely in escrow. Funds are only released when you're satisfied with the work.",
+      'Compare services, message the right expert, agree on the job, and move forward with clarity before anyone starts work.',
+    proof: 'Clear choices. Better outcomes.',
+    align: 'object-center',
   },
   {
-    image: '/images/onboarding-3.webp',
-    title: 'Track Every Step',
+    image: '/images/onboarding-engineers.jpg',
+    eyebrow: 'Secure flow',
+    title: 'Stay in control from booking to completion',
     description:
-      'From booking to completion, follow your job in real time. Chat with your professional and get updates.',
+      'Use chat, job updates, and escrow-supported payments to keep every booking transparent until the work is done.',
+    proof: 'Chat. Track. Pay with confidence.',
+    align: 'object-[48%_center]',
   },
   {
-    image: '/images/onboarding-4.webp',
-    title: 'Grow Your Business',
+    image: '/images/onboarding-mechanic.jpg',
+    eyebrow: 'For professionals',
+    title: 'Turn your skill into steady local demand',
     description:
-      'Create your professional profile, showcase your work, and get discovered by clients in your area.',
+      'Create a profile, showcase your work, receive bookings, and build trust with customers looking for reliable service providers.',
+    proof: 'Get discovered. Get booked.',
+    align: 'object-center',
   },
 ]
 
@@ -53,6 +65,12 @@ export default function OnboardingPage() {
     return () => clearTimeout(splashTimer)
   }, [router])
 
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
   const complete = useCallback(() => {
     localStorage.setItem(ONBOARDING_KEY, 'true')
     document.documentElement.classList.add('page-exit')
@@ -65,7 +83,10 @@ export default function OnboardingPage() {
   const isLast = active === slides.length - 1
 
   const goNext = useCallback(() => {
-    if (isLast) { complete(); return }
+    if (isLast) {
+      complete()
+      return
+    }
     setActive((a) => a + 1)
   }, [isLast, complete])
 
@@ -88,73 +109,102 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-brand-50 via-white to-white" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      <div className="absolute top-0 inset-x-0 z-10 flex justify-end px-5 pt-safe">
+    <div
+      className="fixed inset-0 z-50 flex min-h-dvh flex-col overflow-hidden bg-slate-950 text-white"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className="absolute inset-0">
+        {slides.map((slide, i) => (
+          <div
+            key={slide.image}
+            className="absolute inset-0"
+            style={{
+              opacity: i === active ? 1 : 0,
+              transform: i === active ? 'scale(1)' : 'scale(1.035)',
+              transition: 'opacity 0.7s ease, transform 1.6s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+            aria-hidden={i !== active}
+          >
+            {i <= active + 1 && (
+              <Image
+                src={slide.image}
+                alt=""
+                fill
+                sizes="100vw"
+                className={`${slide.align} object-cover`}
+                priority={i === 0}
+              />
+            )}
+          </div>
+        ))}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,31,30,0.42)_0%,rgba(4,31,30,0.08)_34%,rgba(4,31,30,0.54)_62%,rgba(3,15,14,0.96)_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-36 bg-[linear-gradient(180deg,rgba(2,6,23,0.58),rgba(2,6,23,0))]" />
+      </div>
+
+      <div className="relative z-10 flex items-center justify-between px-5 pt-safe">
+        <div className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 backdrop-blur-md">
+          <span className="h-2 w-2 rounded-full bg-amber-400" />
+          <span className="text-xs font-semibold text-white">Anywork365</span>
+        </div>
         <button
           onClick={complete}
-          className="mt-4 px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 active:scale-95 transition-all min-h-[44px]"
+          className="mt-4 min-h-[44px] rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white active:scale-95"
         >
           Skip
         </button>
       </div>
 
-      <div className="flex-1 relative">
+      <div className="relative z-10 flex flex-1 flex-col justify-end px-5 pb-safe">
+        <div className="mx-auto w-full max-w-md pb-6">
+          <div className="mb-5 flex items-center gap-2" aria-label="Slide indicator">
+            {slides.map((_, i) => (
+              <span
+                key={i}
+                className="block h-1.5 rounded-full transition-all duration-500"
+                style={{
+                  width: i === active ? 30 : 7,
+                  background: i === active ? '#F59E0B' : 'rgba(255,255,255,0.42)',
+                }}
+              />
+            ))}
+          </div>
+
         {slides.map((slide, i) => {
-          const offset = i < active ? -32 : 32
+          const offset = i < active ? -18 : 18
           return (
             <div
-              key={i}
-              className="absolute inset-0 flex flex-col items-center justify-center px-5 sm:px-10"
+              key={slide.title}
+              className={i === active ? 'relative' : 'pointer-events-none absolute inset-x-5 bottom-[9.75rem]'}
               style={{
                 opacity: i === active ? 1 : 0,
-                transform: i === active ? 'translateX(0)' : `translateX(${offset}px)`,
-                transition: 'opacity 0.35s ease, transform 0.35s ease',
+                transform: i === active ? 'translateY(0)' : `translateY(${offset}px)`,
+                transition: 'opacity 0.52s ease, transform 0.52s cubic-bezier(0.16, 1, 0.3, 1)',
                 pointerEvents: i === active ? 'auto' : 'none',
               }}
+              aria-live={i === active ? 'polite' : undefined}
             >
-              <div className="w-full max-w-xs sm:max-w-sm mx-auto flex flex-col items-center text-center">
-                <div className="relative w-full mb-6 overflow-hidden rounded-2xl bg-slate-100" style={{ height: 'clamp(200px, 45dvh, 320px)' }}>
-                  {i <= active + 1 && (
-                    <Image
-                      src={slide.image}
-                      alt=""
-                      fill
-                      sizes="(max-width: 480px) 90vw, 384px"
-                      className="object-contain"
-                      priority={i === 0}
-                    />
-                  )}
-                </div>
-                <h2 className="text-[clamp(1.125rem,5vw,1.75rem)] font-bold text-slate-900 mb-3 leading-tight text-balance">
+              <div className="max-w-[21.5rem]">
+                <p className="mb-3 inline-flex rounded-lg bg-brand-500/90 px-3 py-1.5 text-xs font-bold text-white shadow-[0_12px_32px_rgba(15,79,74,0.28)]">
+                  {slide.eyebrow}
+                </p>
+                <h1 className="font-display text-[clamp(2rem,8vw,3rem)] font-extrabold leading-[1.02] text-white text-balance">
                   {slide.title}
-                </h2>
-                <p className="text-[clamp(0.8125rem,3.5vw,1rem)] text-slate-500 leading-relaxed text-balance break-words">
+                </h1>
+                <p className="mt-4 text-[15px] leading-relaxed text-white/80 text-balance">
                   {slide.description}
+                </p>
+                <p className="mt-4 text-sm font-semibold text-amber-300">
+                  {slide.proof}
                 </p>
               </div>
             </div>
           )
         })}
-      </div>
-
-      <div className="px-5 pb-safe pb-6 pt-2 flex flex-col items-center gap-4">
-        <div className="flex items-center gap-1.5" aria-label="Slide indicator">
-          {slides.map((_, i) => (
-            <span
-              key={i}
-              className="block transition-all duration-300 rounded-full"
-              style={{
-                width: i === active ? 20 : 6,
-                height: 6,
-                background: i === active ? '#0F4F4A' : '#cbd5e1',
-              }}
-            />
-          ))}
-        </div>
 
         <button
           onClick={goNext}
-          className="w-full max-w-xs h-14 rounded-2xl bg-brand-500 hover:bg-brand-600 active:scale-[0.97] text-white font-semibold text-base transition-all duration-200 shadow-lg shadow-brand-500/25"
+          className="mt-7 flex h-14 w-full items-center justify-center rounded-lg bg-brand-500 text-base font-bold text-white shadow-[0_18px_44px_rgba(15,79,74,0.35)] transition-all duration-200 hover:bg-brand-600 active:scale-[0.98]"
         >
           {isLast ? 'Get Started' : 'Continue'}
         </button>
@@ -162,11 +212,12 @@ export default function OnboardingPage() {
         {!isLast && (
           <button
             onClick={complete}
-            className="text-sm text-slate-400 hover:text-slate-600 active:scale-95 transition-all py-1 min-h-[44px]"
+            className="mt-3 min-h-[44px] w-full rounded-lg text-sm font-semibold text-white/70 transition-all hover:bg-white/10 hover:text-white active:scale-[0.98]"
           >
-            Get started
+            I am ready, take me in
           </button>
         )}
+        </div>
       </div>
     </div>
   )
@@ -174,10 +225,10 @@ export default function OnboardingPage() {
 
 function OnboardingSplash() {
   return (
-    <div className="fixed inset-0 z-50 flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-white px-6 text-center">
-      <div className="absolute inset-x-0 top-0 h-2 bg-brand-500" />
+    <div className="fixed inset-0 z-50 flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-brand-900 px-6 text-center text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(59,166,159,0.32),transparent_36%),linear-gradient(180deg,#0F4F4A_0%,#041f1e_100%)]" />
       <div className="relative flex flex-col items-center">
-        <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-lg border border-slate-100 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.10)]">
+        <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-lg border border-white/10 bg-white shadow-[0_22px_60px_rgba(0,0,0,0.24)]">
           <Image
             src="/anyworks-logo.png"
             alt="Anywork365.ng"
@@ -188,15 +239,15 @@ function OnboardingSplash() {
           />
         </div>
 
-        <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand-600">Anywork365</p>
-        <h1 className="mt-3 max-w-xs text-2xl font-extrabold leading-tight text-slate-950">
-          Nigeria&apos;s trusted work platform
+        <p className="text-xs font-bold text-amber-300">Anywork365</p>
+        <h1 className="mt-3 max-w-xs text-2xl font-extrabold leading-tight text-white">
+          Trusted professionals for everyday work
         </h1>
 
         <div className="mt-8 flex items-center justify-center gap-2" aria-label="Loading onboarding">
-          <span className="h-2 w-2 animate-bounce rounded-full bg-brand-500 [animation-delay:-0.2s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-white [animation-delay:-0.2s]" />
           <span className="h-2 w-2 animate-bounce rounded-full bg-amber-500 [animation-delay:-0.1s]" />
-          <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-brand-300" />
         </div>
       </div>
     </div>
