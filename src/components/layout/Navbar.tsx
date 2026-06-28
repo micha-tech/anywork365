@@ -104,7 +104,7 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 h-16">
 
-            <BrandLogo size="md" priority className="min-w-0 flex-1 md:flex-none" imageClassName="object-contain" />
+            <BrandLogo size="md" priority imageClassName="object-contain" />
 
             <nav className="hidden md:flex items-center gap-0.5">
               {navLinks.map((link) => (

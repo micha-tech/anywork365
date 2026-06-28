@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
-const ONBOARDING_KEY = 'anywork365_onboarding_done'
+const ONBOARDING_KEY = 'anywork365_onboarding_seen'
 
 const slides = [
   {
@@ -53,17 +53,12 @@ export default function OnboardingPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
-    if (localStorage.getItem(ONBOARDING_KEY)) {
-      router.replace('/login')
-      return
-    }
-
     const splashTimer = setTimeout(() => {
       setShowSplash(false)
     }, 1200)
 
     return () => clearTimeout(splashTimer)
-  }, [router])
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -72,11 +67,11 @@ export default function OnboardingPage() {
   }, [])
 
   const complete = useCallback(() => {
-    localStorage.setItem(ONBOARDING_KEY, 'true')
+    sessionStorage.setItem(ONBOARDING_KEY, 'true')
     document.documentElement.classList.add('page-exit')
     timerRef.current = setTimeout(() => {
       document.documentElement.classList.remove('page-exit')
-      router.replace('/login')
+      router.replace('/')
     }, 300)
   }, [router])
 
@@ -230,12 +225,12 @@ function OnboardingSplash() {
       <div className="relative flex flex-col items-center">
         <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-lg border border-white/10 bg-white shadow-[0_22px_60px_rgba(0,0,0,0.24)]">
           <Image
-            src="/anyworks-logo.png"
+            src="/logo.png"
             alt="Anywork365.ng"
-            width={180}
-            height={56}
+            width={512}
+            height={512}
             priority
-            className="h-auto w-24 object-contain"
+            className="h-24 w-24 object-contain"
           />
         </div>
 

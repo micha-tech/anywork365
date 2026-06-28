@@ -5,8 +5,8 @@ self.addEventListener("push", function (event) {
 
   const options = {
     body: data.body,
-    icon: "/anyworks-logo.png",
-    badge: "/anyworks-logo.png",
+    icon: "/logo.png",
+    badge: "/logo.png",
     vibrate: [100, 50, 100],
     data: {
       url: data.url || "/messages",

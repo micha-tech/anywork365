@@ -98,7 +98,7 @@ export function showLocalNotification(title: string, body: string, icon?: string
 
   new Notification(title, {
     body,
-    icon: icon || '/anyworks-logo.png',
-    badge: '/anyworks-logo.png',
+    icon: icon || '/logo.png',
+    badge: '/logo.png',
   })
 }

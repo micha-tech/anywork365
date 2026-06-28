@@ -14,15 +14,15 @@ type BrandLogoProps = {
 
 const SIZE_STYLES = {
   sm: {
-    wrapper: 'h-10 max-w-[140px] sm:max-w-[160px]',
+    wrapper: 'h-10 w-10',
     image: 'h-full w-auto max-w-full',
   },
   md: {
-    wrapper: 'h-11 max-w-[160px] sm:h-12 sm:max-w-[220px]',
+    wrapper: 'h-11 w-11 sm:h-12 sm:w-12',
     image: 'h-full w-auto max-w-full',
   },
   lg: {
-    wrapper: 'h-14 max-w-[220px] sm:h-16 sm:max-w-[280px]',
+    wrapper: 'h-16 w-16 sm:h-20 sm:w-20',
     image: 'h-full w-auto max-w-full',
   },
 } as const
@@ -39,12 +39,12 @@ export function BrandLogo({
   const content = (
     <span className={cn('inline-flex min-w-0 items-center', styles.wrapper, className)}>
       <Image
-        src="/anyworks-logo.png"
+        src="/logo.png"
         alt="Anywork365.ng"
-        width={640}
-        height={128}
+        width={512}
+        height={512}
         priority={priority}
-        sizes="(max-width: 640px) 140px, (max-width: 1024px) 220px, 280px"
+        sizes="(max-width: 640px) 40px, (max-width: 1024px) 48px, 80px"
         className={cn('block', styles.image, imageClassName)}
       />
     </span>

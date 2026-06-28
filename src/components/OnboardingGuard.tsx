@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 
-const ONBOARDING_KEY = 'anywork365_onboarding_done'
+const ONBOARDING_KEY = 'anywork365_onboarding_seen'
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -17,11 +17,12 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
       setReady(true)
       return
     }
-    const done = localStorage.getItem(ONBOARDING_KEY)
-    if (!done) {
-      router.replace('/onboarding')
-    } else {
+
+    const seen = sessionStorage.getItem(ONBOARDING_KEY)
+    if (seen) {
       setReady(true)
+    } else {
+      router.replace('/onboarding')
     }
   }, [pathname, router])
 
