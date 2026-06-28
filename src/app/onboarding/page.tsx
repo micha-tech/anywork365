@@ -138,9 +138,18 @@ export default function OnboardingPage() {
       </div>
 
       <div className="relative z-10 flex items-center justify-between px-5 pt-safe">
-        <div className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 backdrop-blur-md">
-          <span className="h-2 w-2 rounded-full bg-amber-400" />
-          <span className="text-xs font-semibold text-white">Anywork365</span>
+        <div className="mt-4 inline-flex h-12 items-center gap-2.5 rounded-lg border border-white/15 bg-white/12 px-2.5 pr-3.5 shadow-[0_14px_34px_rgba(0,0,0,0.18)] backdrop-blur-md">
+          <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-white">
+            <Image
+              src="/logo.png"
+              alt="Anywork365.ng"
+              width={64}
+              height={64}
+              priority
+              className="h-full w-full object-contain"
+            />
+          </span>
+          <span className="text-xs font-bold text-white">Anywork365</span>
         </div>
         <button
           onClick={complete}
