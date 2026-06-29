@@ -53,12 +53,17 @@ export default function OnboardingPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && !window.navigator.userAgent.includes('Capacitor') && !(window as any).Capacitor?.isNative) {
+      router.replace('/')
+      return
+    }
+
     const splashTimer = setTimeout(() => {
       setShowSplash(false)
     }, 1200)
 
     return () => clearTimeout(splashTimer)
-  }, [])
+  }, [router])
 
   useEffect(() => {
     return () => {

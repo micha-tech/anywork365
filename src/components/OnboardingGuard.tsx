@@ -5,6 +5,11 @@ import { useRouter, usePathname } from 'next/navigation'
 
 const ONBOARDING_KEY = 'anywork365_onboarding_seen'
 
+function isNativeApp(): boolean {
+  if (typeof window === 'undefined') return false
+  return !!(window.navigator.userAgent.includes('Capacitor') || (window as any).Capacitor?.isNative)
+}
+
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -12,6 +17,11 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.remove('page-exit')
+
+    if (!isNativeApp()) {
+      setReady(true)
+      return
+    }
 
     if (pathname === '/onboarding') {
       setReady(true)
