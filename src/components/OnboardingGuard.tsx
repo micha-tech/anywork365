@@ -7,7 +7,8 @@ const ONBOARDING_KEY = 'anywork365_onboarding_seen'
 
 function isNativeApp(): boolean {
   if (typeof window === 'undefined') return false
-  return !!(window.navigator.userAgent.includes('Capacitor') || (window as any).Capacitor?.isNative)
+  try { return (window as any).Capacitor?.isNativePlatform?.() === true }
+  catch { return false }
 }
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {

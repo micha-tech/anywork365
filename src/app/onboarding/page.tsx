@@ -53,7 +53,8 @@ export default function OnboardingPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && !window.navigator.userAgent.includes('Capacitor') && !(window as any).Capacitor?.isNative) {
+    const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.() === true
+    if (!isNative) {
       router.replace('/')
       return
     }
