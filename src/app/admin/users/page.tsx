@@ -42,6 +42,10 @@ export default function AdminUsersPage() {
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
   const handleAction = async (uid: string, action: string, role?: string) => {
+    if (action === 'delete') {
+      const ok = window.confirm('Permanently delete this user from Firebase and the database? This cannot be undone.')
+      if (!ok) return
+    }
     const body: Record<string, string> = { uid, action }
     if (role) body.role = role
     const res = await fetch('/api/admin/users', {
@@ -50,7 +54,10 @@ export default function AdminUsersPage() {
       body: JSON.stringify(body),
     })
     const d = await res.json()
-    if (d.success) fetchUsers()
+    if (d.success) {
+      toast.success(action === 'delete' ? 'User permanently deleted' : 'User updated')
+      fetchUsers()
+    }
     else toast.error(d.error || 'Action failed')
   }
 
@@ -129,6 +136,7 @@ export default function AdminUsersPage() {
                     ) : (
                       <button onClick={() => handleAction(u.uid, 'suspend')} className="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100">Suspend</button>
                     )}
+                    <button onClick={() => handleAction(u.uid, 'delete')} className="text-xs px-2 py-1 rounded-lg bg-red-600 text-white hover:bg-red-700">Delete</button>
                   </div>
                 </td>
               </tr>

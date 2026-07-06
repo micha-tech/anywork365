@@ -287,3 +287,23 @@ export function removePushSubscription(userId: string, endpoint: string): void {
   const filtered = existing.filter(s => s.endpoint !== endpoint)
   pushSubscriptionStore.set(userId, filtered)
 }
+
+export function purgeChatUserData(userId: string): void {
+  const conversationIds = Array.from(conversationStore.values())
+    .filter(c => c.participants.includes(userId))
+    .map(c => c.id)
+
+  for (const id of conversationIds) conversationStore.delete(id)
+  for (const message of messageStore.values()) {
+    if (message.senderId === userId || conversationIds.includes(message.conversationId)) {
+      messageStore.delete(message.id)
+    }
+  }
+  for (const notification of notificationStore.values()) {
+    if (notification.userId === userId || (notification.conversationId && conversationIds.includes(notification.conversationId))) {
+      notificationStore.delete(notification.id)
+    }
+  }
+  pushSubscriptionStore.delete(userId)
+  sseClients.delete(userId)
+}

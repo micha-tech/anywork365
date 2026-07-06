@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { firstName, lastName, email, phone, nin, role, city } = parsed.data
+    const { firstName, lastName, email, phone, nin, role, category, city } = parsed.data
 
     await createUser({
       uid,
@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
       await createBusiness({
         uid,
         businessName: `${firstName} ${lastName}`,
+        category,
         businessContact: phone,
         state: city || 'Lagos',
       })
