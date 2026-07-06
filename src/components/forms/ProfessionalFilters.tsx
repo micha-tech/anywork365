@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES, type NigerianState } from '@/types'
+import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES, type NigerianState } from '@/types'
 import { getLocalGovernments } from '@/lib/nigeria-locations'
 
 interface ProfessionalFiltersProps {
@@ -35,8 +35,12 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
       />
       <select name="category" defaultValue={category || ''} className="input-field appearance-none">
         <option value="">All categories</option>
-        {JOB_CATEGORIES.map((item) => (
-          <option key={item} value={item}>{item}</option>
+        {BUSINESS_CATEGORY_GROUPS.map((group) => (
+          <optgroup key={group.label} label={group.label}>
+            {group.categories.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </optgroup>
         ))}
       </select>
       <select

@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       id: String(r.vacancy_id),
       title: r.vacancy_title,
       description: r.job_description,
-      category: r.work_type === 'Remote' ? 'Professional services' : 'General services' as Job['category'],
+      category: (r.work_type === 'Remote' ? 'Website & App Development' : 'General Services') as Job['category'],
       budget: 0,
       city: r.vacancy_location,
       status: r.closed ? 'completed' as Job['status'] : 'open' as Job['status'],

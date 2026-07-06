@@ -67,21 +67,120 @@ export interface SignupPayload {
 
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
 
-export type JobCategory =
-  | 'Repair services'
-  | 'Environmental services'
-  | 'Cleaning services'
-  | 'Events and rentals'
-  | 'Fashion services'
-  | 'Spa and beauty parlour'
-  | 'General services'
-  | 'Computer operation'
-  | 'Restaurant and lounges'
-  | 'Lifestyle and entertainment'
-  | 'Tradesmen and retailers'
-  | 'Professional services'
-  | 'Healthcare services'
-  | 'Software development'
+export const BUSINESS_CATEGORY_GROUPS = [
+  {
+    label: 'Home, Property & Facility Services',
+    categories: [
+      'Carpentry & Furniture',
+      'Plumbing Services',
+      'Electrical Installation & Repairs',
+      'Painting & Wall Finishing',
+      'Masonry, Tiling & Flooring',
+      'Roofing & Waterproofing',
+      'Welding & Metal Fabrication',
+      'Aluminium & Glass Works',
+      'POP, Ceiling & Partitioning',
+      'Interior Decoration & Space Styling',
+      'HVAC / AC Installation & Repairs',
+      'Generator, Inverter & Solar Services',
+      'Pest Control & Fumigation',
+      'Cleaning & Facility Management',
+      'Security Systems & CCTV',
+    ],
+  },
+  {
+    label: 'Automotive & Mechanical Services',
+    categories: [
+      'Auto Mechanics',
+      'Auto Electrical Services',
+      'Panel Beating & Spray Painting',
+      'Tyre, Wheel Alignment & Balancing',
+      'Car Wash & Auto Detailing',
+    ],
+  },
+  {
+    label: 'Logistics, Trade & Mobility',
+    categories: [
+      'Logistics / Transportation Services',
+      'Courier & Dispatch Services',
+      'Freight Forwarding / Clearing Agents',
+      'Moving & Relocation Services',
+      'Haulage & Trucking Services',
+    ],
+  },
+  {
+    label: 'Construction, Engineering & Real Estate',
+    categories: [
+      'Technical Engineering Services',
+      'Quantity Surveying',
+      'Architecture & Building Design',
+      'Estate Surveying & Property Management',
+      'Land Surveying',
+      'Building Contractors',
+      'Civil Works & Road Maintenance',
+    ],
+  },
+  {
+    label: 'Business, Legal & Financial Advisory',
+    categories: [
+      'Legal Consultancy',
+      'Tax / Accounting Consultancy',
+      'Business Registration & Corporate Services',
+      'HR / Recruitment Services',
+      'Insurance Brokerage',
+      'Real Estate Agency',
+    ],
+  },
+  {
+    label: 'Education, Coaching & Training',
+    categories: [
+      'Home Tutors',
+      'Exam Preparation & Academic Coaching',
+      'Vocational Training',
+      'Language Lessons',
+      'Music & Creative Lessons',
+    ],
+  },
+  {
+    label: 'Creative, Lifestyle & Events',
+    categories: [
+      'Digital Printing Services',
+      'Graphic Design & Branding',
+      'Photography & Videography',
+      'Event Planning & Rentals',
+      'Catering & Food Services',
+      'Tailoring & Fashion Design',
+      'Beauty, Spa & Wellness',
+      'Makeup & Hair Styling',
+    ],
+  },
+  {
+    label: 'Technology & Digital Services',
+    categories: [
+      'Software Development',
+      'Website & App Development',
+      'IT Support & Networking',
+      'Digital Marketing',
+      'Data & Business Analytics',
+      'Cybersecurity Services',
+    ],
+  },
+  {
+    label: 'Health, Care & Essential Services',
+    categories: [
+      'Healthcare Services',
+      'Physiotherapy & Wellness',
+      'Caregiving & Home Care',
+      'Restaurant & Lounge Services',
+      'Tradesmen & Retailers',
+      'General Services',
+    ],
+  },
+] as const
+
+export type JobCategory = typeof BUSINESS_CATEGORY_GROUPS[number]['categories'][number]
+
+export const JOB_CATEGORIES = BUSINESS_CATEGORY_GROUPS.flatMap((group) => group.categories) as JobCategory[]
 
 export type JobStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'
 
@@ -212,23 +311,6 @@ export const NIGERIAN_STATE_NAMES = [
 ] as const
 
 export type NigerianState = typeof NIGERIAN_STATE_NAMES[number]
-
-export const JOB_CATEGORIES: JobCategory[] = [
-  'Repair services',
-  'Environmental services',
-  'Cleaning services',
-  'Events and rentals',
-  'Fashion services',
-  'Spa and beauty parlour',
-  'General services',
-  'Computer operation',
-  'Restaurant and lounges',
-  'Lifestyle and entertainment',
-  'Tradesmen and retailers',
-  'Professional services',
-  'Healthcare services',
-  'Software development',
-]
 
 // ─── Wallet ───────────────────────────────────────────────────────────────────
 
