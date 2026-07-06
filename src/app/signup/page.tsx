@@ -79,7 +79,7 @@ export default function SignupPage() {
 
         <div className="card p-6 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Create your account</h1>
-          <p className="text-sm text-slate-500 text-center mb-6">Join Nigeria&apos;s leading work platform</p>
+          <p className="text-sm text-slate-500 text-center mb-6">Join Nigeria&apos;s reliable handyman and skilled workman sourcing platform</p>
 
           <div className="mb-5">
             <p className="label mb-2">I want to...</p>
