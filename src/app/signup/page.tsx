@@ -33,16 +33,33 @@ export default function SignupPage() {
 
   async function onSubmit(data: SignupInput) {
     try {
-      const { data: result, user: fbUser, error } = await signUp({
-        email: data.email,
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        countryCode: data.countryCode,
-        nin: data.nin || undefined,
-        role: data.role,
-      })
+      const submitToFirebase = () => signUp({
+          email: data.email,
+          password: data.password,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          countryCode: data.countryCode,
+          nin: data.nin || undefined,
+          role: data.role,
+        })
+
+      let { data: result, user: fbUser, error } = await submitToFirebase()
+
+      if (error?.code === 'auth/email-already-in-use') {
+        const cleanup = await fetch('/api/auth/cleanup-stale', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: data.email }),
+        })
+        const cleanupBody = await cleanup.json()
+        if (!cleanup.ok || !cleanupBody.success) {
+          toast.error(cleanupBody.error || 'An account with this email already exists. Please log in.')
+          return
+        }
+
+        ;({ data: result, user: fbUser, error } = await submitToFirebase())
+      }
 
       if (error || !result || !fbUser) {
         toast.error(toErrorMessage(error))
