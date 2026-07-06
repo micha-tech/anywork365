@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signupSchema, type SignupInput, COUNTRY_CODES } from '@/lib/validators/auth'
-import { signUp } from '@/lib/firebase/auth'
+import { deleteCurrentFirebaseUser, sendVerificationEmail, signUp } from '@/lib/firebase/auth'
 import { toErrorMessage } from '@/lib/utils'
 import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
 import { cn } from '@/lib/utils'
@@ -77,11 +77,15 @@ export default function SignupPage() {
       const body = await res.json()
 
       if (!res.ok) {
+        await deleteCurrentFirebaseUser()
         toast.error(body.error ?? 'Failed to complete signup')
         return
       }
 
-      window.location.href = '/verify-email'
+      const { error: verificationEmailError } = await sendVerificationEmail()
+      window.location.href = verificationEmailError
+        ? `/verify-email?emailStatus=failed&reason=${encodeURIComponent(verificationEmailError)}`
+        : '/verify-email'
     } catch {
       toast.error('An unexpected error occurred. Please try again.')
     }

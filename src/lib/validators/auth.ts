@@ -1,4 +1,15 @@
 import { z } from 'zod'
+import { JOB_CATEGORIES } from '@/types'
+
+const signupCategorySchema = z
+  .union([
+    z.literal(''),
+    z.enum(JOB_CATEGORIES as [string, ...string[]], {
+      invalid_type_error: 'Please select a valid business category',
+    }),
+  ])
+  .optional()
+  .transform((value) => value || undefined)
 
 export const COUNTRY_CODES = [
   { code: '+234', country: 'Nigeria' },
@@ -63,7 +74,7 @@ export const signupSchema = z
     role: z.enum(['client', 'vendor'], {
       required_error: 'Please select your account type',
     }),
-    category: z.string().optional(),
+    category: signupCategorySchema,
     city: z.string().min(1, 'Please select your city'),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -71,7 +82,7 @@ export const signupSchema = z
     path: ['confirmPassword'],
   })
   .refine((data) => data.role !== 'vendor' || !!data.category, {
-    message: 'Please select the industry category you serve',
+    message: 'Please select the business category you serve',
     path: ['category'],
   })
 

@@ -285,13 +285,14 @@ export async function createUser(data: {
   email: string
   fullName: string
   phoneNumber: string
+  role?: 'client' | 'vendor' | 'admin'
   state?: string
   nin?: string
 }): Promise<void> {
   await execute(
-    `INSERT INTO users (uid, email, fullName, phoneNumber, state, nin, loginProvider, dateJoined)
-     VALUES (?, ?, ?, ?, ?, ?, 'EmailAndPassword', NOW())`,
-    [data.uid, data.email, data.fullName, data.phoneNumber, data.state || '', data.nin || null]
+    `INSERT INTO users (uid, email, fullName, phoneNumber, role, state, nin, loginProvider, dateJoined)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'EmailAndPassword', NOW())`,
+    [data.uid, data.email, data.fullName, data.phoneNumber, data.role || 'client', data.state || '', data.nin || null]
   )
 }
 
@@ -836,6 +837,11 @@ export async function createBusiness(data: {
 }
 
 // ─── FCM Tokens ──────────────────────────────────────────────────────────
+
+export async function deleteSignupProfileByUid(uid: string): Promise<void> {
+  await execute('DELETE FROM businesses WHERE uid = ?', [uid])
+  await execute('DELETE FROM users WHERE uid = ?', [uid])
+}
 
 export async function saveFcmToken(uid: string, token: string) {
   try {

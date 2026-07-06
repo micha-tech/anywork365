@@ -4,6 +4,7 @@ import {
   signOut as fSignOut,
   sendPasswordResetEmail,
   sendEmailVerification,
+  deleteUser,
   applyActionCode,
   updatePassword as fUpdatePassword,
   onAuthStateChanged,
@@ -66,8 +67,6 @@ export async function signUp({
   try {
     const cred = await createUserWithEmailAndPassword(fbAuth, email, password)
 
-    await sendEmailVerification(cred.user, getEmailVerificationActionSettings())
-
     const authUser: AuthUser = { id: cred.user.uid, email, firstName: '', lastName: '', role: 'client' }
     return { data: authUser, user: cred.user, error: null }
   } catch (err: unknown) {
@@ -77,6 +76,19 @@ export async function signUp({
         ? getVerificationEmailErrorMessage(e.code)
         : 'Signup failed. Please try again.'
     return { data: null, error: { code: e?.code, message } }
+  }
+}
+
+export async function deleteCurrentFirebaseUser(): Promise<{ error: string | null }> {
+  const fbAuth = requireFirebase()
+  const user = fbAuth.currentUser
+  if (!user) return { error: null }
+
+  try {
+    await deleteUser(user)
+    return { error: null }
+  } catch {
+    return { error: 'Could not clean up the incomplete signup. Please contact support.' }
   }
 }
 
