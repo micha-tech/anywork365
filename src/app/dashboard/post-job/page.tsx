@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { jobPostSchema, type JobPostInput } from '@/lib/validators/job'
 import { jobsApi } from '@/lib/api'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { BUSINESS_CATEGORY_GROUPS } from '@/types'
 
 export default function PostJobPage() {
   const { user, loading } = useCurrentUser()
@@ -117,8 +118,17 @@ export default function PostJobPage() {
             <label className="label">Category *</label>
             <select
               {...register('category')}
-                className={`input-field appearance-none ${errors.category ? 'border-amber-300' : ''}`}
-              />
+              className={`input-field appearance-none ${errors.category ? 'border-amber-300' : ''}`}
+            >
+              <option value="">Select category</option>
+              {BUSINESS_CATEGORY_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.categories.map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
               {errors.category && <p className="mt-1.5 text-xs text-amber-600">{errors.category.message}</p>}
           </div>
 

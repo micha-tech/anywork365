@@ -74,7 +74,7 @@ export default async function MyJobsPage({
       id: String(v.vacancy_id),
       title: v.vacancy_title,
       description: v.job_description,
-      category: v.work_type === 'Remote' ? 'Professional services' : 'General services' as Job['category'],
+      category: (v.work_type === 'Remote' ? 'Website & App Development' : 'General Services') as Job['category'],
       budget: 0,
       city: v.vacancy_location,
       status: v.closed ? ('completed' as Job['status']) : ('open' as Job['status']),

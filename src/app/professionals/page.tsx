@@ -2,11 +2,25 @@ import { listVendors } from '@/lib/queries'
 import { ProCard } from '@/components/forms/ProCard'
 import { ProfessionalFilters } from '@/components/forms/ProfessionalFilters'
 import { EmptyState } from '@/components/ui'
-import { JOB_CATEGORIES } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-const CATEGORIES = ['All', ...JOB_CATEGORIES]
+const CATEGORIES = [
+  'All',
+  'Carpentry & Furniture',
+  'Painting & Wall Finishing',
+  'Auto Mechanics',
+  'Plumbing Services',
+  'Tailoring & Fashion Design',
+  'Legal Consultancy',
+  'Freight Forwarding / Clearing Agents',
+  'Home Tutors',
+  'Logistics / Transportation Services',
+  'Technical Engineering Services',
+  'Digital Printing Services',
+  'Tax / Accounting Consultancy',
+  'Quantity Surveying',
+]
 
 const PAGE_SIZE = 12
 

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { listVacancies } from '@/lib/queries'
 import { query } from '@/lib/db'
 import { EmptyState } from '@/components/ui'
-import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
+import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
 import type { Job, JobStatus, JobCategory } from '@/types'
 import type { RowDataPacket } from 'mysql2'
 
@@ -25,7 +25,7 @@ function vacancyToJob(v: Awaited<ReturnType<typeof listVacancies>>[number], comp
     id: String(v.vacancy_id),
     title: v.vacancy_title,
     description: v.job_description,
-    category: 'Professional services' as JobCategory,
+    category: 'Business Registration & Corporate Services' as JobCategory,
     budget: 0,
     city: v.vacancy_location,
     status: v.closed ? 'completed' as JobStatus : 'open' as JobStatus,
@@ -102,8 +102,12 @@ export default async function JobsPage({ searchParams }: Props) {
           <div className="flex gap-2">
             <select name="category" defaultValue={category} className="input-field flex-1 appearance-none">
               <option value="">All Categories</option>
-              {JOB_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {BUSINESS_CATEGORY_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.categories.map((categoryOption) => (
+                    <option key={categoryOption} value={categoryOption}>{categoryOption}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             <select name="state" defaultValue={city} className="input-field flex-1 appearance-none">

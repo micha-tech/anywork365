@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { NIGERIAN_STATE_NAMES, JOB_CATEGORIES } from '@/types'
+import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
 
 interface BusinessData {
   businessName: string
@@ -151,8 +151,12 @@ export default function MyBusinessPage() {
               onChange={(e) => update('category', e.target.value)}
             >
               <option value="">Select category</option>
-              {JOB_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {BUSINESS_CATEGORY_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.categories.map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>

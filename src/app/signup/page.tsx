@@ -10,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { signupSchema, type SignupInput, COUNTRY_CODES } from '@/lib/validators/auth'
 import { signUp } from '@/lib/firebase/auth'
 import { toErrorMessage } from '@/lib/utils'
-import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
+import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
 import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
 
@@ -96,7 +96,7 @@ export default function SignupPage() {
 
         <div className="card p-6 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Create your account</h1>
-          <p className="text-sm text-slate-500 text-center mb-6">Nigeria&apos;s trusted marketplace for connecting with reliable skilled workers and service providers near you.</p>
+          <p className="text-sm text-slate-500 text-center mb-6">Nigeria&apos;s premium marketplace for verified professionals across home services, logistics, construction, legal, finance, technology, and business support.</p>
 
           <div className="mb-5">
             <p className="label mb-2">I want to...</p>
@@ -199,11 +199,15 @@ export default function SignupPage() {
 
             {role === 'vendor' && (
               <div className="form-group">
-                <label className="label">Industry category you serve</label>
+                <label className="label">Business category you serve</label>
                 <select {...register('category')} className={`input-field appearance-none ${errors.category ? 'border-amber-300' : ''}`}>
-                  <option value="">Select category</option>
-                  {JOB_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                  <option value="">Select your primary business category</option>
+                  {BUSINESS_CATEGORY_GROUPS.map((group) => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.categories.map((category) => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
                 {errors.category && <p className="mt-1 text-xs text-amber-600">{errors.category.message}</p>}
