@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { query, execute, type SqlValue } from '@/lib/db'
 import type { RowDataPacket } from 'mysql2/promise'
 import { requireAdminApi, unauthorized, logAdminAction } from '@/lib/admin'
+import { hardDeleteAccount } from '@/lib/account-delete'
 
 export async function GET(request: NextRequest) {
   try {
@@ -79,6 +80,12 @@ export async function PATCH(request: NextRequest) {
     } else if (act === 'unsuspend') {
       await execute('UPDATE users SET suspended = 0 WHERE uid = ?', [uid])
       await logAdminAction(session.id, 'unsuspend_user', 'user', uid)
+    } else if (act === 'delete') {
+      if (uid === session.id) {
+        return NextResponse.json({ success: false, error: 'Admins cannot delete their own account here' }, { status: 400 })
+      }
+      await hardDeleteAccount(uid)
+      await logAdminAction(session.id, 'hard_delete_user', 'user', undefined, { note: 'User account permanently deleted' })
     } else {
       return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 })
     }

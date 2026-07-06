@@ -127,6 +127,7 @@ export default function ProfilePage() {
 
   // Form state
   const [saving, setSaving] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
   const [profileForm, setProfileForm] = useState<ProfileForm>({
     firstName: '',
     lastName: '',
@@ -284,6 +285,28 @@ export default function ProfilePage() {
       toast.error('Network error. Please try again.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    const confirmation = window.prompt('This permanently deletes your account and all account records. Type DELETE to continue.')
+    if (confirmation !== 'DELETE') return
+
+    setDeletingAccount(true)
+    try {
+      const response = await fetch('/api/auth/me', { method: 'DELETE' })
+      const data = await response.json()
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Could not delete account')
+        return
+      }
+
+      toast.success('Account deleted')
+      window.location.href = '/'
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setDeletingAccount(false)
     }
   }
 
@@ -621,6 +644,21 @@ export default function ProfilePage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="card border-red-200 bg-red-50/40">
+            <h3 className="font-medium text-base text-red-700 mb-2">Delete account</h3>
+            <p className="text-sm text-red-600 leading-relaxed mb-4">
+              This permanently removes your account from Anywork365 and Firebase. This action cannot be undone.
+            </p>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              disabled={deletingAccount}
+              className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+            >
+              {deletingAccount ? 'Deleting...' : 'Delete my account'}
+            </button>
           </div>
         </div>
       </div>

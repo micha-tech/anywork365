@@ -63,11 +63,16 @@ export const signupSchema = z
     role: z.enum(['client', 'vendor'], {
       required_error: 'Please select your account type',
     }),
+    category: z.string().optional(),
     city: z.string().min(1, 'Please select your city'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
     path: ['confirmPassword'],
+  })
+  .refine((data) => data.role !== 'vendor' || !!data.category, {
+    message: 'Please select the industry category you serve',
+    path: ['category'],
   })
 
 export type LoginInput = z.infer<typeof loginSchema>

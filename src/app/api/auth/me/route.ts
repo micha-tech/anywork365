@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getSession, clearSession } from '@/lib/auth'
 import { getUserRowByUid, updateBusiness, updateUserProfile } from '@/lib/queries'
 import { getAvatarUrl } from '@/lib/avatar'
+import { hardDeleteAccount } from '@/lib/account-delete'
 import { NIGERIAN_STATE_NAMES, type ApiResponse, type AuthUser, type NigerianState } from '@/types'
 import { isLocalGovernmentInState } from '@/lib/nigeria-locations'
 
@@ -124,4 +125,29 @@ export async function POST() {
     { success: true, message: 'Logged out' },
     { status: 200 }
   )
+}
+
+export async function DELETE() {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Authentication required' },
+      { status: 401 }
+    )
+  }
+
+  try {
+    await hardDeleteAccount(session.id)
+    await clearSession()
+    return NextResponse.json<ApiResponse<null>>(
+      { success: true, message: 'Account deleted' },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('[ACCOUNT DELETE]', error)
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Could not delete account. Please try again.' },
+      { status: 500 }
+    )
+  }
 }
