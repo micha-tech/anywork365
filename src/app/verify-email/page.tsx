@@ -26,7 +26,7 @@ function waitForCurrentFirebaseUser(fbAuth: Auth): Promise<User | null> {
 
   return new Promise((resolve) => {
     let settled = false
-    let timeoutId: number | undefined
+    const timeoutId = window.setTimeout(() => finish(fbAuth.currentUser), 2000)
     let unsubscribe = () => {}
 
     const finish = (firebaseUser: User | null) => {
@@ -38,7 +38,6 @@ function waitForCurrentFirebaseUser(fbAuth: Auth): Promise<User | null> {
     }
 
     unsubscribe = onAuthStateChanged(fbAuth, finish, () => finish(null))
-    timeoutId = window.setTimeout(() => finish(fbAuth.currentUser), 2000)
   })
 }
 
