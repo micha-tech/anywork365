@@ -4,9 +4,11 @@ import {
   signOut as fSignOut,
   sendPasswordResetEmail,
   sendEmailVerification,
+  applyActionCode,
   updatePassword as fUpdatePassword,
   onAuthStateChanged,
   User,
+  type ActionCodeSettings,
 } from 'firebase/auth'
 import { getFirebaseAuth } from './client'
 import type { AuthUser, UserRole } from '@/types'
@@ -35,6 +37,27 @@ function requireFirebase() {
   return fb
 }
 
+function getEmailVerificationActionSettings(): ActionCodeSettings | undefined {
+  if (typeof window === 'undefined') return undefined
+
+  return {
+    url: `${window.location.origin}/verify-email`,
+    handleCodeInApp: false,
+  }
+}
+
+function getVerificationEmailErrorMessage(code?: string): string {
+  if (code === 'auth/unauthorized-continue-uri') {
+    return 'This app domain is not authorized in Firebase. Add it under Firebase Authentication authorized domains.'
+  }
+
+  if (code === 'auth/too-many-requests') {
+    return 'Too many verification emails were requested. Please wait a bit and try again.'
+  }
+
+  return 'Failed to send verification email. Please try again.'
+}
+
 export async function signUp({
   email,
   password,
@@ -43,13 +66,17 @@ export async function signUp({
   try {
     const cred = await createUserWithEmailAndPassword(fbAuth, email, password)
 
-    await sendEmailVerification(cred.user)
+    await sendEmailVerification(cred.user, getEmailVerificationActionSettings())
 
     const authUser: AuthUser = { id: cred.user.uid, email, firstName: '', lastName: '', role: 'client' }
     return { data: authUser, user: cred.user, error: null }
   } catch (err: unknown) {
     const e = err as { code?: string; message?: string }
-    return { data: null, error: { code: e?.code, message: 'Signup failed. Please try again.' } }
+    const message =
+      e?.code === 'auth/unauthorized-continue-uri' || e?.code === 'auth/too-many-requests'
+        ? getVerificationEmailErrorMessage(e.code)
+        : 'Signup failed. Please try again.'
+    return { data: null, error: { code: e?.code, message } }
   }
 }
 
@@ -58,10 +85,28 @@ export async function sendVerificationEmail(): Promise<{ error: string | null }>
   const user = fbAuth.currentUser
   if (!user) return { error: 'Not authenticated' }
   try {
-    await sendEmailVerification(user)
+    await sendEmailVerification(user, getEmailVerificationActionSettings())
     return { error: null }
-  } catch {
-    return { error: 'Failed to send verification email. Please try again.' }
+  } catch (err: unknown) {
+    const e = err as { code?: string }
+    return { error: getVerificationEmailErrorMessage(e?.code) }
+  }
+}
+
+export async function confirmEmailVerification(oobCode: string): Promise<{ error: string | null }> {
+  const fbAuth = requireFirebase()
+  try {
+    await applyActionCode(fbAuth, oobCode)
+    return { error: null }
+  } catch (err: unknown) {
+    const e = err as { code?: string }
+    if (e?.code === 'auth/expired-action-code') {
+      return { error: 'This verification link has expired. Please request a new one.' }
+    }
+    if (e?.code === 'auth/invalid-action-code') {
+      return { error: 'This verification link is invalid or has already been used.' }
+    }
+    return { error: 'Could not verify this email link. Please request a new one.' }
   }
 }
 

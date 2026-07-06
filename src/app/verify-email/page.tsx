@@ -2,47 +2,138 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { onAuthStateChanged, type Auth, type User } from 'firebase/auth'
 import { toast } from 'sonner'
-import { sendVerificationEmail, reloadUser } from '@/lib/firebase/auth'
+import { sendVerificationEmail, reloadUser, confirmEmailVerification } from '@/lib/firebase/auth'
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+
+type VerificationLinkState = 'idle' | 'applying' | 'verified' | 'error'
+
+function getEmailVerificationCode(): string | null {
+  if (typeof window === 'undefined') return null
+
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('mode') !== 'verifyEmail') return null
+
+  return params.get('oobCode')
+}
+
+function waitForCurrentFirebaseUser(fbAuth: Auth): Promise<User | null> {
+  if (fbAuth.currentUser) return Promise.resolve(fbAuth.currentUser)
+
+  return new Promise((resolve) => {
+    let settled = false
+    let timeoutId: number | undefined
+    let unsubscribe = () => {}
+
+    const finish = (firebaseUser: User | null) => {
+      if (settled) return
+      settled = true
+      if (timeoutId) window.clearTimeout(timeoutId)
+      unsubscribe()
+      resolve(firebaseUser)
+    }
+
+    unsubscribe = onAuthStateChanged(fbAuth, finish, () => finish(null))
+    timeoutId = window.setTimeout(() => finish(fbAuth.currentUser), 2000)
+  })
+}
 
 export default function VerifyEmailPage() {
   const router = useRouter()
   const { user, loading } = useCurrentUser()
   const [checking, setChecking] = useState(false)
   const [polling, setPolling] = useState(true)
+  const [verificationCode, setVerificationCode] = useState<string | null>(null)
+  const [linkState, setLinkState] = useState<VerificationLinkState>('idle')
+  const [linkError, setLinkError] = useState<string | null>(null)
+  const appliedCodeRef = useRef<string | null>(null)
+
+  const refreshSession = useCallback(async () => {
+    const fbAuth = getFirebaseAuth()
+    const currentUser = await waitForCurrentFirebaseUser(fbAuth)
+    if (!currentUser) return false
+
+    await currentUser.reload()
+    const freshToken = await currentUser.getIdToken(true)
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: freshToken }),
+    })
+
+    return res.ok
+  }, [])
 
   const refreshSessionAndRedirect = useCallback(async () => {
     setPolling(false)
     try {
-      const fbAuth = getFirebaseAuth()
-      const currentUser = fbAuth?.currentUser
-      if (currentUser) {
-        const freshToken = await currentUser.getIdToken(true)
-        await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken: freshToken }),
-        })
-      }
+      await refreshSession()
     } catch {
       // Session refresh is best-effort; dashboard will redirect back if it fails
     }
     router.push('/dashboard')
-  }, [router])
+  }, [refreshSession, router])
 
   useEffect(() => {
-    if (!loading && !user) {
+    const code = getEmailVerificationCode()
+    if (!code) return
+
+    setVerificationCode(code)
+    setLinkState('applying')
+  }, [])
+
+  useEffect(() => {
+    if (!verificationCode || appliedCodeRef.current === verificationCode) return
+
+    const code = verificationCode
+    appliedCodeRef.current = code
+    setPolling(false)
+    setLinkState('applying')
+    setLinkError(null)
+
+    async function applyVerificationCode() {
+      const { error } = await confirmEmailVerification(code)
+      window.history.replaceState(null, '', '/verify-email')
+      setVerificationCode(null)
+
+      if (error) {
+        setLinkState('error')
+        setLinkError(error)
+        toast.error(error)
+        return
+      }
+
+      let sessionRefreshed = false
+      try {
+        sessionRefreshed = await refreshSession()
+      } catch {
+        sessionRefreshed = false
+      }
+
+      setLinkState('verified')
+      toast.success('Email verified successfully')
+
+      if (sessionRefreshed) {
+        router.push('/dashboard')
+      }
+    }
+
+    void applyVerificationCode()
+  }, [verificationCode, refreshSession, router])
+
+  useEffect(() => {
+    if (!loading && !user && !verificationCode && linkState !== 'applying' && linkState !== 'verified') {
       router.push('/login')
       return
     }
-  }, [user, loading, router])
+  }, [user, loading, verificationCode, linkState, router])
 
   useEffect(() => {
-    if (!polling) return
+    if (!polling || verificationCode) return
     const interval = setInterval(async () => {
       const { emailVerified } = await reloadUser()
       if (emailVerified) {
@@ -50,13 +141,15 @@ export default function VerifyEmailPage() {
       }
     }, 3000)
     return () => clearInterval(interval)
-  }, [polling, refreshSessionAndRedirect])
+  }, [polling, verificationCode, refreshSessionAndRedirect])
 
   async function handleResend() {
     const { error: err } = await sendVerificationEmail()
     if (err) {
-      toast.error('Couldn\u2019t resend. Please try again.')
+      toast.error(err)
     } else {
+      setLinkState('idle')
+      setLinkError(null)
       setPolling(true)
       toast.success('Verification email resent')
     }
@@ -96,20 +189,40 @@ export default function VerifyEmailPage() {
             We sent a verification email to <strong className="text-slate-900">{user?.email}</strong>
           </p>
           <p className="text-sm text-slate-500 text-center mb-6">
-            Click the link in the email to activate your account.
+            {linkState === 'applying'
+              ? 'Verifying your email link...'
+              : linkState === 'verified'
+                ? 'Your email has been verified.'
+                : 'Click the link in the email to activate your account.'}
           </p>
 
+          {linkState === 'error' && linkError && (
+            <p className="text-sm text-amber-600 text-center mb-6 leading-relaxed">
+              {linkError}
+            </p>
+          )}
+
           <div className="space-y-3">
-            <button
-              onClick={handleCheckNow}
-              disabled={checking}
-              className="btn-primary w-full py-3 text-base justify-center"
-            >
-              {checking ? 'Checking...' : 'I\'ve verified, continue'}
-            </button>
+            {linkState === 'verified' && !user ? (
+              <button
+                onClick={() => router.push('/login')}
+                className="btn-primary w-full py-3 text-base justify-center"
+              >
+                Log in to continue
+              </button>
+            ) : (
+              <button
+                onClick={handleCheckNow}
+                disabled={checking || linkState === 'applying'}
+                className="btn-primary w-full py-3 text-base justify-center"
+              >
+                {linkState === 'applying' ? 'Verifying...' : checking ? 'Checking...' : 'I\'ve verified, continue'}
+              </button>
+            )}
 
             <button
               onClick={handleResend}
+              disabled={linkState === 'applying'}
               className="w-full py-3 text-sm text-brand-500 font-medium bg-transparent border border-slate-200 rounded-xl hover:bg-surface-base transition-colors"
             >
               Resend verification email
