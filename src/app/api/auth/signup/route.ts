@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { setSession, createSessionCookie } from '@/lib/auth'
 import { auth as adminAuth } from '@/lib/firebase/admin'
-import { createUser, createBusiness, getUserByUid } from '@/lib/queries'
+import { createUser, createBusiness, deleteSignupProfileByUid, getUserByUid } from '@/lib/queries'
 import { signupSchema } from '@/lib/validators/auth'
 import { checkRateLimit } from '@/lib/wallet'
 import { revalidateTag, CACHE_TAGS } from '@/lib/cache'
@@ -10,6 +10,8 @@ import type { ApiResponse, AuthUser } from '@/types'
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
+  let createdProfileUid: string | null = null
+
   try {
     const { idToken, ...profileData } = await req.json()
     if (!idToken) {
@@ -57,9 +59,11 @@ export async function POST(req: NextRequest) {
       email,
       fullName: `${firstName} ${lastName}`,
       phoneNumber: phone,
+      role,
       state: city || 'Lagos',
       nin,
     })
+    createdProfileUid = uid
 
     if (role === 'vendor') {
       await createBusiness({
@@ -93,6 +97,15 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const e = err as { code?: string; message?: string }
     console.error('[AUTH SIGNUP]', e)
+
+    if (createdProfileUid) {
+      try {
+        await deleteSignupProfileByUid(createdProfileUid)
+      } catch (cleanupError) {
+        console.error('[AUTH SIGNUP CLEANUP]', cleanupError)
+      }
+    }
+
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Signup failed' },
       { status: 400 }

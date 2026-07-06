@@ -21,6 +21,15 @@ function getEmailVerificationCode(): string | null {
   return params.get('oobCode')
 }
 
+function getInitialEmailError(): string | null {
+  if (typeof window === 'undefined') return null
+
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('emailStatus') !== 'failed') return null
+
+  return params.get('reason') || 'We could not send the verification email automatically. Please use resend.'
+}
+
 function waitForCurrentFirebaseUser(fbAuth: Auth): Promise<User | null> {
   if (fbAuth.currentUser) return Promise.resolve(fbAuth.currentUser)
 
@@ -49,6 +58,7 @@ export default function VerifyEmailPage() {
   const [verificationCode, setVerificationCode] = useState<string | null>(null)
   const [linkState, setLinkState] = useState<VerificationLinkState>('idle')
   const [linkError, setLinkError] = useState<string | null>(null)
+  const [initialEmailError, setInitialEmailError] = useState<string | null>(null)
   const appliedCodeRef = useRef<string | null>(null)
 
   const refreshSession = useCallback(async () => {
@@ -79,10 +89,17 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     const code = getEmailVerificationCode()
-    if (!code) return
+    const emailError = getInitialEmailError()
 
-    setVerificationCode(code)
-    setLinkState('applying')
+    if (emailError) {
+      setInitialEmailError(emailError)
+      window.history.replaceState(null, '', '/verify-email')
+    }
+
+    if (code) {
+      setVerificationCode(code)
+      setLinkState('applying')
+    }
   }, [])
 
   useEffect(() => {
@@ -147,6 +164,7 @@ export default function VerifyEmailPage() {
     if (err) {
       toast.error(err)
     } else {
+      setInitialEmailError(null)
       setLinkState('idle')
       setLinkError(null)
       setPolling(true)
@@ -198,6 +216,12 @@ export default function VerifyEmailPage() {
           {linkState === 'error' && linkError && (
             <p className="text-sm text-amber-600 text-center mb-6 leading-relaxed">
               {linkError}
+            </p>
+          )}
+
+          {initialEmailError && linkState !== 'error' && (
+            <p className="text-sm text-amber-600 text-center mb-6 leading-relaxed">
+              {initialEmailError}
             </p>
           )}
 
