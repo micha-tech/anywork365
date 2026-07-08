@@ -115,6 +115,16 @@ await sendPushNotification(
 
 ## Troubleshooting
 
+### Email verification says "app domain is not authorized"?
+- In Firebase Console, open **Authentication** -> **Settings** -> **Authorized domains**
+- Add every domain that can send or receive auth email links:
+  - `anywork365.ng`
+  - `www.anywork365.ng` if the site is available on `www`
+  - your active Vercel preview/production domain, for example `anywork-365-inky.vercel.app`
+  - `localhost` for local development
+- In production hosting, set `NEXT_PUBLIC_APP_URL=https://anywork365.ng` so verification email links return to the live app.
+- Redeploy after changing environment variables, then resend the verification email.
+
 ### Notifications not working on localhost?
 - Use HTTPS or localhost (Chrome blocks notifications on HTTP)
 - Check browser console for errors
@@ -140,6 +150,7 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 NEXT_PUBLIC_FIREBASE_VAPID_KEY=
+NEXT_PUBLIC_APP_URL=https://anywork365.ng
 
 # Server-side only (secret)
 FIREBASE_SERVICE_ACCOUNT={"type":"service_account",...}

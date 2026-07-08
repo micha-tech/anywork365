@@ -54,8 +54,16 @@ function getEmailVerificationActionSettings(): ActionCodeSettings | undefined {
   }
 }
 
-function getVerificationEmailErrorMessage(code?: string): string {
-  if (code === 'auth/unauthorized-continue-uri') {
+function isUnauthorizedActionDomainError(code?: string, message?: string): boolean {
+  return (
+    code === 'auth/unauthorized-continue-uri' ||
+    code === 'auth/unauthorized-domain' ||
+    message?.toLowerCase().includes('domain is not authorized') === true
+  )
+}
+
+function getVerificationEmailErrorMessage(code?: string, message?: string): string {
+  if (isUnauthorizedActionDomainError(code, message)) {
     return 'We could not send the verification email right now. Please try again later.'
   }
 
@@ -80,8 +88,8 @@ export async function signUp({
   } catch (err: unknown) {
     const e = err as { code?: string; message?: string }
     const message =
-      e?.code === 'auth/unauthorized-continue-uri' || e?.code === 'auth/too-many-requests'
-        ? getVerificationEmailErrorMessage(e.code)
+      isUnauthorizedActionDomainError(e?.code, e?.message) || e?.code === 'auth/too-many-requests'
+        ? getVerificationEmailErrorMessage(e.code, e.message)
         : toAuthErrorMessage(e)
     return { data: null, error: { code: e?.code, message } }
   }
@@ -105,11 +113,21 @@ export async function sendVerificationEmail(): Promise<{ error: string | null }>
   const user = fbAuth.currentUser
   if (!user) return { error: 'Not authenticated' }
   try {
-    await sendEmailVerification(user, getEmailVerificationActionSettings())
+    const actionSettings = getEmailVerificationActionSettings()
+    await sendEmailVerification(user, actionSettings)
     return { error: null }
   } catch (err: unknown) {
-    const e = err as { code?: string }
-    return { error: getVerificationEmailErrorMessage(e?.code) }
+    const e = err as { code?: string; message?: string }
+    if (isUnauthorizedActionDomainError(e?.code, e?.message)) {
+      try {
+        await sendEmailVerification(user)
+        return { error: null }
+      } catch (fallbackErr: unknown) {
+        const fallback = fallbackErr as { code?: string; message?: string }
+        return { error: getVerificationEmailErrorMessage(fallback?.code, fallback?.message) }
+      }
+    }
+    return { error: getVerificationEmailErrorMessage(e?.code, e?.message) }
   }
 }
 
