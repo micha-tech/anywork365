@@ -12,6 +12,7 @@ import {
   type ActionCodeSettings,
 } from 'firebase/auth'
 import { getFirebaseAuth } from './client'
+import { toAuthErrorMessage } from '@/lib/errors'
 import type { AuthUser, UserRole } from '@/types'
 
 export type VerificationTier = 'basic' | 'verified' | 'premium'
@@ -38,18 +39,24 @@ function requireFirebase() {
   return fb
 }
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase()
+}
+
 function getEmailVerificationActionSettings(): ActionCodeSettings | undefined {
   if (typeof window === 'undefined') return undefined
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
+
   return {
-    url: `${window.location.origin}/verify-email`,
+    url: `${appUrl || window.location.origin}/verify-email`,
     handleCodeInApp: false,
   }
 }
 
 function getVerificationEmailErrorMessage(code?: string): string {
   if (code === 'auth/unauthorized-continue-uri') {
-    return 'This app domain is not authorized in Firebase. Add it under Firebase Authentication authorized domains.'
+    return 'We could not send the verification email right now. Please try again later.'
   }
 
   if (code === 'auth/too-many-requests') {
@@ -65,16 +72,17 @@ export async function signUp({
 }: SignUpData) {
   const fbAuth = requireFirebase()
   try {
-    const cred = await createUserWithEmailAndPassword(fbAuth, email, password)
+    const normalizedEmail = normalizeEmail(email)
+    const cred = await createUserWithEmailAndPassword(fbAuth, normalizedEmail, password)
 
-    const authUser: AuthUser = { id: cred.user.uid, email, firstName: '', lastName: '', role: 'client' }
+    const authUser: AuthUser = { id: cred.user.uid, email: normalizedEmail, firstName: '', lastName: '', role: 'client' }
     return { data: authUser, user: cred.user, error: null }
   } catch (err: unknown) {
     const e = err as { code?: string; message?: string }
     const message =
       e?.code === 'auth/unauthorized-continue-uri' || e?.code === 'auth/too-many-requests'
         ? getVerificationEmailErrorMessage(e.code)
-        : 'Signup failed. Please try again.'
+        : toAuthErrorMessage(e)
     return { data: null, error: { code: e?.code, message } }
   }
 }
@@ -138,18 +146,19 @@ export async function reloadUser(): Promise<{ emailVerified: boolean; error: str
 export async function signIn({ email, password }: { email: string; password: string }) {
   const fbAuth = requireFirebase()
   try {
-    const cred = await signInWithEmailAndPassword(fbAuth, email, password)
+    const normalizedEmail = normalizeEmail(email)
+    const cred = await signInWithEmailAndPassword(fbAuth, normalizedEmail, password)
     const authUser: AuthUser = {
       id: cred.user.uid,
-      email,
+      email: normalizedEmail,
       firstName: '',
       lastName: '',
       role: 'client',
     }
     return { data: { user: cred.user, profile: authUser }, error: null }
   } catch (err: unknown) {
-    const e = err as { code?: string}
-    return { data: null, error: { code: e?.code, message: 'Login failed. Please try again.' } }
+    const e = err as { code?: string; message?: string }
+    return { data: null, error: { code: e?.code, message: toAuthErrorMessage(e) } }
   }
 }
 

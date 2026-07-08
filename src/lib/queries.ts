@@ -267,7 +267,7 @@ export async function getUserByUid(uid: string): Promise<AuthUser | null> {
 }
 
 export async function getUserByEmail(email: string): Promise<AuthUser | null> {
-  const row = await queryOne<UserRow[]>('SELECT * FROM users WHERE email = ? AND deleted = 0', [email])
+  const row = await queryOne<UserRow[]>('SELECT * FROM users WHERE LOWER(email) = LOWER(?) AND deleted = 0', [email.trim()])
   return row ? userRowToAuthUser(row) : null
 }
 
@@ -292,7 +292,7 @@ export async function createUser(data: {
   await execute(
     `INSERT INTO users (uid, email, fullName, phoneNumber, role, state, nin, loginProvider, dateJoined)
      VALUES (?, ?, ?, ?, ?, ?, ?, 'EmailAndPassword', NOW())`,
-    [data.uid, data.email, data.fullName, data.phoneNumber, data.role || 'client', data.state || '', data.nin || null]
+    [data.uid, data.email.trim().toLowerCase(), data.fullName, data.phoneNumber, data.role || 'client', data.state || '', data.nin || null]
   )
 }
 

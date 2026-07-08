@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { setSession, createSessionCookie } from '@/lib/auth'
 import { auth as adminAuth } from '@/lib/firebase/admin'
+import { query } from '@/lib/db'
 import { createUser, createBusiness, deleteSignupProfileByUid, getUserByUid } from '@/lib/queries'
+import { hardDeleteAccount } from '@/lib/account-delete'
+import type { RowDataPacket } from 'mysql2/promise'
 import { signupSchema } from '@/lib/validators/auth'
 import { checkRateLimit } from '@/lib/wallet'
 import { revalidateTag, CACHE_TAGS } from '@/lib/cache'
@@ -52,7 +55,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { firstName, lastName, email, phone, nin, role, category, city } = parsed.data
+    const { firstName, lastName, phone, nin, role, category, city } = parsed.data
+    const email = parsed.data.email.trim().toLowerCase()
+
+    const existingFirebaseUser = await adminAuth.getUserByEmail(email).catch(() => null)
+    if (existingFirebaseUser?.uid === uid) {
+      const staleRows = await query<(RowDataPacket & { uid: string })[]>(
+        'SELECT uid FROM users WHERE LOWER(email) = LOWER(?) AND uid <> ?',
+        [email, uid]
+      )
+      for (const row of staleRows) {
+        await hardDeleteAccount(row.uid)
+      }
+    }
 
     await createUser({
       uid,

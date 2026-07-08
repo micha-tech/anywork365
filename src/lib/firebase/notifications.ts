@@ -9,7 +9,8 @@ let messagingInstance: Messaging | null = null
 
 if (typeof window !== 'undefined') {
   try {
-    messagingInstance = getMessaging(getFirebaseApp())
+    const app = getFirebaseApp()
+    messagingInstance = app ? getMessaging(app) : null
   } catch {
     // Firebase messaging not available in this environment
   }
