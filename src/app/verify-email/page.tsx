@@ -63,6 +63,7 @@ export default function VerifyEmailPage() {
 
   const refreshSession = useCallback(async () => {
     const fbAuth = getFirebaseAuth()
+    if (!fbAuth) return false
     const currentUser = await waitForCurrentFirebaseUser(fbAuth)
     if (!currentUser) return false
 

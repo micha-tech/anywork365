@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signupSchema, type SignupInput, COUNTRY_CODES } from '@/lib/validators/auth'
-import { deleteCurrentFirebaseUser, sendVerificationEmail, signUp } from '@/lib/firebase/auth'
+import { sendVerificationEmail, signUp } from '@/lib/firebase/auth'
 import { toErrorMessage } from '@/lib/utils'
 import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
 import { cn } from '@/lib/utils'
@@ -33,8 +33,10 @@ export default function SignupPage() {
 
   async function onSubmit(data: SignupInput) {
     try {
+      const email = data.email.trim().toLowerCase()
+      const payload = { ...data, email }
       const submitToFirebase = () => signUp({
-          email: data.email,
+          email,
           password: data.password,
           firstName: data.firstName,
           lastName: data.lastName,
@@ -50,7 +52,7 @@ export default function SignupPage() {
         const cleanup = await fetch('/api/auth/cleanup-stale', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: data.email }),
+          body: JSON.stringify({ email }),
         })
         const cleanupBody = await cleanup.json()
         if (!cleanup.ok || !cleanupBody.success) {
@@ -71,13 +73,12 @@ export default function SignupPage() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, ...data }),
+        body: JSON.stringify({ idToken, ...payload }),
       })
 
       const body = await res.json()
 
       if (!res.ok) {
-        await deleteCurrentFirebaseUser()
         toast.error(body.error ?? 'Failed to complete signup')
         return
       }

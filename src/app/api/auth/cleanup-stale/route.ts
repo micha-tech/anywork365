@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const email = parsed.data.email.toLowerCase()
+  const email = parsed.data.email.trim().toLowerCase()
   const activeUser = await getUserByEmail(email)
   if (activeUser) {
     return NextResponse.json<ApiResponse<null>>(

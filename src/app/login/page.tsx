@@ -26,7 +26,7 @@ export default function LoginPage() {
       const { data: result, error } = await signIn(data)
 
       if (error || !result) {
-        toast.error('Login failed. Please check your credentials.')
+        toast.error(toErrorMessage(error))
         return
       }
 

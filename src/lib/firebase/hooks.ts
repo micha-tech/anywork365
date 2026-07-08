@@ -8,7 +8,8 @@ import { saveFcmToken, deleteFcmToken } from '@/lib/queries'
 let messaging: Messaging | null = null
 try {
   if (typeof window !== 'undefined') {
-    messaging = getMessaging(getFirebaseApp())
+    const app = getFirebaseApp()
+    messaging = app ? getMessaging(app) : null
   }
 } catch {
   messaging = null

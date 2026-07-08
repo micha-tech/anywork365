@@ -13,16 +13,32 @@ const firebaseConfig = {
 let _app: FirebaseApp | null = null
 let _auth: Auth | null = null
 
-export function getFirebaseApp(): FirebaseApp {
+function isConfiguredValue(value: string | undefined): value is string {
+  return Boolean(value && value.trim() && value !== '""')
+}
+
+export function isFirebaseConfigured(): boolean {
+  return (
+    isConfiguredValue(firebaseConfig.apiKey) &&
+    isConfiguredValue(firebaseConfig.authDomain) &&
+    isConfiguredValue(firebaseConfig.projectId)
+  )
+}
+
+export function getFirebaseApp(): FirebaseApp | null {
+  if (!isFirebaseConfigured()) return null
+
   if (!_app) {
     _app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
   }
   return _app
 }
 
-export function getFirebaseAuth(): Auth {
+export function getFirebaseAuth(): Auth | null {
   if (!_auth) {
-    _auth = getAuth(getFirebaseApp())
+    const app = getFirebaseApp()
+    if (!app) return null
+    _auth = getAuth(app)
   }
   return _auth
 }
