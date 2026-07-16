@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { CategoryIcon } from '@/components/ui/CategoryIcon'
+import { VerifiedBusinessBadge } from '@/components/ui'
 import { AppFooter } from '@/components/layout/AppFooter'
 import { SkeletonProCard, SkeletonJobCard } from '@/components/ui/Skeleton'
 import type { User, Job, AuthUser } from '@/types'
@@ -48,16 +49,6 @@ function HeartIcon({ filled = false, className = '' }: { filled?: boolean; class
     <svg className={className || 'w-5 h-5'} fill={filled ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
     </svg>
-  )
-}
-
-function VerifiedBadge() {
-  return (
-    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-      </svg>
-    </div>
   )
 }
 
@@ -306,12 +297,15 @@ export default function HomePage() {
                     </div>
                     {vendor.isVerified && (
                       <div className="absolute -bottom-0.5 -right-0.5">
-                        <VerifiedBadge />
+                        <VerifiedBusinessBadge label={false} size="sm" className="ring-2 ring-white" />
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 text-sm leading-tight line-clamp-1">{vendor.firstName} {vendor.lastName}</h3>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-semibold text-slate-900 text-sm leading-tight line-clamp-1">{vendor.firstName} {vendor.lastName}</h3>
+                      {vendor.isVerified && <VerifiedBusinessBadge size="sm" className="hidden sm:inline-flex" />}
+                    </div>
                     <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-400">
                       <LocationIcon className="w-3 h-3" />
                       <span className="line-clamp-1">{vendor.city}</span>

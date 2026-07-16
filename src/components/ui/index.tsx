@@ -24,6 +24,44 @@ export function Badge({ variant = 'gray', className, children, ...props }: Badge
   )
 }
 
+interface VerifiedBusinessBadgeProps extends HTMLAttributes<HTMLSpanElement> {
+  label?: boolean
+  size?: 'sm' | 'md'
+}
+
+export function VerifiedBusinessBadge({
+  label = true,
+  size = 'md',
+  className,
+  ...props
+}: VerifiedBusinessBadgeProps) {
+  const iconSize = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'
+
+  return (
+    <span
+      className={cn(
+        'inline-flex flex-shrink-0 items-center justify-center rounded-full bg-green-600 font-semibold text-white',
+        label
+          ? size === 'sm'
+            ? 'gap-1 px-2 py-0.5 text-[11px]'
+            : 'gap-1.5 px-2.5 py-1 text-xs'
+          : size === 'sm'
+            ? 'h-4 w-4'
+            : 'h-6 w-6',
+        className
+      )}
+      title="Verified business"
+      aria-label="Verified business"
+      {...props}
+    >
+      <svg className={iconSize} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+        <path fillRule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-8 8.08a1 1 0 0 1-1.42 0l-4-4.04a1 1 0 1 1 1.42-1.408L8 12.66l7.296-7.364a1 1 0 0 1 1.408-.006Z" clipRule="evenodd" />
+      </svg>
+      {label && <span>Verified</span>}
+    </span>
+  )
+}
+
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   size?: 'sm' | 'md'
   hover?: boolean

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Avatar, Badge, Stars } from '@/components/ui'
+import { Avatar, Badge, Stars, VerifiedBusinessBadge } from '@/components/ui'
 import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 
@@ -52,11 +52,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
           className="mb-4"
         />
         {pro.isVerified && (
-          <div className="absolute -bottom-1 left-6 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-            <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-            </svg>
-          </div>
+          <VerifiedBusinessBadge label={false} className="absolute -bottom-1 left-6 border-2 border-white shadow-sm" />
         )}
       </div>
 
@@ -64,9 +60,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
         <h3 className="font-medium text-slate-900 group-hover:text-brand-500 transition-colors">
           {pro.firstName} {pro.lastName}
         </h3>
-        {pro.isVerified && (
-          <span className="text-xs text-blue-500 font-medium">Verified</span>
-        )}
+        {pro.isVerified && <VerifiedBusinessBadge size="sm" />}
       </div>
       <p className="text-sm text-slate-500 mt-0.5">
         {[pro.skills?.[0], [pro.lga, pro.city].filter(Boolean).join(', ')].filter(Boolean).join(' - ')}

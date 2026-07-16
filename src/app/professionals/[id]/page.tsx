@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { notFound } from 'next/navigation'
 import { toast } from 'sonner'
-import { Avatar, Badge, Stars } from '@/components/ui'
+import { Avatar, Badge, Stars, VerifiedBusinessBadge } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
 import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
@@ -233,11 +233,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
               <div className="relative flex-shrink-0">
                 <Avatar initials={initials} size="lg" colorIndex={colorIndex} className="mb-4" />
                 {pro.isVerified && (
-                  <div className="absolute -bottom-2 left-8 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white bg-blue-500">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                    </svg>
-                  </div>
+                  <VerifiedBusinessBadge label={false} className="absolute -bottom-2 left-8 border-2 border-white shadow-sm" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -245,6 +241,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
                   <h1 className="font-display text-lg sm:text-xl font-semibold">
                     {pro.firstName} {pro.lastName}
                   </h1>
+                  {pro.isVerified && <VerifiedBusinessBadge />}
                 </div>
                 <p className="text-sm text-slate-500 mt-0.5">{pro.skills?.[0]} · {pro.city}</p>
                 {pro.rating && (
@@ -408,9 +405,11 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
           </div>
 
           {pro.isVerified && (
-            <div className="card-sm bg-brand-50 border-brand-500/20">
-              <p className="text-sm font-medium text-brand-500 mb-1">✓ Verified Vendor</p>
-              <p className="text-xs text-brand-500/70">Identity and credentials verified by Anywork365</p>
+            <div className="card-sm border-green-200 bg-green-50">
+              <div className="mb-2">
+                <VerifiedBusinessBadge />
+              </div>
+              <p className="text-xs text-green-700">Identity and business credentials verified by Anywork365</p>
             </div>
           )}
         </div>
