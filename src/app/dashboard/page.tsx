@@ -28,6 +28,13 @@ interface QuickAction {
   icon: ComponentType<{ className?: string }>
 }
 
+function getTimeOfDayGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 export default function DashboardPage() {
   const { user, loading } = useCurrentUser()
   const isVendor = user?.role === 'vendor'
@@ -74,7 +81,8 @@ export default function DashboardPage() {
 
   useEffect(() => { fetchDashboard() }, [fetchDashboard])
 
-  const greeting = loading ? 'Good morning' : `Good morning, ${user?.firstName ?? 'there'}`
+  const greetingBase = getTimeOfDayGreeting()
+  const greeting = loading ? greetingBase : `${greetingBase}, ${user?.firstName ?? 'there'}`
   const quickActions: QuickAction[] = user?.role === 'vendor'
     ? [
         { href: '/dashboard/post-job', icon: PostJobIcon, label: 'Post a Job', sub: 'Attract clients' },

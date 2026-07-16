@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { VerifiedBusinessBadge } from '@/components/ui'
 import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
 
 interface BusinessData {
@@ -123,11 +124,9 @@ export default function MyBusinessPage() {
       </div>
 
       {form.verified === 1 && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl mb-5 flex items-center gap-2">
-          <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
-          </svg>
-          Your business is verified
+        <div className="mb-5 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+          <VerifiedBusinessBadge />
+          <span className="text-sm text-green-700">Your business is verified</span>
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { VerifiedBusinessBadge } from '@/components/ui'
 import { getInitials } from '@/lib/utils'
 import type { ChatConversation, ChatMessage } from '@/types'
 
@@ -186,11 +187,7 @@ function ChatPageContent() {
                         <p className="font-medium text-sm text-[#111]">
                           {other ? `${other.firstName} ${other.lastName}`.trim() : 'User'}
                         </p>
-                        {other?.isVerified && (
-                          <svg className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                          </svg>
-                        )}
+                        {other?.isVerified && <VerifiedBusinessBadge label={false} size="sm" />}
                       </div>
                       {conv.lastMessageAt && (
                         <p className="text-xs text-gray-400">
@@ -248,11 +245,7 @@ function ChatPageContent() {
                     <div>
                       <p className="font-medium text-[#111] flex items-center gap-1.5">
                         {other ? `${other.firstName} ${other.lastName}`.trim() : 'User'}
-                        {other?.isVerified && (
-                          <svg className="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                          </svg>
-                        )}
+                        {other?.isVerified && <VerifiedBusinessBadge label={false} size="sm" />}
                       </p>
                       <p className="text-xs text-gray-500">{other?.city || 'Online'}</p>
                     </div>
