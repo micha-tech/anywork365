@@ -12,17 +12,17 @@ const VENDOR_NAV = [
     label: 'Main',
     links: [
       { href: '/dashboard', label: 'Overview', icon: GridIcon },
-      { href: '/dashboard/jobs', label: 'My Jobs', icon: BriefcaseIcon },
       { href: '/dashboard/bookings', label: 'Bookings', icon: BookingsIcon },
-      { href: '/dashboard/post-job', label: 'Post a Job', icon: PlusIcon },
       { href: '/messages', label: 'Messages', icon: ChatIcon },
     ],
   },
   {
     label: 'Business',
     links: [
-      { href: '/dashboard/my-business', label: 'My Business', icon: StoreIcon },
+      { href: '/dashboard/my-business', label: 'Business Profile', icon: StoreIcon },
       { href: '/dashboard/verify-business', label: 'Verification', icon: VerifyIcon },
+      { href: '/dashboard/jobs', label: 'Posted Jobs', icon: BriefcaseIcon },
+      { href: '/dashboard/post-job', label: 'Post Hiring Job', icon: PlusIcon },
     ],
   },
   {
