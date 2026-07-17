@@ -58,22 +58,22 @@ export function MobileBottomNav() {
           ),
         },
         {
-          href: '/dashboard/jobs',
-          label: 'My Jobs',
+          href: '/dashboard/bookings',
+          label: 'Bookings',
           icon: (active: boolean) => (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round">
-              <rect x="2" y="7" width="20" height="14" rx="2"/>
-              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              <rect x="3" y="4" width="18" height="17" rx="2"/>
+              <path d="M8 2v4M16 2v4M3 10h18"/>
             </svg>
           ),
         },
         {
-          href: '/dashboard/post-job',
-          label: 'Post Job',
-          icon: () => (
+          href: '/messages',
+          label: 'Messages',
+          icon: (_active: boolean) => (
             <div className="w-11 h-11 rounded-full bg-brand-500 flex items-center justify-center shadow-md -mt-5">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
             </div>
           ),
@@ -90,11 +90,12 @@ export function MobileBottomNav() {
           ),
         },
         {
-          href: '/dashboard/profile',
-          label: 'Profile',
+          href: '/dashboard/my-business',
+          label: 'Business',
           icon: (active: boolean) => (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round">
-              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              <path d="M4 10h16l-1 10H5L4 10Z"/>
+              <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
             </svg>
           ),
         },
@@ -115,24 +116,24 @@ export function MobileBottomNav() {
           const active = tab.href === '/dashboard'
             ? pathname === tab.href
             : pathname.startsWith(tab.href)
-          const isPost = tab.href === '/dashboard/post-job'
+          const isPrimary = tab.href === '/messages'
           return (
             <Link
               key={tab.href}
               href={tab.href}
               className={cn(
                 'flex flex-col items-center justify-center gap-1 h-full transition-colors min-w-0 relative',
-                isPost ? 'relative' : '',
-                active && !isPost ? 'text-brand-500' : 'text-slate-500'
+                isPrimary ? 'relative' : '',
+                active && !isPrimary ? 'text-brand-500' : 'text-slate-500'
               )}
             >
               {tab.icon(active)}
-              {!isPost && (
+              {!isPrimary && (
                 <span className={cn('text-[10px] font-medium truncate', active ? 'text-brand-500' : 'text-slate-500')}>
                   {tab.label}
                 </span>
               )}
-              {active && !isPost && (
+              {active && !isPrimary && (
                 <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-brand-500" />
               )}
             </Link>
