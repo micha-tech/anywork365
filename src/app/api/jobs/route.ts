@@ -15,9 +15,12 @@ export async function GET(req: NextRequest) {
   const location = searchParams.get('city')
   const job_type = searchParams.get('type')
   const limit = parseInt(searchParams.get('limit') || '0')
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+  const pageSize = Math.min(24, Math.max(1, parseInt(searchParams.get('pageSize') || String(limit || 8))))
 
   const rows = await listVacancies({ search: search || undefined, location: location || undefined, job_type: job_type || undefined })
-  const sliced = limit > 0 ? rows.slice(0, limit) : rows
+  const start = (page - 1) * pageSize
+  const sliced = rows.slice(start, start + pageSize)
   const ids = sliced.map((r) => r.company_id).filter(Boolean)
 
   const companyMap: Record<number, { name: string; address: string }> = {}
@@ -58,8 +61,17 @@ export async function GET(req: NextRequest) {
     }
   })
 
-  return NextResponse.json<ApiResponse<Job[]>>(
-    { success: true, data: jobs },
+  return NextResponse.json<ApiResponse<Job[]> & { meta: { page: number; pageSize: number; total: number; hasMore: boolean } }>(
+    {
+      success: true,
+      data: jobs,
+      meta: {
+        page,
+        pageSize,
+        total: rows.length,
+        hasMore: start + pageSize < rows.length,
+      },
+    },
     { status: 200, headers: { 'Cache-Control': 'public, max-age=60, s-maxage=120' } }
   )
 }

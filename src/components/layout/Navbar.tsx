@@ -16,10 +16,9 @@ const PUBLIC_NAV = [
 ]
 
 const AUTH_NAV = [
-  { href: '/professionals', label: 'Find Vendors' },
-  { href: '/jobs',           label: 'Browse Jobs' },
-  { href: '/messages',      label: 'Messages' },
   { href: '/dashboard',     label: 'Dashboard' },
+  { href: '/dashboard/bookings', label: 'Bookings' },
+  { href: '/messages',      label: 'Messages' },
 ]
 
 const ADMIN_NAV = [

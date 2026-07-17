@@ -23,7 +23,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
 
   return (
     <form
-      className="sticky top-16 z-30 mb-5 grid gap-3 rounded-lg border border-slate-200 bg-white/95 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.07)] backdrop-blur md:static md:mb-6 md:grid-cols-2 md:bg-white lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,0.8fr))_auto]"
+      className="sticky top-[72px] z-30 mb-5 grid gap-3 rounded-lg border border-slate-200 bg-white/95 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.07)] backdrop-blur supports-[backdrop-filter]:bg-white/85 md:static md:z-auto md:mb-6 md:grid-cols-2 md:bg-white md:shadow-none lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,0.8fr))_auto]"
       method="GET"
     >
       <div className="relative">

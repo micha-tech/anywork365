@@ -40,10 +40,8 @@ const CLIENT_NAV = [
   {
     label: 'Main',
     links: [
-      { href: '/dashboard', label: 'Overview', icon: GridIcon },
-      { href: '/professionals', label: 'Find Vendors', icon: SearchIcon },
-      { href: '/jobs', label: 'Browse Jobs', icon: BriefcaseIcon },
-      { href: '/dashboard/bookings', label: 'My Bookings', icon: BookingsIcon },
+      { href: '/dashboard', label: 'Discover', icon: GridIcon },
+      { href: '/dashboard/bookings', label: 'Bookings', icon: BookingsIcon },
       { href: '/messages', label: 'Messages', icon: ChatIcon },
     ],
   },

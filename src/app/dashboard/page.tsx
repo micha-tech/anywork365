@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect, useState, useCallback, type ComponentType } from 'react'
+import { useEffect, useState, useCallback, type ComponentType, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { SkeletonMetricCard } from '@/components/ui/Skeleton'
+import { ProCard } from '@/components/forms/ProCard'
+import { JobCard } from '@/components/forms/JobCard'
+import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES, type Job, type User } from '@/types'
 
 interface Metric {
   label: string
@@ -44,6 +47,13 @@ interface VendorSummary {
   completedJobs: number
 }
 
+interface PageMeta {
+  page: number
+  pageSize: number
+  total: number
+  hasMore: boolean
+}
+
 const metricToneStyles: Record<Metric['tone'], { icon: string; value: string; change: string }> = {
   brand: { icon: 'bg-brand-50 text-brand-500', value: 'text-slate-900', change: 'text-brand-600' },
   amber: { icon: 'bg-amber-50 text-amber-600', value: 'text-amber-700', change: 'text-amber-700' },
@@ -77,6 +87,16 @@ export default function DashboardPage() {
   const [clientSummary, setClientSummary] = useState<ClientSummary | null>(null)
   const [vendorSummary, setVendorSummary] = useState<VendorSummary | null>(null)
   const [dashboardLoading, setDashboardLoading] = useState(true)
+  const [discoverTab, setDiscoverTab] = useState<'vendors' | 'jobs'>('vendors')
+  const [discoverSearch, setDiscoverSearch] = useState('')
+  const [discoverState, setDiscoverState] = useState('')
+  const [discoverCategory, setDiscoverCategory] = useState('')
+  const [vendors, setVendors] = useState<User[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [vendorMeta, setVendorMeta] = useState<PageMeta | null>(null)
+  const [jobMeta, setJobMeta] = useState<PageMeta | null>(null)
+  const [vendorsLoading, setVendorsLoading] = useState(false)
+  const [jobsLoading, setJobsLoading] = useState(false)
 
   const fetchDashboard = useCallback(async () => {
     if (loading || !user) return
@@ -126,6 +146,51 @@ export default function DashboardPage() {
 
   useEffect(() => { fetchDashboard() }, [fetchDashboard])
 
+  const loadVendors = useCallback(async (page = 1, append = false) => {
+    setVendorsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: '6',
+        ...(discoverSearch ? { search: discoverSearch } : {}),
+        ...(discoverState ? { state: discoverState } : {}),
+        ...(discoverCategory ? { category: discoverCategory } : {}),
+      })
+      const response = await fetch(`/api/professionals?${params.toString()}`)
+      const json = await response.json()
+      if (json.success) {
+        setVendors((current) => append ? [...current, ...(json.data ?? [])] : (json.data ?? []))
+        setVendorMeta(json.meta ?? null)
+      }
+    } catch {
+      toast.error('Failed to load vendors')
+    } finally {
+      setVendorsLoading(false)
+    }
+  }, [discoverCategory, discoverSearch, discoverState])
+
+  const loadJobs = useCallback(async (page = 1, append = false) => {
+    setJobsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: '4',
+        ...(discoverSearch ? { search: discoverSearch } : {}),
+        ...(discoverState ? { city: discoverState } : {}),
+      })
+      const response = await fetch(`/api/jobs?${params.toString()}`)
+      const json = await response.json()
+      if (json.success) {
+        setJobs((current) => append ? [...current, ...(json.data ?? [])] : (json.data ?? []))
+        setJobMeta(json.meta ?? null)
+      }
+    } catch {
+      toast.error('Failed to load jobs')
+    } finally {
+      setJobsLoading(false)
+    }
+  }, [discoverSearch, discoverState])
+
   const greetingBase = getTimeOfDayGreeting()
   const greeting = loading ? greetingBase : `${greetingBase}, ${user?.firstName ?? 'there'}`
   const isClientDashboard = !loading && user?.role !== 'vendor'
@@ -138,11 +203,23 @@ export default function DashboardPage() {
         { href: '/dashboard/wallet', icon: WalletIcon, label: 'Wallet', sub: 'Earnings and payouts' },
       ]
     : [
-        { href: '/professionals', icon: SearchIcon, label: 'Find Vendors', sub: 'Search by service' },
         { href: '/dashboard/bookings', icon: BookingsIcon, label: 'Bookings', sub: 'Track requests' },
         { href: '/messages', icon: ChatIcon, label: 'Messages', sub: 'Open chats' },
         { href: '/dashboard/wallet', icon: WalletIcon, label: 'Wallet', sub: 'Payments' },
+        { href: '/dashboard/profile', icon: UserIcon, label: 'Profile', sub: 'Account details' },
       ]
+
+  useEffect(() => {
+    if (!isClientDashboard) return
+    void loadVendors(1, false)
+    void loadJobs(1, false)
+  }, [isClientDashboard, loadJobs, loadVendors])
+
+  function handleDiscoverSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    void loadVendors(1, false)
+    void loadJobs(1, false)
+  }
 
   return (
     <PullToRefresh onRefresh={fetchDashboard}>
@@ -196,7 +273,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {isClientDashboard && (
+      {isClientDashboard && clientSummary?.activeBookings ? (
         <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
@@ -221,13 +298,149 @@ export default function DashboardPage() {
               </div>
             </div>
             <Link
-              href={clientSummary?.activeBookings ? '/dashboard/bookings' : '/professionals'}
+              href="/dashboard/bookings"
               className="btn-primary px-4 py-2.5 text-sm justify-center"
             >
-              {clientSummary?.activeBookings ? 'Open bookings' : 'Browse vendors'}
+              Open bookings
             </Link>
           </div>
         </div>
+      ) : null}
+
+      {isClientDashboard && (
+        <section className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:mb-7 sm:p-5">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="font-display text-lg font-bold text-slate-900">Discover work and vendors</h2>
+              <p className="mt-1 text-sm text-slate-500">Search once, compare vendors and open jobs from here.</p>
+            </div>
+            <div className="inline-flex w-fit rounded-lg border border-slate-200 bg-slate-50 p-1">
+              {([
+                { id: 'vendors', label: `Vendors${vendorMeta ? ` ${vendorMeta.total}` : ''}` },
+                { id: 'jobs', label: `Jobs${jobMeta ? ` ${jobMeta.total}` : ''}` },
+              ] as const).map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setDiscoverTab(tab.id)}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                    discoverTab === tab.id ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <form onSubmit={handleDiscoverSubmit} className="mb-4 grid gap-2 md:grid-cols-[minmax(180px,1fr)_170px_220px_auto]">
+            <div className="relative">
+              <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                className="input-field pl-10 text-sm"
+                value={discoverSearch}
+                onChange={(event) => setDiscoverSearch(event.target.value)}
+                placeholder="Search service, skill, or job"
+              />
+            </div>
+            <select
+              className="input-field appearance-none text-sm"
+              value={discoverState}
+              onChange={(event) => setDiscoverState(event.target.value)}
+            >
+              <option value="">All states</option>
+              {NIGERIAN_STATE_NAMES.map((state) => (
+                <option key={state} value={state}>{state}</option>
+              ))}
+            </select>
+            <select
+              className="input-field appearance-none text-sm"
+              value={discoverCategory}
+              onChange={(event) => setDiscoverCategory(event.target.value)}
+              disabled={discoverTab === 'jobs'}
+            >
+              <option value="">{discoverTab === 'jobs' ? 'Category filter for vendors' : 'All vendor categories'}</option>
+              {BUSINESS_CATEGORY_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.categories.map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <button type="submit" className="btn-primary px-5 py-2.5 text-sm">
+              Search
+            </button>
+          </form>
+
+          {discoverTab === 'vendors' ? (
+            <>
+              {vendorsLoading && vendors.length === 0 ? (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {[1, 2, 3].map((item) => (
+                    <div key={item} className="h-56 animate-pulse rounded-lg border border-slate-200 bg-slate-100" />
+                  ))}
+                </div>
+              ) : vendors.length === 0 ? (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-8 text-center">
+                  <p className="text-sm font-semibold text-slate-900">No vendors found</p>
+                  <p className="mt-1 text-sm text-slate-500">Try another service, category, or state.</p>
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {vendors.map((vendor, index) => (
+                    <ProCard key={`${vendor.id}-${index}`} pro={vendor} index={index} />
+                  ))}
+                </div>
+              )}
+              {vendorMeta?.hasMore && (
+                <div className="mt-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => loadVendors((vendorMeta.page ?? 1) + 1, true)}
+                    disabled={vendorsLoading}
+                    className="btn-outline px-6 py-2.5 text-sm"
+                  >
+                    {vendorsLoading ? 'Loading...' : 'Load more vendors'}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {jobsLoading && jobs.length === 0 ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {[1, 2].map((item) => (
+                    <div key={item} className="h-44 animate-pulse rounded-lg border border-slate-200 bg-slate-100" />
+                  ))}
+                </div>
+              ) : jobs.length === 0 ? (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-8 text-center">
+                  <p className="text-sm font-semibold text-slate-900">No jobs found</p>
+                  <p className="mt-1 text-sm text-slate-500">Try another keyword or state.</p>
+                </div>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {jobs.map((job) => (
+                    <JobCard key={job.id} job={job} />
+                  ))}
+                </div>
+              )}
+              {jobMeta?.hasMore && (
+                <div className="mt-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => loadJobs((jobMeta.page ?? 1) + 1, true)}
+                    disabled={jobsLoading}
+                    className="btn-outline px-6 py-2.5 text-sm"
+                  >
+                    {jobsLoading ? 'Loading...' : 'Load more jobs'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </section>
       )}
 
       {isVendorDashboard && (
