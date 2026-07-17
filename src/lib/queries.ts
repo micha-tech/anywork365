@@ -415,15 +415,45 @@ interface VendorJoinRow extends RowDataPacket {
   user_fullName: string | null
 }
 
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  auto: ['car', 'vehicle', 'motor', 'automobile'],
+  car: ['auto', 'vehicle', 'motor', 'automobile'],
+  mechanic: ['auto mechanic', 'auto mechanics', 'auto repair', 'car repair', 'vehicle repair'],
+  mechanics: ['auto mechanic', 'auto mechanics', 'auto repair', 'car repair', 'vehicle repair'],
+  motor: ['auto', 'car', 'vehicle', 'auto mechanic', 'auto mechanics'],
+  electricals: ['electrical', 'electrician', 'electrical installation', 'electrical repairs'],
+  electrical: ['electricals', 'electrician', 'electrical installation', 'electrical repairs'],
+  electrician: ['electrical', 'electricals', 'electrical installation', 'electrical repairs'],
+  plumber: ['plumbing', 'plumbing services'],
+  plumbing: ['plumber', 'plumbing services'],
+  carpenter: ['carpentry', 'furniture', 'carpentry furniture'],
+  carpentry: ['carpenter', 'furniture', 'carpentry furniture'],
+  septic: ['septic tank', 'septic tank evacuation', 'waste removal'],
+  waste: ['waste removal', 'septic tank evacuation', 'cleaning'],
+}
+
 function getSearchTerms(search?: string): string[] {
   if (!search) return []
-  return Array.from(new Set(
-    search
-      .toLowerCase()
-      .split(/[^a-z0-9]+/i)
-      .map((term) => term.trim())
-      .filter((term) => term.length >= 2)
-  )).slice(0, 6)
+  const normalized = search.toLowerCase()
+  const baseTerms = normalized
+    .split(/[^a-z0-9]+/i)
+    .map((term) => term.trim())
+    .filter((term) => term.length >= 2)
+  const expanded = new Set<string>(baseTerms)
+
+  if (normalized.includes('motor mechanic')) {
+    expanded.add('auto mechanics')
+    expanded.add('auto mechanic')
+    expanded.add('car repair')
+  }
+
+  for (const term of baseTerms) {
+    for (const synonym of SEARCH_SYNONYMS[term] ?? []) {
+      expanded.add(synonym)
+    }
+  }
+
+  return Array.from(expanded).slice(0, 12)
 }
 
 function splitBusinessCategories(category: string | null | undefined): string[] {

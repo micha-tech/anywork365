@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Avatar, Badge, VerifiedBusinessBadge } from '@/components/ui'
+import { Avatar, VerifiedBusinessBadge } from '@/components/ui'
 import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 
@@ -19,14 +19,13 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
   const initials = getInitials(pro.firstName, pro.lastName)
   const location = [pro.lga, pro.city].filter(Boolean).join(', ')
   const primarySkill = pro.skills?.[0] || 'Service provider'
-  const secondarySkills = (pro.skills ?? []).filter((skill) => skill !== primarySkill).slice(0, 2)
   const bio = pro.bio?.trim()
   const hasRealBio = Boolean(bio && !/^lorem ipsum/i.test(bio) && !/dummy text/i.test(bio))
 
   async function handleStartChat(e: React.MouseEvent) {
     e.preventDefault()
     if (startingChat) return
-    
+
     setStartingChat(true)
     try {
       const res = await fetch('/api/chat/conversations', {
@@ -49,7 +48,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
 
   return (
     <article className="card group flex h-full min-w-0 flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md sm:p-5">
-      <div className="mb-3 flex min-w-0 items-start gap-3 sm:mb-4">
+      <div className="mb-3 flex min-w-0 items-start gap-3">
         <div className="relative flex-shrink-0">
           <Avatar initials={initials} size="lg" colorIndex={index} className="h-12 w-12 text-base sm:h-14 sm:w-14 sm:text-lg" />
           {pro.isVerified && (
@@ -62,21 +61,15 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
               {pro.firstName} {pro.lastName}
             </Link>
           </div>
-          <p className="line-clamp-1 text-sm text-slate-500">
-            {primarySkill}{location ? ` · ${location}` : ''}
-          </p>
+          {location && <p className="line-clamp-1 text-sm text-slate-500">{location}</p>}
         </div>
       </div>
 
-      {secondarySkills.length > 0 && (
-        <div className="mb-3 flex min-w-0 flex-wrap gap-1.5">
-          {secondarySkills.map((skill) => (
-            <Badge key={skill} variant="green" className="max-w-[calc(50%-0.2rem)] truncate">
-              {skill}
-            </Badge>
-          ))}
-        </div>
-      )}
+      <div className="mb-3 min-w-0">
+        <span className="inline-flex max-w-full items-center rounded-md border border-brand-100 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600">
+          <span className="truncate">{primarySkill}</span>
+        </span>
+      </div>
 
       {hasRealBio && (
         <p className="mb-4 line-clamp-2 break-words text-sm leading-relaxed text-slate-500">
@@ -98,10 +91,10 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
           aria-label={startingChat ? 'Starting chat' : `Message ${pro.firstName}`}
         >
           {startingChat ? (
-            <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
           ) : (
             <>
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               <span className="hidden min-[360px]:inline">Message</span>
