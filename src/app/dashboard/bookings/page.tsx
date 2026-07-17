@@ -252,14 +252,6 @@ export default function BookingsPage() {
               {isVendor ? 'Accept new requests, track accepted jobs, and keep clients moving.' : 'Track requests, active jobs, and reviews.'}
             </p>
           </div>
-          {!isVendor && (
-            <Link
-              href="/professionals"
-              className="inline-flex w-fit self-start rounded-md border border-brand-100 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-100 sm:self-auto"
-            >
-              Find vendor
-            </Link>
-          )}
         </div>
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-none sm:mx-0 sm:px-0">
           {bookingTabs.map((tab) => (
