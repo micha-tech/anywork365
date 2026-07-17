@@ -19,6 +19,9 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
   const initials = getInitials(pro.firstName, pro.lastName)
   const location = [pro.lga, pro.city].filter(Boolean).join(', ')
   const primarySkill = pro.skills?.[0] || 'Service provider'
+  const secondarySkills = (pro.skills ?? []).filter((skill) => skill !== primarySkill).slice(0, 2)
+  const bio = pro.bio?.trim()
+  const hasRealBio = Boolean(bio && !/^lorem ipsum/i.test(bio) && !/dummy text/i.test(bio))
 
   async function handleStartChat(e: React.MouseEvent) {
     e.preventDefault()
@@ -59,22 +62,25 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
               {pro.firstName} {pro.lastName}
             </Link>
           </div>
-          <p className="truncate text-sm text-slate-500">{primarySkill}</p>
-          {location && <p className="mt-0.5 truncate text-xs text-slate-400">{location}</p>}
+          <p className="line-clamp-1 text-sm text-slate-500">
+            {primarySkill}{location ? ` · ${location}` : ''}
+          </p>
         </div>
       </div>
 
-      {pro.skills && pro.skills.length > 0 && (
-        <div className="my-3 flex min-w-0 flex-wrap gap-1.5">
-          {pro.skills.slice(0, 3).map((skill) => (
-            <Badge key={skill} variant="green" className="max-w-full truncate">{skill}</Badge>
+      {secondarySkills.length > 0 && (
+        <div className="mb-3 flex min-w-0 flex-wrap gap-1.5">
+          {secondarySkills.map((skill) => (
+            <Badge key={skill} variant="green" className="max-w-[calc(50%-0.2rem)] truncate">
+              {skill}
+            </Badge>
           ))}
         </div>
       )}
 
-      {pro.bio && (
-        <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-slate-500">
-          {pro.bio}
+      {hasRealBio && (
+        <p className="mb-4 line-clamp-2 break-words text-sm leading-relaxed text-slate-500">
+          {bio}
         </p>
       )}
 

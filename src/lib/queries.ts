@@ -415,6 +415,25 @@ interface VendorJoinRow extends RowDataPacket {
   user_fullName: string | null
 }
 
+function getSearchTerms(search?: string): string[] {
+  if (!search) return []
+  return Array.from(new Set(
+    search
+      .toLowerCase()
+      .split(/[^a-z0-9]+/i)
+      .map((term) => term.trim())
+      .filter((term) => term.length >= 2)
+  )).slice(0, 6)
+}
+
+function splitBusinessCategories(category: string | null | undefined): string[] {
+  if (!category) return []
+  return category
+    .split(/[;,]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 export async function listVendors(filters?: {
   category?: string
   state?: string
@@ -422,6 +441,18 @@ export async function listVendors(filters?: {
   search?: string
   limit?: number
 }): Promise<User[]> {
+  const search = filters?.search?.trim()
+  const searchLower = search?.toLowerCase()
+  const searchTerms = getSearchTerms(search)
+  const searchFields = [
+    'b.businessName',
+    'b.category',
+    'b.description',
+    'b.state',
+    'b.lga',
+    'b.location',
+    'u.fullName',
+  ]
   let sql = `
     SELECT b.*, u.email AS user_email, u.phoneNumber AS user_phoneNumber,
            u.fullName AS user_fullName
@@ -433,8 +464,58 @@ export async function listVendors(filters?: {
   if (filters?.category) { sql += ' AND b.category LIKE ?'; params.push(`%${filters.category}%`) }
   if (filters?.state) { sql += ' AND b.state = ?'; params.push(filters.state) }
   if (filters?.lga) { sql += ' AND b.lga = ?'; params.push(filters.lga) }
-  if (filters?.search) { sql += ' AND (b.businessName LIKE ? OR b.description LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`) }
-  sql += ' ORDER BY b.rating DESC, b.reviews DESC'
+  if (searchLower) {
+    const searchPredicates: string[] = []
+    const addFieldMatches = (value: string) => {
+      const pattern = `%${value}%`
+      searchPredicates.push(`(${searchFields.map((field) => `LOWER(COALESCE(${field}, '')) LIKE ?`).join(' OR ')})`)
+      params.push(...searchFields.map(() => pattern))
+    }
+
+    addFieldMatches(searchLower)
+    searchTerms.forEach(addFieldMatches)
+    sql += ` AND (${searchPredicates.join(' OR ')})`
+  }
+
+  if (searchLower) {
+    const rankParts: string[] = [
+      'CASE WHEN LOWER(COALESCE(b.businessName, \'\')) = ? THEN 130 ELSE 0 END',
+      'CASE WHEN LOWER(COALESCE(b.category, \'\')) = ? THEN 120 ELSE 0 END',
+      'CASE WHEN LOWER(COALESCE(b.businessName, \'\')) LIKE ? THEN 90 ELSE 0 END',
+      'CASE WHEN LOWER(COALESCE(b.category, \'\')) LIKE ? THEN 85 ELSE 0 END',
+      'CASE WHEN LOWER(COALESCE(u.fullName, \'\')) LIKE ? THEN 55 ELSE 0 END',
+      'CASE WHEN LOWER(COALESCE(b.description, \'\')) LIKE ? THEN 30 ELSE 0 END',
+      'CASE WHEN LOWER(COALESCE(b.state, \'\')) LIKE ? OR LOWER(COALESCE(b.lga, \'\')) LIKE ? OR LOWER(COALESCE(b.location, \'\')) LIKE ? THEN 20 ELSE 0 END',
+    ]
+    const rankParams: SqlValue[] = [
+      searchLower,
+      searchLower,
+      `%${searchLower}%`,
+      `%${searchLower}%`,
+      `%${searchLower}%`,
+      `%${searchLower}%`,
+      `%${searchLower}%`,
+      `%${searchLower}%`,
+      `%${searchLower}%`,
+    ]
+
+    for (const term of searchTerms) {
+      rankParts.push(
+        'CASE WHEN LOWER(COALESCE(b.category, \'\')) LIKE ? THEN 18 ELSE 0 END',
+        'CASE WHEN LOWER(COALESCE(b.businessName, \'\')) LIKE ? THEN 15 ELSE 0 END',
+        'CASE WHEN LOWER(COALESCE(u.fullName, \'\')) LIKE ? THEN 10 ELSE 0 END',
+        'CASE WHEN LOWER(COALESCE(b.description, \'\')) LIKE ? THEN 6 ELSE 0 END',
+        'CASE WHEN LOWER(COALESCE(b.state, \'\')) LIKE ? OR LOWER(COALESCE(b.lga, \'\')) LIKE ? OR LOWER(COALESCE(b.location, \'\')) LIKE ? THEN 5 ELSE 0 END'
+      )
+      const pattern = `%${term}%`
+      rankParams.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern)
+    }
+
+    sql += ` ORDER BY (${rankParts.join(' + ')}) DESC, b.verified DESC, b.rating DESC, b.reviews DESC`
+    params.push(...rankParams)
+  } else {
+    sql += ' ORDER BY b.verified DESC, b.rating DESC, b.reviews DESC'
+  }
   if (filters?.limit && filters.limit > 0) { sql += ` LIMIT ${filters.limit}` }
 
   const rows = await query<VendorJoinRow[]>(sql, params)
@@ -459,7 +540,7 @@ export async function listVendors(filters?: {
       address: r.location || undefined,
       bio: r.description,
       avatarUrl: getAvatarUrl(r.businessLogo),
-      skills: r.category ? [r.category] : [],
+      skills: splitBusinessCategories(r.category),
       rating: r.rating,
       reviewCount: r.reviews,
       isVerified: r.verified === 1,
@@ -491,7 +572,7 @@ function businessRowToUser(b: BusinessRow, user?: UserRow): User {
     address: b.location || undefined,
     bio: user?.bio || b.description,
     avatarUrl: getAvatarUrl(b.businessLogo),
-    skills: b.category ? [b.category] : [],
+    skills: splitBusinessCategories(b.category),
     rating: b.rating,
     reviewCount: b.reviews,
     isVerified: b.verified === 1,
