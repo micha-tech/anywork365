@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { getInitialsFromUser } from '@/hooks/useCurrentUser'
-import { markMessagesAsRead } from '@/lib/chat'
 import type { ChatConversation, ChatMessage, User } from '@/types'
 
 const chatApi = {
@@ -97,7 +96,6 @@ export function ChatWindow({ conversation, currentUserId, onSend }: ChatWindowPr
     const res = await chatApi.getMessages(conversation.id)
     if (res.success) {
       setMessages(res.data.messages)
-      markMessagesAsRead(conversation.id, currentUserId)
     }
     setLoading(false)
   }, [conversation.id, currentUserId])

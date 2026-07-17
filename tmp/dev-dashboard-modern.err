@@ -1,1 +1,31 @@
  ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Admin\Downloads\anywork365-v7\anywork365\.next\static\development\_buildManifest.js.tmp.zy60nc89xn8'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Admin\\Downloads\\anywork365-v7\\anywork365\\.next\\static\\development\\_buildManifest.js.tmp.zy60nc89xn8'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Admin\Downloads\anywork365-v7\anywork365\.next\static\development\_buildManifest.js.tmp.x3txsvbkyzo'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Admin\\Downloads\\anywork365-v7\\anywork365\\.next\\static\\development\\_buildManifest.js.tmp.x3txsvbkyzo'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Admin\Downloads\anywork365-v7\anywork365\.next\static\development\_buildManifest.js.tmp.zy60nc89xn8'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Admin\\Downloads\\anywork365-v7\\anywork365\\.next\\static\\development\\_buildManifest.js.tmp.zy60nc89xn8'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Admin\Downloads\anywork365-v7\anywork365\.next\static\development\_buildManifest.js.tmp.huicka1ipwk'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Admin\\Downloads\\anywork365-v7\\anywork365\\.next\\static\\development\\_buildManifest.js.tmp.huicka1ipwk'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Admin\Downloads\anywork365-v7\anywork365\.next\static\development\_buildManifest.js.tmp.3kckp3nskl4'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Admin\\Downloads\\anywork365-v7\\anywork365\\.next\\static\\development\\_buildManifest.js.tmp.3kckp3nskl4'
+}

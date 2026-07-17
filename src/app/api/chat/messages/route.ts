@@ -18,7 +18,7 @@ import {
 import { findUserById } from '@/lib/users'
 import { sendPushNotification } from '@/lib/notifications'
 import { checkRateLimit } from '@/lib/wallet'
-import type { ApiResponse, ChatParticipantInfo } from '@/types'
+import type { ApiResponse, ChatMessage, ChatParticipantInfo, ChatConversation } from '@/types'
 
 const sendSchema = z.object({
   conversationId: z.string().min(1, 'Conversation ID is required'),
@@ -26,7 +26,7 @@ const sendSchema = z.object({
   type: z.enum(['text', 'image', 'file']).optional(),
 })
 
-async function enrichMessage(msg: ReturnType<typeof getMessages>[number]) {
+async function enrichMessage(msg: ChatMessage) {
   const sender = await findUserById(msg.senderId)
   const senderInfo: ChatParticipantInfo | undefined = sender ? {
     id: sender.id,
@@ -40,7 +40,7 @@ async function enrichMessage(msg: ReturnType<typeof getMessages>[number]) {
   return { ...msg, senderInfo }
 }
 
-async function enrichConversation(conv: ReturnType<typeof getUserConversations>[number], currentUserId: string) {
+async function enrichConversation(conv: ChatConversation, currentUserId: string) {
   const participantsInfo: Record<string, ChatParticipantInfo> = {}
   for (const pid of conv.participants) {
     if (pid === currentUserId) continue
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const conversation = getConversation(conversationId)
+  const conversation = await getConversation(conversationId)
   if (!conversation) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Conversation not found' },
@@ -90,9 +90,9 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  markMessagesAsRead(conversationId, session.id)
+  await markMessagesAsRead(conversationId, session.id)
 
-  const messages = getMessages(conversationId)
+  const messages = await getMessages(conversationId)
   const enrichedMessages = await Promise.all(messages.map(enrichMessage))
   const enrichedConversation = await enrichConversation(conversation, session.id)
 
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
 
   const { conversationId, content, type } = parsed.data
 
-  const conversation = getConversation(conversationId)
+  const conversation = await getConversation(conversationId)
   if (!conversation) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Conversation not found' },
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const message = sendMessage(conversationId, session.id, content, type)
+  const message = await sendMessage(conversationId, session.id, content, type)
 
   const otherUserId = conversation.participants.find(p => p !== session.id)
   if (otherUserId) {
@@ -158,9 +158,9 @@ export async function POST(req: NextRequest) {
     ).catch(() => {})
   }
 
-  const messages = getMessages(conversationId)
+  const messages = await getMessages(conversationId)
   const enrichedMessages = await Promise.all(messages.map(enrichMessage))
-  const conversations = getUserConversations(session.id)
+  const conversations = await getUserConversations(session.id)
   const enrichedConversations = await Promise.all(conversations.map(c => enrichConversation(c, session.id)))
 
   return NextResponse.json({

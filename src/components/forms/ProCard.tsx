@@ -50,7 +50,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
     <article className="card group flex h-full min-w-0 flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md sm:p-5">
       <div className="mb-3 flex min-w-0 items-start gap-3">
         <div className="relative flex-shrink-0">
-          <Avatar initials={initials} size="lg" colorIndex={index} className="h-12 w-12 text-base sm:h-14 sm:w-14 sm:text-lg" />
+          <Avatar src={pro.avatarUrl} initials={initials} size="lg" colorIndex={index} className="h-12 w-12 text-base sm:h-14 sm:w-14 sm:text-lg" />
           {pro.isVerified && (
             <VerifiedBusinessBadge label={false} className="absolute -bottom-1 -right-1 border-2 border-white shadow-sm" />
           )}
