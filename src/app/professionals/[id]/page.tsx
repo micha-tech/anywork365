@@ -28,6 +28,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
     return () => clearTimeout(timerRef.current)
   }, [])
   const [quickConnecting, setQuickConnecting] = useState(false)
+  const [showContactOptions, setShowContactOptions] = useState(false)
 
   useEffect(() => {
     fetch(`/api/professionals/${id}`)
@@ -174,54 +175,24 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
       </Link>
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-50 pb-safe">
-        <div className="flex items-center justify-between gap-2 max-w-lg mx-auto">
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => handleCall('voice')}
-              disabled={calling !== null}
-              className="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center disabled:opacity-50"
-            >
-              {calling === 'voice' ? (
-                <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg className="w-5 h-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z" />
-                </svg>
-              )}
-            </button>
-            <button
-              onClick={() => handleCall('video')}
-              disabled={calling !== null}
-              className="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center disabled:opacity-50"
-            >
-              {calling === 'video' ? (
-                <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg className="w-5 h-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              )}
-            </button>
-            <button
-              onClick={handleQuickConnect}
-              disabled={quickConnecting}
-              className="w-11 h-11 rounded-full bg-green-500 text-white flex items-center justify-center disabled:opacity-50"
-            >
-              {quickConnecting ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                </svg>
-              )}
-            </button>
-          </div>
+        <div className="flex items-center gap-2 max-w-lg mx-auto">
+          <button
+            onClick={handleStartChat}
+            disabled={startingChat}
+            className="btn-ghost flex-1 px-4 py-2.5 justify-center"
+          >
+            {startingChat ? (
+              <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              'Message'
+            )}
+          </button>
           <button
             onClick={() => setBookOpen(true)}
             disabled={booked}
-            className="btn-primary px-5 py-2.5 flex-shrink-0"
+            className="btn-primary flex-[1.4] px-5 py-2.5"
           >
-            {booked ? 'Requested \u2713' : 'Book Now'}
+            {booked ? 'Requested' : 'Request booking'}
           </button>
         </div>
       </div>
@@ -335,39 +306,8 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
               disabled={booked}
               className="btn-primary w-full py-3 justify-center"
             >
-              {booked ? 'Requested \u2713' : `Book ${pro.firstName}`}
+              {booked ? 'Request sent' : `Request booking`}
             </button>
-
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <button
-                onClick={() => handleCall('voice')}
-                disabled={calling !== null}
-                className="btn-ghost py-2.5 justify-center flex items-center gap-2 text-sm disabled:opacity-50"
-              >
-                {calling === 'voice' ? (
-                  <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z" />
-                  </svg>
-                )}
-                Call
-              </button>
-              <button
-                onClick={() => handleCall('video')}
-                disabled={calling !== null}
-                className="btn-ghost py-2.5 justify-center flex items-center gap-2 text-sm disabled:opacity-50"
-              >
-                {calling === 'video' ? (
-                  <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                )}
-                Video
-              </button>
-            </div>
 
             <button
               onClick={handleStartChat}
@@ -387,21 +327,42 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
             </button>
 
             <button
-              onClick={handleQuickConnect}
-              disabled={quickConnecting}
-              className="w-full py-2.5 justify-center mt-2 flex items-center gap-2 text-sm font-medium bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors disabled:opacity-70"
+              type="button"
+              onClick={() => setShowContactOptions((value) => !value)}
+              className="mt-2 w-full rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
             >
-              {quickConnecting ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0c-6.627 0-12 5.373-12 12 0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.837 2.795-7.26 8.072-7.26 4.236 0 7.531 3.021 7.531 7.061 0 4.206-2.647 7.575-6.326 7.575-1.351 0-2.612-.703-3.443-1.529-.138-.218-.16-.408-.116-.598l.115-.665c.069-.534.253-.946.549-1.277 1.618-1.811 3.305-3.373 4.596-4.178.391-.246.868-.377 1.318-.235.641.199 1.323.475 1.757.846.694.591 1.125 1.58 1.048 2.589-.105 1.375-1.106 2.462-2.043 2.462-.188 0-.361-.017-.535-.052.92 2.839 2.704 5.197 5.113 5.197 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12z"/>
-                  </svg>
-                  Quick Connect (WhatsApp)
-                </>
-              )}
+              {showContactOptions ? 'Hide contact options' : 'More contact options'}
             </button>
+
+            {showContactOptions && (
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                <button
+                  onClick={() => handleCall('voice')}
+                  disabled={calling !== null}
+                  className="btn-ghost py-2.5 justify-center flex items-center gap-2 text-sm disabled:opacity-50"
+                >
+                  {calling === 'voice' ? (
+                    <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                  ) : 'Call'}
+                </button>
+                <button
+                  onClick={() => handleCall('video')}
+                  disabled={calling !== null}
+                  className="btn-ghost py-2.5 justify-center flex items-center gap-2 text-sm disabled:opacity-50"
+                >
+                  {calling === 'video' ? (
+                    <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                  ) : 'Video'}
+                </button>
+                <button
+                  onClick={handleQuickConnect}
+                  disabled={quickConnecting}
+                  className="col-span-2 w-full rounded-lg bg-green-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-600 disabled:opacity-70"
+                >
+                  {quickConnecting ? 'Opening...' : 'WhatsApp'}
+                </button>
+              </div>
+            )}
           </div>
 
           {pro.isVerified && (

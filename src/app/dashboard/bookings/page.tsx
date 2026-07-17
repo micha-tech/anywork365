@@ -31,6 +31,8 @@ const BOOKING_STEPS = [
   { status: 'completed', label: 'Completed', detail: 'Payment released' },
 ] as const
 
+type BookingFilter = 'active' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'all'
+
 function BookingTimeline({ status }: { status: BookingItem['status'] }) {
   if (status === 'cancelled') {
     return (
@@ -78,6 +80,7 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<BookingItem[]>([])
   const [fetching, setFetching] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<BookingFilter>('active')
 
   const [reviewBooking, setReviewBooking] = useState<BookingItem | null>(null)
   const [reviewRating, setReviewRating] = useState(0)
@@ -100,6 +103,10 @@ export default function BookingsPage() {
     if (!loading && user) loadBookings()
     if (!loading && !user) setFetching(false)
   }, [user, loading])
+
+  useEffect(() => {
+    if (!loading && user?.role === 'vendor') setStatusFilter('pending')
+  }, [loading, user?.role])
 
   async function handleAction(bookingId: number, action: string) {
     const actionKey = `${bookingId}:${action}`
@@ -169,15 +176,55 @@ export default function BookingsPage() {
   }
 
   const isVendor = user?.role === 'vendor'
+  const activeBookings = bookings.filter((booking) => booking.status === 'pending' || booking.status === 'confirmed')
+  const visibleBookings = statusFilter === 'all'
+    ? bookings
+    : statusFilter === 'active'
+      ? activeBookings
+      : bookings.filter((booking) => booking.status === statusFilter)
+  const bookingTabs: Array<{ key: BookingFilter; label: string; count: number }> = [
+    { key: 'active', label: 'Active', count: activeBookings.length },
+    { key: 'pending', label: isVendor ? 'New requests' : 'Pending', count: bookings.filter((booking) => booking.status === 'pending').length },
+    { key: 'confirmed', label: 'Accepted', count: bookings.filter((booking) => booking.status === 'confirmed').length },
+    { key: 'completed', label: 'Completed', count: bookings.filter((booking) => booking.status === 'completed').length },
+    { key: 'cancelled', label: 'Cancelled', count: bookings.filter((booking) => booking.status === 'cancelled').length },
+    { key: 'all', label: 'All', count: bookings.length },
+  ]
 
   return (
     <>
       <PullToRefresh onRefresh={loadBookings}>
-      <div className="mb-5 sm:mb-7">
-        <h1 className="font-display text-xl sm:text-2xl font-semibold">My Bookings</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          {isVendor ? 'Manage your incoming job requests' : 'Track your service bookings'}
-        </p>
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-xl sm:text-2xl font-semibold">{isVendor ? 'Booking Requests' : 'Bookings'}</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {isVendor ? 'Accept new requests, track accepted jobs, and keep clients moving.' : 'Track requests, active jobs, and reviews.'}
+            </p>
+          </div>
+          {!isVendor && (
+            <Link href="/professionals" className="btn-primary px-4 py-2.5 text-sm">
+              Find vendor
+            </Link>
+          )}
+        </div>
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {bookingTabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setStatusFilter(tab.key)}
+              className={`flex-shrink-0 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                statusFilter === tab.key
+                  ? 'border-brand-500 bg-brand-50 text-brand-600'
+                  : 'border-slate-200 bg-white text-slate-500 hover:border-brand-300 hover:text-brand-600'
+              }`}
+            >
+              {tab.label}
+              <span className="ml-1.5 text-xs opacity-70">{tab.count}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:gap-4">
@@ -191,14 +238,16 @@ export default function BookingsPage() {
               </div>
             ))}
           </div>
-        ) : bookings.length === 0 ? (
+        ) : visibleBookings.length === 0 ? (
           <EmptyState
             icon="bookings"
-            title="No bookings yet"
-            description={isVendor ? 'When clients book your services, they will appear here.' : 'Browse professionals and book a service to get started.'}
-            action={!isVendor ? <Link href="/professionals" className="btn-primary inline-flex px-6 py-2.5 text-sm">Browse Vendors</Link> : undefined}
+            title={bookings.length === 0 ? 'No bookings yet' : 'Nothing here'}
+            description={bookings.length === 0
+              ? (isVendor ? 'Client bookings will appear here.' : 'Book a vendor to start tracking work.')
+              : 'Try another status tab.'}
+            action={!isVendor && bookings.length === 0 ? <Link href="/professionals" className="btn-primary inline-flex px-6 py-2.5 text-sm">Find vendor</Link> : undefined}
           />
-        ) : bookings.map((b) => (
+        ) : visibleBookings.map((b) => (
           <div key={b.id} className="card">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -227,8 +276,16 @@ export default function BookingsPage() {
                     disabled={actionLoading !== null}
                     className="btn-primary text-xs px-4 py-2 disabled:opacity-50"
                   >
-                    {actionLoading === `${b.id}:confirm` ? 'Accepting...' : 'Accept Booking'}
+                    {actionLoading === `${b.id}:confirm` ? 'Accepting...' : 'Accept request'}
                   </button>
+                )}
+                {isVendor && (
+                  <Link
+                    href="/messages"
+                    className="btn-ghost text-xs px-4 py-2"
+                  >
+                    Message client
+                  </Link>
                 )}
                 {!isVendor && b.status === 'confirmed' && (
                   <button

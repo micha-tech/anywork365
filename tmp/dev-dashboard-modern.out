@@ -11,3 +11,6 @@
  ○ Compiling middleware ...
  ✓ Compiled middleware in 1835ms
  ✓ Ready in 19.2s
+ ○ Compiling / ...
+ ✓ Compiled / in 16.7s
+ GET / 200 in 712ms

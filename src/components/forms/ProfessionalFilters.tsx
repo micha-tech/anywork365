@@ -23,16 +23,22 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
 
   return (
     <form
-      className="mb-6 grid gap-3 border-y border-slate-200 bg-white py-4 md:grid-cols-2 lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,0.8fr))_auto]"
+      className="sticky top-16 z-30 mb-5 grid gap-3 rounded-lg border border-slate-200 bg-white/95 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.07)] backdrop-blur md:static md:mb-6 md:grid-cols-2 md:bg-white lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,0.8fr))_auto]"
       method="GET"
     >
-      <input
-        name="search"
-        defaultValue={search}
-        className="input-field"
-        placeholder="Name, skill, or keyword"
-        aria-label="Search professionals"
-      />
+      <div className="relative">
+        <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input
+          name="search"
+          defaultValue={search}
+          className="input-field pl-10"
+          placeholder="Search service or vendor"
+          aria-label="Search professionals"
+        />
+      </div>
       <select name="category" defaultValue={category || ''} className="input-field appearance-none">
         <option value="">All categories</option>
         {BUSINESS_CATEGORY_GROUPS.map((group) => (
@@ -70,7 +76,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
         ))}
       </select>
       <div className="flex gap-2 md:col-span-2 lg:col-span-1">
-        <button type="submit" className="btn-primary flex-1 px-5 lg:flex-none">Search</button>
+        <button type="submit" className="btn-primary flex-1 px-5 lg:flex-none">Find</button>
         {hasFilters && <Link href="/professionals" className="btn-ghost px-4">Clear</Link>}
       </div>
     </form>

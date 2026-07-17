@@ -93,15 +93,30 @@ export default async function MyJobsPage({
   const filtered = currentTab === 'active'
     ? jobs.filter((j) => j.status === 'open')
     : jobs.filter((j) => j.status === 'completed')
+  const activeCount = jobs.filter((j) => j.status === 'open').length
+  const completedCount = jobs.filter((j) => j.status === 'completed').length
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4 mb-5 sm:mb-7">
-        <div>
-          <h1 className="font-display text-xl sm:text-2xl font-semibold">My Jobs</h1>
-          <p className="text-sm text-slate-500 mt-1">Track and manage your posted jobs</p>
+      <div className="mb-5 rounded-lg border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-7 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Posted Jobs</h1>
+            <p className="mt-1 text-sm text-slate-600">Manage hiring posts connected to your business.</p>
+          </div>
+          <Link href="/dashboard/post-job" className="btn-primary text-sm flex-shrink-0">Post job</Link>
         </div>
-        <Link href="/dashboard/post-job" className="btn-primary text-sm flex-shrink-0">+ Post Job</Link>
+      </div>
+
+      <div className="mb-5 grid grid-cols-2 gap-3">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Active</p>
+          <p className="mt-1 font-display text-2xl font-bold text-brand-600">{activeCount}</p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Completed</p>
+          <p className="mt-1 font-display text-2xl font-bold text-green-700">{completedCount}</p>
+        </div>
       </div>
 
       <div className="flex gap-0 border-b border-slate-200 mb-5 overflow-x-auto scrollbar-none">
@@ -122,7 +137,17 @@ export default async function MyJobsPage({
 
       <div className="flex flex-col gap-3 sm:gap-4">
         {filtered.length === 0 ? (
-          <p className="text-sm text-slate-500 py-8 text-center">No {currentTab} jobs</p>
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-10 text-center shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+            <p className="text-sm font-semibold text-slate-900">No {currentTab} jobs</p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
+              {currentTab === 'active' ? 'Post a hiring job when you need extra hands.' : 'Closed jobs will appear here.'}
+            </p>
+            {currentTab === 'active' && (
+              <Link href="/dashboard/post-job" className="btn-primary mt-4 px-5 py-2.5 text-sm">
+                Post job
+              </Link>
+            )}
+          </div>
         ) : filtered.map((job) => (
           <JobCard key={job.id} job={job} showApply={false} />
         ))}
