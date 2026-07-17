@@ -59,13 +59,19 @@ export default function PostJobPage() {
 
   return (
     <>
-      <div className="mb-5 sm:mb-7">
-        <h1 className="font-display text-xl sm:text-2xl font-semibold">Post a Job</h1>
-        <p className="text-sm text-slate-500 mt-1">Fill in the details to attract the right vendors</p>
+      <div className="mb-5 rounded-lg border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-7 sm:p-6">
+        <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Post Hiring Job</h1>
+        <p className="mt-1 text-sm text-slate-600">Create a clear brief so the right applicants know what you need.</p>
       </div>
 
-      <div className="card w-full max-w-2xl">
+      <div className="grid gap-5 lg:grid-cols-[1fr_18rem]">
+      <div className="card w-full">
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="mb-5 border-b border-slate-100 pb-4">
+            <h2 className="font-display text-base font-semibold text-slate-900">Job details</h2>
+            <p className="mt-1 text-sm text-slate-500">Use plain, specific details. Shorter is better.</p>
+          </div>
+
           <div className="form-group">
             <label className="label">Business Name *</label>
             <input
@@ -183,6 +189,23 @@ export default function PostJobPage() {
             </button>
           </div>
         </form>
+      </div>
+      <aside className="rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] lg:sticky lg:top-24 lg:self-start">
+        <h2 className="font-display text-base font-semibold text-slate-900">Good posts include</h2>
+        <div className="mt-4 space-y-3">
+          {[
+            'Clear role or task title',
+            'Exact location or remote option',
+            'Budget and closing date',
+            'Skills or experience required',
+          ].map((item) => (
+            <div key={item} className="flex items-start gap-2 text-sm text-slate-600">
+              <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-brand-500" />
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+      </aside>
       </div>
     </>
   )

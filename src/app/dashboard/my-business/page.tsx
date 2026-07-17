@@ -116,11 +116,38 @@ export default function MyBusinessPage() {
     )
   }
 
+  const requiredFields = [
+    form.businessName,
+    form.category,
+    form.businessContact,
+    form.description,
+    form.location,
+    form.state,
+  ]
+  const completedFields = requiredFields.filter((value) => String(value || '').trim().length > 0).length
+  const completion = Math.round((completedFields / requiredFields.length) * 100)
+  const nextStep = completion < 100
+    ? 'Complete the missing details so clients can trust what they see.'
+    : form.verified === 1
+      ? 'Your profile is ready for clients.'
+      : 'Submit verification to add the green badge.'
+
   return (
     <>
-      <div className="mb-5 sm:mb-7">
-        <h1 className="font-display text-xl sm:text-2xl font-semibold">My Business</h1>
-        <p className="text-sm text-slate-500 mt-1">Manage your business profile and attract clients</p>
+      <div className="mb-5 rounded-lg border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-7 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Business Profile</h1>
+            <p className="mt-1 text-sm text-slate-600">The details clients use before they book you.</p>
+          </div>
+          {form.verified === 1 ? (
+            <VerifiedBusinessBadge />
+          ) : (
+            <a href="/dashboard/verify-business" className="btn-ghost bg-white px-4 py-2.5 text-sm justify-center">
+              Get verified
+            </a>
+          )}
+        </div>
       </div>
 
       {form.verified === 1 && (
@@ -130,7 +157,23 @@ export default function MyBusinessPage() {
         </div>
       )}
 
-      <div className="card max-w-2xl">
+      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-slate-900">Profile strength</p>
+          <span className="text-sm font-bold text-brand-600">{completion}%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${completion}%` }} />
+        </div>
+        <p className="mt-2 text-sm text-slate-500">{nextStep}</p>
+      </div>
+
+      <div className="card max-w-3xl">
+        <div className="mb-5 border-b border-slate-100 pb-4">
+          <h2 className="font-display text-base font-semibold text-slate-900">Public business details</h2>
+          <p className="mt-1 text-sm text-slate-500">Keep this short, specific, and easy to verify.</p>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="form-group sm:col-span-2">
             <label className="label">Business Name *</label>
@@ -244,7 +287,7 @@ export default function MyBusinessPage() {
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6 pt-4 border-t border-slate-200">
+        <div className="sticky bottom-0 -mx-5 mt-6 flex gap-3 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6">
           <button
             onClick={handleSave}
             disabled={saving || !form.businessName || !form.category || !form.state}

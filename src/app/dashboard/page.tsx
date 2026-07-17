@@ -51,6 +51,12 @@ const metricToneStyles: Record<Metric['tone'], { icon: string; value: string; ch
   slate: { icon: 'bg-slate-100 text-slate-600', value: 'text-slate-900', change: 'text-slate-500' },
 }
 
+const vendorPriorityCards = [
+  { href: '/dashboard/bookings', label: 'Respond to requests', sub: 'Accept or decline new bookings', icon: BookingsIcon, tone: 'brand' },
+  { href: '/dashboard/verify-business', label: 'Build trust', sub: 'Submit verification documents', icon: CheckCircleIcon, tone: 'green' },
+  { href: '/dashboard/wallet', label: 'Get paid', sub: 'Check earnings and withdrawals', icon: WalletIcon, tone: 'amber' },
+]
+
 function getTimeOfDayGreeting() {
   const hour = new Date().getHours()
   if (hour < 12) return 'Good morning'
@@ -132,10 +138,10 @@ export default function DashboardPage() {
         { href: '/dashboard/wallet', icon: WalletIcon, label: 'Wallet', sub: 'Earnings and payouts' },
       ]
     : [
-        { href: '/professionals', icon: SearchIcon, label: 'Find Vendors', sub: 'Browse vendors nearby' },
-        { href: '/dashboard/bookings', icon: BookingsIcon, label: 'My Bookings', sub: 'Track requests' },
-        { href: '/messages', icon: ChatIcon, label: 'Messages', sub: 'Chat with vendors' },
-        { href: '/dashboard/wallet', icon: WalletIcon, label: 'Wallet', sub: 'Payments and escrow' },
+        { href: '/professionals', icon: SearchIcon, label: 'Find Vendors', sub: 'Search by service' },
+        { href: '/dashboard/bookings', icon: BookingsIcon, label: 'Bookings', sub: 'Track requests' },
+        { href: '/messages', icon: ChatIcon, label: 'Messages', sub: 'Open chats' },
+        { href: '/dashboard/wallet', icon: WalletIcon, label: 'Wallet', sub: 'Payments' },
       ]
 
   return (
@@ -150,21 +156,29 @@ export default function DashboardPage() {
             <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{greeting}</h1>
             <p className="mt-1 text-sm text-slate-600">
               {isClientDashboard
-                ? 'Book trusted vendors, track requests, and keep payments organized.'
+                ? 'Find a trusted vendor and get the job moving.'
                 : isVendorDashboard
                   ? 'Manage requests, keep your business profile sharp, and track earnings.'
                   : 'Here is what is happening with your projects.'}
             </p>
           </div>
           {isClientDashboard ? (
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Link href="/professionals" className="btn-primary px-4 py-2.5 text-sm justify-center">
-                Find a vendor
+            <form action="/professionals" method="GET" className="flex w-full flex-col gap-2 sm:max-w-xl sm:flex-row">
+              <div className="relative flex-1">
+                <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  name="search"
+                  className="input-field h-12 pl-10 text-sm"
+                  placeholder="What service do you need?"
+                />
+              </div>
+              <button type="submit" className="btn-primary h-12 px-5 py-2.5 text-sm">
+                Find vendor
+              </button>
+              <Link href="/dashboard/bookings" className="btn-ghost h-12 px-4 py-2.5 text-sm justify-center bg-white">
+                Bookings
               </Link>
-              <Link href="/dashboard/bookings" className="btn-ghost px-4 py-2.5 text-sm justify-center bg-white">
-                View bookings
-              </Link>
-            </div>
+            </form>
           ) : isVendorDashboard ? (
             <div className="flex flex-col gap-2 sm:flex-row">
               <Link href="/dashboard/bookings" className="btn-primary px-4 py-2.5 text-sm justify-center">
@@ -250,6 +264,30 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {isVendorDashboard && (
+        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {vendorPriorityCards.map((card) => {
+            const Icon = card.icon
+            const tone = metricToneStyles[card.tone as Metric['tone']]
+            return (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_20px_rgba(15,23,42,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.06)]"
+              >
+                <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${tone.icon}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-900 group-hover:text-brand-600">{card.label}</p>
+                  <p className="mt-0.5 truncate text-xs text-slate-500">{card.sub}</p>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-5 sm:mb-7">
         {dashboardLoading ? (
           <>
@@ -279,10 +317,10 @@ export default function DashboardPage() {
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-base font-bold text-slate-900">
-              {isVendorDashboard ? 'Run your business' : 'Quick actions'}
+              {isVendorDashboard ? 'Run your business' : 'Shortcuts'}
             </h2>
             <p className="text-sm text-slate-500">
-              {isVendorDashboard ? 'The everyday tools for client work.' : 'Start or manage your service requests.'}
+              {isVendorDashboard ? 'Useful areas after the urgent work is handled.' : 'Everything clients use most.'}
             </p>
           </div>
         </div>

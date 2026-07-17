@@ -116,12 +116,14 @@ export default function VerifyBusinessPage() {
   }
 
   const pendingVerification = verification?.status === 'pending'
+  const docFields: DocField[] = ['photo', 'nin_card', 'utility_bill', 'business_registration', 'trade_certificate']
+  const uploadedDocs = docFields.filter((field) => urls[field]).length
 
   return (
     <>
-      <div className="mb-5 sm:mb-7">
-        <h1 className="font-display text-xl sm:text-2xl font-semibold">Business Verification</h1>
-        <p className="text-sm text-slate-500 mt-1">Verify your business to build trust with clients</p>
+      <div className="mb-5 rounded-lg border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-7 sm:p-6">
+        <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Business Verification</h1>
+        <p className="mt-1 text-sm text-slate-600">Add documents clients and admins can trust.</p>
       </div>
 
       {isVerified ? (
@@ -146,9 +148,16 @@ export default function VerifyBusinessPage() {
           <p className="text-xs text-slate-400">Submitted: {verification?.submitted_at ? new Date(verification.submitted_at).toLocaleDateString() : ''}</p>
         </div>
       ) : (
-        <div className="card max-w-2xl">
-          <h2 className="font-medium text-base mb-1">Submit Your Documents</h2>
-          <p className="text-sm text-slate-500 mb-6">Submit your details and documents for review</p>
+        <div className="card max-w-3xl">
+          <div className="mb-5 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-display text-base font-semibold text-slate-900">Submit documents</h2>
+              <p className="mt-1 text-sm text-slate-500">Upload what you have now. Admins can review the files attached to this request.</p>
+            </div>
+            <span className="inline-flex w-fit rounded-lg bg-brand-50 px-3 py-2 text-sm font-bold text-brand-600">
+              {uploadedDocs}/{docFields.length} uploaded
+            </span>
+          </div>
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
@@ -165,7 +174,7 @@ export default function VerifyBusinessPage() {
               <p className="text-xs text-slate-500 mt-1.5">Add 11 digits or leave this blank</p>
             </div>
 
-            {(['photo', 'nin_card', 'utility_bill', 'business_registration', 'trade_certificate'] as DocField[]).map((field) => (
+            {docFields.map((field) => (
               <div key={field} className="form-group">
                 <label className="label">{DOC_LABELS[field]}</label>
                 <div className="border-2 border-dashed border-slate-200 rounded-xl px-4 py-4 text-center hover:border-brand-400 transition-colors">
