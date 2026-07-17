@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { Modal } from '@/components/ui/Modal'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
@@ -33,6 +34,23 @@ const BOOKING_STEPS = [
 
 type BookingFilter = 'active' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'all'
 
+function CheckIcon() {
+  return (
+    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 13l4 4L19 7" />
+    </svg>
+  )
+}
+
+function XIcon() {
+  return (
+    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  )
+}
+
 function BookingTimeline({ status }: { status: BookingItem['status'] }) {
   if (status === 'cancelled') {
     return (
@@ -43,7 +61,7 @@ function BookingTimeline({ status }: { status: BookingItem['status'] }) {
         </div>
         <div className="h-0.5 bg-red-200" />
         <div className="flex min-w-20 flex-col items-center text-center">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white">×</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white"><XIcon /></span>
           <span className="mt-1 text-xs font-medium text-red-600">Cancelled</span>
         </div>
       </div>
@@ -59,7 +77,7 @@ function BookingTimeline({ status }: { status: BookingItem['status'] }) {
             <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
               index <= activeIndex ? 'bg-brand-500 text-white' : 'border border-slate-300 bg-white text-slate-400'
             }`}>
-              {index < activeIndex ? '✓' : index + 1}
+              {index < activeIndex ? <CheckIcon /> : index + 1}
             </span>
             <span className={`mt-1 text-xs font-medium ${index <= activeIndex ? 'text-slate-800' : 'text-slate-400'}`}>
               {step.label}
@@ -76,6 +94,7 @@ function BookingTimeline({ status }: { status: BookingItem['status'] }) {
 }
 
 export default function BookingsPage() {
+  const router = useRouter()
   const { user, loading } = useCurrentUser()
   const [bookings, setBookings] = useState<BookingItem[]>([])
   const [fetching, setFetching] = useState(true)
@@ -109,6 +128,11 @@ export default function BookingsPage() {
   }, [loading, user?.role])
 
   async function handleAction(bookingId: number, action: string) {
+    if (action === 'cancel') {
+      const confirmed = window.confirm('Cancel this booking request?')
+      if (!confirmed) return
+    }
+
     const actionKey = `${bookingId}:${action}`
     setActionLoading(actionKey)
     try {
@@ -126,6 +150,32 @@ export default function BookingsPage() {
       }
     } catch {
       toast.error('Network error. Please try again.')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  async function handleMessageClient(clientUID: string) {
+    if (!clientUID) {
+      router.push('/messages')
+      return
+    }
+
+    setActionLoading(`message:${clientUID}`)
+    try {
+      const res = await fetch('/api/chat/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: clientUID }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        router.push(`/messages?id=${data.data.conversation.id}`)
+      } else {
+        router.push('/messages')
+      }
+    } catch {
+      router.push('/messages')
     } finally {
       setActionLoading(null)
     }
@@ -280,12 +330,14 @@ export default function BookingsPage() {
                   </button>
                 )}
                 {isVendor && (
-                  <Link
-                    href="/messages"
-                    className="btn-ghost text-xs px-4 py-2"
+                  <button
+                    type="button"
+                    onClick={() => handleMessageClient(b.clientUID)}
+                    disabled={actionLoading !== null}
+                    className="btn-ghost text-xs px-4 py-2 disabled:opacity-50"
                   >
-                    Message client
-                  </Link>
+                    {actionLoading === `message:${b.clientUID}` ? 'Opening...' : 'Message client'}
+                  </button>
                 )}
                 {!isVendor && b.status === 'confirmed' && (
                   <button
@@ -380,3 +432,4 @@ export default function BookingsPage() {
     </>
   )
 }
+
