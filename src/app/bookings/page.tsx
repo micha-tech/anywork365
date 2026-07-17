@@ -1,6 +1,6 @@
-import BookingsPage, { dynamic } from '@/app/dashboard/bookings/page'
+import BookingsPage from '@/app/dashboard/bookings/page'
 
-export { dynamic }
+export const dynamic = 'force-dynamic'
 
 export default function ClientBookingsPage() {
   return (
