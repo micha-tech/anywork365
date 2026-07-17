@@ -54,15 +54,15 @@ function XIcon() {
 function BookingTimeline({ status }: { status: BookingItem['status'] }) {
   if (status === 'cancelled') {
     return (
-      <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-3" aria-label="Booking cancelled">
-        <div className="flex min-w-20 flex-col items-center text-center">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">1</span>
-          <span className="mt-1 text-xs font-medium text-slate-700">Requested</span>
+      <div className="mt-4 grid grid-cols-[minmax(0,auto)_1fr_minmax(0,auto)] items-center gap-2 sm:gap-3" aria-label="Booking cancelled">
+        <div className="flex min-w-0 flex-col items-center text-center">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-[11px] font-bold text-white sm:h-7 sm:w-7 sm:text-xs">1</span>
+          <span className="mt-1 text-[11px] font-medium leading-tight text-slate-700 sm:text-xs">Requested</span>
         </div>
         <div className="h-0.5 bg-red-200" />
-        <div className="flex min-w-20 flex-col items-center text-center">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white"><XIcon /></span>
-          <span className="mt-1 text-xs font-medium text-red-600">Cancelled</span>
+        <div className="flex min-w-0 flex-col items-center text-center">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white sm:h-7 sm:w-7"><XIcon /></span>
+          <span className="mt-1 text-[11px] font-medium leading-tight text-red-600 sm:text-xs">Cancelled</span>
         </div>
       </div>
     )
@@ -70,16 +70,16 @@ function BookingTimeline({ status }: { status: BookingItem['status'] }) {
 
   const activeIndex = status === 'completed' ? 2 : status === 'confirmed' ? 1 : 0
   return (
-    <div className="mt-4 grid grid-cols-[auto_1fr_auto_1fr_auto] items-start" aria-label={`Booking ${status}`}>
+    <div className="mt-4 grid grid-cols-[minmax(0,auto)_1fr_minmax(0,auto)_1fr_minmax(0,auto)] items-start" aria-label={`Booking ${status}`}>
       {BOOKING_STEPS.map((step, index) => (
         <div key={step.status} className="contents">
-          <div className="flex min-w-20 flex-col items-center text-center">
-            <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+          <div className="flex min-w-0 flex-col items-center text-center">
+            <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold sm:h-7 sm:w-7 sm:text-xs ${
               index <= activeIndex ? 'bg-brand-500 text-white' : 'border border-slate-300 bg-white text-slate-400'
             }`}>
               {index < activeIndex ? <CheckIcon /> : index + 1}
             </span>
-            <span className={`mt-1 text-xs font-medium ${index <= activeIndex ? 'text-slate-800' : 'text-slate-400'}`}>
+            <span className={`mt-1 max-w-[4.5rem] text-[11px] font-medium leading-tight sm:text-xs ${index <= activeIndex ? 'text-slate-800' : 'text-slate-400'}`}>
               {step.label}
             </span>
             <span className="hidden text-[11px] text-slate-400 sm:block">{step.detail}</span>
@@ -246,7 +246,7 @@ export default function BookingsPage() {
       <PullToRefresh onRefresh={loadBookings}>
       <div className="mb-4 sm:mb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+          <div className="min-w-0">
             <h1 className="font-display text-xl sm:text-2xl font-semibold">{isVendor ? 'Booking Requests' : 'Bookings'}</h1>
             <p className="mt-1 text-sm text-slate-500">
               {isVendor ? 'Accept new requests, track accepted jobs, and keep clients moving.' : 'Track requests, active jobs, and reviews.'}
@@ -255,19 +255,19 @@ export default function BookingsPage() {
           {!isVendor && (
             <Link
               href="/professionals"
-              className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(15,79,74,0.14)] transition-colors hover:bg-brand-600 active:bg-brand-700"
+              className="inline-flex w-fit self-start rounded-md border border-brand-100 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-100 sm:self-auto"
             >
               Find vendor
             </Link>
           )}
         </div>
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-none sm:mx-0 sm:px-0">
           {bookingTabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setStatusFilter(tab.key)}
-              className={`flex-shrink-0 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+              className={`flex-shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${
                 statusFilter === tab.key
                   ? 'border-brand-500 bg-brand-50 text-brand-600'
                   : 'border-slate-200 bg-white text-slate-500 hover:border-brand-300 hover:text-brand-600'
@@ -301,27 +301,27 @@ export default function BookingsPage() {
             action={!isVendor && bookings.length === 0 ? (
               <Link
                 href="/professionals"
-                className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(15,79,74,0.14)] transition-colors hover:bg-brand-600 active:bg-brand-700"
+                className="inline-flex w-fit rounded-md border border-brand-100 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-100"
               >
                 Find vendor
               </Link>
             ) : undefined}
           />
         ) : visibleBookings.map((b) => (
-          <div key={b.id} className="card">
-            <div className="flex items-start justify-between gap-3">
+          <div key={b.id} className="card min-w-0 p-4 sm:p-6">
+            <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-500 mb-1">
+                <p className="mb-1 break-words text-xs text-slate-500 sm:text-sm">
                   {isVendor ? (b.clientName || 'Client') : (b.businessName || 'Vendor')} &middot; Booking #{b.id} &middot; {new Date(b.createdAt).toLocaleDateString()}
                 </p>
-                <p className="font-medium text-sm leading-snug mb-2">{b.description}</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                <p className="mb-2 break-words text-sm font-medium leading-snug">{b.description}</p>
+                <div className="grid gap-1 text-xs text-slate-500 sm:flex sm:flex-wrap sm:gap-x-4">
                   <span>Budget: <strong className="text-slate-900">₦{b.budget?.toLocaleString()}</strong></span>
                   <span>Date: {b.date}</span>
-                  {b.location && <span>Location: {b.location}</span>}
+                  {b.location && <span className="break-words">Location: {b.location}</span>}
                 </div>
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize flex-shrink-0 ${statusColors[b.status] || 'bg-gray-100 text-gray-600'}`}>
+              <span className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium capitalize ${statusColors[b.status] || 'bg-gray-100 text-gray-600'}`}>
                 {b.status}
               </span>
             </div>
@@ -329,12 +329,12 @@ export default function BookingsPage() {
             <BookingTimeline status={b.status} />
 
             {(b.status === 'pending' || b.status === 'confirmed') && (
-              <div className="flex gap-2 mt-4 pt-3 border-t border-slate-200">
+              <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3 sm:flex">
                 {isVendor && b.status === 'pending' && (
                   <button
                     onClick={() => handleAction(b.id, 'confirm')}
                     disabled={actionLoading !== null}
-                    className="btn-primary text-xs px-4 py-2 disabled:opacity-50"
+                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
                   >
                     {actionLoading === `${b.id}:confirm` ? 'Accepting...' : 'Accept request'}
                   </button>
@@ -344,7 +344,7 @@ export default function BookingsPage() {
                     type="button"
                     onClick={() => handleMessageClient(b.clientUID)}
                     disabled={actionLoading !== null}
-                    className="btn-ghost text-xs px-4 py-2 disabled:opacity-50"
+                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
                   >
                     {actionLoading === `message:${b.clientUID}` ? 'Opening...' : 'Message client'}
                   </button>
@@ -353,7 +353,7 @@ export default function BookingsPage() {
                   <button
                     onClick={() => handleAction(b.id, 'complete')}
                     disabled={actionLoading !== null}
-                    className="btn-primary text-xs px-4 py-2 disabled:opacity-50"
+                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
                   >
                     {actionLoading === `${b.id}:complete` ? 'Completing...' : 'Mark Complete'}
                   </button>
@@ -362,7 +362,7 @@ export default function BookingsPage() {
                   <button
                     onClick={() => handleAction(b.id, 'cancel')}
                     disabled={actionLoading !== null}
-                    className="btn-ghost text-xs px-4 py-2 text-amber-600 border-amber-200 hover:bg-amber-50 disabled:opacity-50"
+                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-600 transition-colors hover:bg-amber-50 disabled:opacity-50"
                   >
                     {actionLoading === `${b.id}:cancel` ? 'Cancelling...' : 'Cancel'}
                   </button>
@@ -370,10 +370,10 @@ export default function BookingsPage() {
               </div>
             )}
             {!isVendor && b.status === 'completed' && (
-              <div className="flex gap-2 mt-4 pt-3 border-t border-slate-200">
+              <div className="mt-4 flex gap-2 border-t border-slate-200 pt-3">
                 <button
                   onClick={() => openReview(b)}
-                  className="btn-primary text-xs px-4 py-2"
+                  className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600"
                 >
                   Leave a Review
                 </button>

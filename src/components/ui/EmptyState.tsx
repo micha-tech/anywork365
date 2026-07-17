@@ -49,8 +49,8 @@ export function EmptyState({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+    <div className="flex flex-col items-center justify-center px-4 py-10 text-center sm:px-6 sm:py-16">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 sm:h-16 sm:w-16">
         {icon ? icons[icon] : (
           <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
             <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><circle cx="12" cy="8" r=".5" fill="#94a3b8" />
