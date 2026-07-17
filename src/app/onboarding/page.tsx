@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
 const ONBOARDING_KEY = 'anywork365_onboarding_seen'
+const MOBILE_VIEW_QUERY = '(max-width: 767px)'
 
 const slides = [
   {
@@ -54,7 +55,8 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.() === true
-    if (!isNative) {
+    const isMobileWebView = typeof window !== 'undefined' && window.matchMedia(MOBILE_VIEW_QUERY).matches
+    if (!isNative && !isMobileWebView) {
       router.replace('/')
       return
     }

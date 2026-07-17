@@ -2,10 +2,11 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
+import { logoutCurrentUser } from '@/lib/clientLogout'
 
 const VENDOR_NAV = [
   {
@@ -58,6 +59,7 @@ const CLIENT_NAV = [
 
 export function DashboardSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, loading } = useCurrentUser()
 
   const initials = getInitialsFromUser(user)
@@ -66,6 +68,12 @@ export function DashboardSidebar() {
   const isVendor = user?.role === 'vendor'
   const isAdmin = user?.role === 'admin'
   const nav = isAdmin ? null : isVendor ? VENDOR_NAV : CLIENT_NAV
+
+  async function handleLogout() {
+    await logoutCurrentUser()
+    router.push('/')
+    router.refresh()
+  }
 
   return (
     <aside className="hidden md:flex flex-col w-60 flex-shrink-0 bg-white/95 border-r border-slate-100 min-h-[calc(100dvh-64px)] py-6 px-3 shadow-[1px_0_0_rgba(15,23,42,0.03)]">
@@ -149,9 +157,17 @@ export function DashboardSidebar() {
           href="/"
           className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-500 hover:bg-brand-50 hover:text-brand-500 transition-colors"
         >
-          <LogoutIcon className="w-4 h-4" />
+          <HomeIcon className="w-4 h-4" />
           Back to Home
         </Link>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-1 flex w-full items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <LogoutIcon className="w-4 h-4" />
+          Log out
+        </button>
       </div>
     </aside>
   )
@@ -256,6 +272,15 @@ function ShieldIcon({ className }: { className?: string }) {
 }
 
 function StoreIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  )
+}
+
+function HomeIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />

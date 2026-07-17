@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 import { BrandLogo } from '@/components/layout/BrandLogo'
 import { useAppPushNotifications } from '@/hooks/useAppPushNotifications'
+import { logoutCurrentUser } from '@/lib/clientLogout'
 
 const PUBLIC_NAV = [
   { href: '/professionals', label: 'Find Vendors' },
@@ -93,7 +94,9 @@ export function Navbar() {
   if (hideNavbar) return null
 
   async function handleLogout() {
-    await fetch('/api/auth/me', { method: 'POST' })
+    setDropOpen(false)
+    setMenuOpen(false)
+    await logoutCurrentUser()
     router.push('/')
     router.refresh()
   }
