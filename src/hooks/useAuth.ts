@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AuthUser } from '@/types'
+import { logoutCurrentUser } from '@/lib/clientLogout'
 
 interface AuthState {
   user: AuthUser | null
@@ -24,7 +25,7 @@ export function useAuth() {
   }, [])
 
   const logout = useCallback(async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    await logoutCurrentUser()
     setState({ user: null, loading: false })
     router.push('/')
   }, [router])

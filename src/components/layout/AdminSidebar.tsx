@@ -2,10 +2,11 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
+import { logoutCurrentUser } from '@/lib/clientLogout'
 
 const NAV_ITEMS = [
   {
@@ -28,10 +29,17 @@ const NAV_ITEMS = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, loading } = useCurrentUser()
 
   const initials = getInitialsFromUser(user)
   const fullName = user ? `${user.firstName} ${user.lastName}` : '...'
+
+  async function handleLogout() {
+    await logoutCurrentUser()
+    router.push('/')
+    router.refresh()
+  }
 
   return (
     <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-white border-r border-slate-200 min-h-[calc(100dvh-64px)] py-6 px-3">
@@ -98,6 +106,14 @@ export function AdminSidebar() {
           <HomeIcon className="w-4 h-4" />
           Back to Home
         </Link>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex w-full items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <LogoutIcon className="w-4 h-4" />
+          Log out
+        </button>
       </div>
     </aside>
   )
@@ -167,6 +183,16 @@ function HomeIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  )
+}
+
+function LogoutIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
   )
 }

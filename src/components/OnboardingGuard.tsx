@@ -4,11 +4,17 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 
 const ONBOARDING_KEY = 'anywork365_onboarding_seen'
+const MOBILE_VIEW_QUERY = '(max-width: 767px)'
 
 function isNativeApp(): boolean {
   if (typeof window === 'undefined') return false
   try { return (window as any).Capacitor?.isNativePlatform?.() === true }
   catch { return false }
+}
+
+function shouldUseOnboarding(): boolean {
+  if (typeof window === 'undefined') return false
+  return isNativeApp() || window.matchMedia(MOBILE_VIEW_QUERY).matches
 }
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
@@ -19,7 +25,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.documentElement.classList.remove('page-exit')
 
-    if (!isNativeApp()) {
+    if (!shouldUseOnboarding()) {
       setReady(true)
       return
     }
