@@ -194,5 +194,5 @@ export async function hardDeleteAccount(uid: string): Promise<void> {
   }
 
   await deleteFiles(fileUrls)
-  purgeChatUserData(uid)
+  await purgeChatUserData(uid)
 }

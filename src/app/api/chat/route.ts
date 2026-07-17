@@ -20,7 +20,7 @@ export async function GET() {
     );
   }
 
-  const conversations = getUserConversations(session.id);
+  const conversations = await getUserConversations(session.id);
   const notifications = getUserNotifications(session.id);
   const unreadCount = getUnreadNotificationCount(session.id);
 

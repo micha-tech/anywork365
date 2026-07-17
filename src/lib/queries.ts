@@ -413,6 +413,7 @@ interface VendorJoinRow extends RowDataPacket {
   user_email: string | null
   user_phoneNumber: string | null
   user_fullName: string | null
+  user_profileImage: string | null
 }
 
 const SEARCH_SYNONYMS: Record<string, string[]> = {
@@ -485,7 +486,7 @@ export async function listVendors(filters?: {
   ]
   let sql = `
     SELECT b.*, u.email AS user_email, u.phoneNumber AS user_phoneNumber,
-           u.fullName AS user_fullName
+           u.fullName AS user_fullName, u.profileImage AS user_profileImage
     FROM businesses b
     LEFT JOIN users u ON b.uid = u.uid AND u.deleted = 0
     WHERE b.deleted = 0
@@ -569,7 +570,7 @@ export async function listVendors(filters?: {
       lga: r.lga || undefined,
       address: r.location || undefined,
       bio: r.description,
-      avatarUrl: getAvatarUrl(r.businessLogo),
+      avatarUrl: getAvatarUrl(r.user_profileImage || r.businessLogo),
       skills: splitBusinessCategories(r.category),
       rating: r.rating,
       reviewCount: r.reviews,
@@ -601,7 +602,7 @@ function businessRowToUser(b: BusinessRow, user?: UserRow): User {
     lga: b.lga || undefined,
     address: b.location || undefined,
     bio: user?.bio || b.description,
-    avatarUrl: getAvatarUrl(b.businessLogo),
+    avatarUrl: getAvatarUrl(user?.profileImage || b.businessLogo),
     skills: splitBusinessCategories(b.category),
     rating: b.rating,
     reviewCount: b.reviews,

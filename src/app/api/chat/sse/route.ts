@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
       }
 
-      const checkForUpdates = () => {
-        const conversations = getUserConversations(session.id)
+      const checkForUpdates = async () => {
+        const conversations = await getUserConversations(session.id)
         const latestConv = conversations.find(c => c.updatedAt)
 
         if (latestConv && new Date(latestConv.updatedAt).getTime() > lastMessageTime) {
@@ -50,7 +50,11 @@ export async function GET(req: NextRequest) {
 
       sendEvent('connected', { userId: session.id })
 
-      const intervalId = setInterval(checkForUpdates, 5000)
+      const intervalId = setInterval(() => {
+        checkForUpdates().catch((error) => {
+          console.error('Chat SSE update error:', error)
+        })
+      }, 5000)
 
       req.signal.addEventListener('abort', () => {
         clearInterval(intervalId)

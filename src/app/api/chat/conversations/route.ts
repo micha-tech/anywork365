@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { userId } = parsed.data
-  const conversation = getOrCreateConversation(session.id, userId)
+  const conversation = await getOrCreateConversation(session.id, userId)
   const enriched = await enrichConversation(conversation, session.id)
 
   return NextResponse.json({
@@ -95,7 +95,7 @@ export async function GET(_req: NextRequest) {
       )
     }
 
-    const conversations = getUserConversations(session.id)
+    const conversations = await getUserConversations(session.id)
     const enriched = await Promise.all(conversations.map(c => enrichConversation(c, session.id)))
     
     return NextResponse.json({
