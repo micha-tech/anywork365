@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Avatar, Badge, Stars, VerifiedBusinessBadge } from '@/components/ui'
+import { Avatar, Badge, VerifiedBusinessBadge } from '@/components/ui'
 import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 
@@ -19,7 +19,6 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
   const initials = getInitials(pro.firstName, pro.lastName)
   const location = [pro.lga, pro.city].filter(Boolean).join(', ')
   const primarySkill = pro.skills?.[0] || 'Service provider'
-  const rating = pro.rating || 0
 
   async function handleStartChat(e: React.MouseEvent) {
     e.preventDefault()
@@ -63,16 +62,6 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
           <p className="truncate text-sm text-slate-500">{primarySkill}</p>
           {location && <p className="mt-0.5 truncate text-xs text-slate-400">{location}</p>}
         </div>
-      </div>
-
-      <div className="mb-3 flex min-w-0 items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
-        <div className="min-w-0">
-          {rating > 0 ? <Stars rating={rating} count={pro.reviewCount} /> : <span className="text-xs font-medium text-slate-500">New vendor</span>}
-        </div>
-        <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-          Available
-        </span>
       </div>
 
       {pro.skills && pro.skills.length > 0 && (

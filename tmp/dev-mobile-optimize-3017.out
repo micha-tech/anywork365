@@ -11,3 +11,6 @@
  ○ Compiling middleware ...
  ✓ Compiled middleware in 1094ms
  ✓ Ready in 5.1s
+ ○ Compiling /professionals ...
+ ✓ Compiled /professionals in 13.4s
+ GET /professionals 200 in 16723ms
