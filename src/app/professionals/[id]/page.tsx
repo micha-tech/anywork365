@@ -169,17 +169,17 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
   const colorIndex = 0
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+    <div className="max-w-4xl mx-auto px-3 pb-40 pt-4 sm:px-6 sm:py-10">
       <Link href="/professionals" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-500 mb-5">
         ← Back to Vendors
       </Link>
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-50 pb-safe">
+      <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur pb-safe">
         <div className="flex items-center gap-2 max-w-lg mx-auto">
           <button
             onClick={handleStartChat}
             disabled={startingChat}
-            className="btn-ghost flex-1 px-4 py-2.5 justify-center"
+            className="btn-ghost min-w-0 flex-1 px-3 py-2.5 justify-center"
           >
             {startingChat ? (
               <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
@@ -190,29 +190,29 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
           <button
             onClick={() => setBookOpen(true)}
             disabled={booked}
-            className="btn-primary flex-[1.4] px-5 py-2.5"
+            className="btn-primary min-w-0 flex-[1.35] px-3 py-2.5"
           >
             {booked ? 'Requested' : 'Request booking'}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-5">
-          <div className="card">
-            <div className="flex items-start gap-4">
+          <div className="card p-4 sm:p-6">
+            <div className="flex min-w-0 items-start gap-3 sm:gap-4">
               <div className="relative flex-shrink-0">
-                <Avatar initials={initials} size="lg" colorIndex={colorIndex} className="mb-4" />
+                <Avatar initials={initials} size="lg" colorIndex={colorIndex} className="mb-4 h-12 w-12 text-base sm:h-14 sm:w-14 sm:text-lg" />
                 {pro.isVerified && (
                   <VerifiedBusinessBadge label={false} className="absolute -bottom-2 left-8 border-2 border-white shadow-sm" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="font-display text-lg sm:text-xl font-semibold">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <h1 className="min-w-0 break-words font-display text-lg font-semibold leading-snug sm:text-xl">
                     {pro.firstName} {pro.lastName}
                   </h1>
-                  {pro.isVerified && <VerifiedBusinessBadge />}
+                  {pro.isVerified && <VerifiedBusinessBadge size="sm" />}
                 </div>
                 <p className="text-sm text-slate-500 mt-0.5">{pro.skills?.[0]} · {pro.city}</p>
                 {pro.rating && (
@@ -220,9 +220,9 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
                     <Stars rating={pro.rating} count={pro.reviewCount} />
                   </div>
                 )}
-                <div className="flex flex-wrap gap-1.5 mt-3">
+                <div className="mt-3 flex min-w-0 flex-wrap gap-1.5">
                   {pro.skills?.map((skill) => (
-                    <Badge key={skill} variant="green">{skill}</Badge>
+                    <Badge key={skill} variant="green" className="max-w-full truncate">{skill}</Badge>
                   ))}
                 </div>
               </div>
@@ -237,7 +237,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
           </div>
 
           {pro.portfolio && pro.portfolio.length > 0 && (
-            <section className="card">
+            <section className="card p-4 sm:p-6">
               <h2 className="font-medium text-base mb-4">Portfolio</h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {pro.portfolio.map((item) => (
@@ -261,7 +261,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
             </section>
           )}
 
-          <div className="card">
+          <div className="card p-4 sm:p-6">
             <h2 className="font-medium text-base mb-4">
               Reviews{' '}
               <span className="text-slate-500 font-normal text-sm">({pro.reviewCount})</span>

@@ -50,23 +50,27 @@ export default function LoginPage() {
         return
       }
 
-      window.location.href = body.data?.role === 'admin' ? '/admin' : '/dashboard'
+      window.location.href = body.data?.role === 'admin'
+        ? '/admin'
+        : body.data?.role === 'vendor'
+          ? '/dashboard'
+          : '/professionals'
     } catch (err: unknown) {
       toast.error(toErrorMessage(err))
     }
   }
 
   return (
-    <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-start px-4 py-6 sm:justify-center sm:py-10">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-7">
+        <div className="text-center mb-5 sm:mb-7">
           <BrandLogo size="lg" priority imageClassName="mx-auto object-contain" />
         </div>
 
-        <div className="card p-6 sm:p-8">
+        <div className="card p-5 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Welcome back</h1>
-          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to continue managing your work</p>
+          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to discover vendors, jobs, and your bookings.</p>
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="form-group">
@@ -122,6 +126,9 @@ export default function LoginPage() {
             Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-brand-500 font-medium">Sign up</Link>
           </p>
+          <Link href="/signup" className="btn-ghost mt-4 w-full justify-center sm:hidden">
+            Create account
+          </Link>
         </div>
       </div>
     </div>

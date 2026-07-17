@@ -36,25 +36,6 @@ const VENDOR_NAV = [
   },
 ]
 
-const CLIENT_NAV = [
-  {
-    label: 'Main',
-    links: [
-      { href: '/dashboard', label: 'Discover', icon: GridIcon },
-      { href: '/dashboard/bookings', label: 'Bookings', icon: BookingsIcon },
-      { href: '/messages', label: 'Messages', icon: ChatIcon },
-    ],
-  },
-  {
-    label: 'Account',
-    links: [
-      { href: '/dashboard/wallet', label: 'Wallet', icon: WalletIcon },
-      { href: '/dashboard/notifications', label: 'Notifications', icon: BellIcon },
-      { href: '/dashboard/profile', label: 'My Profile', icon: UserIcon },
-    ],
-  },
-]
-
 export function DashboardSidebar() {
   const pathname = usePathname()
   const router = useRouter()
@@ -65,7 +46,7 @@ export function DashboardSidebar() {
   const role = user ? (user.role === 'vendor' ? 'Vendor' : user.role === 'admin' ? 'Admin' : 'Client') : ''
   const isVendor = user?.role === 'vendor'
   const isAdmin = user?.role === 'admin'
-  const nav = isAdmin ? null : isVendor ? VENDOR_NAV : CLIENT_NAV
+  const nav = isVendor ? VENDOR_NAV : []
 
   async function handleLogout() {
     await logoutCurrentUser()

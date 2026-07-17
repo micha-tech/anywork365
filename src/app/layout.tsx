@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
 import { Toaster } from 'sonner'
 import { OnboardingGuard } from '@/components/OnboardingGuard'
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -63,7 +64,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <OnboardingGuard>
           <Navbar />
           <OfflineBanner />
-          <main className="page-enter">{children}</main>
+          <main className="page-enter pb-20 md:pb-0">{children}</main>
+          <MobileBottomNav />
         </OnboardingGuard>
         <Toaster
           position="top-center"

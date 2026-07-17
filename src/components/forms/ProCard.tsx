@@ -46,27 +46,26 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
   }
 
   return (
-    <article className="card group flex h-full flex-col hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md transition-all duration-200">
-      <div className="mb-4 flex items-start gap-3">
+    <article className="card group flex h-full min-w-0 flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md sm:p-5">
+      <div className="mb-3 flex min-w-0 items-start gap-3 sm:mb-4">
         <div className="relative flex-shrink-0">
-          <Avatar initials={initials} size="lg" colorIndex={index} />
+          <Avatar initials={initials} size="lg" colorIndex={index} className="h-12 w-12 text-base sm:h-14 sm:w-14 sm:text-lg" />
           {pro.isVerified && (
             <VerifiedBusinessBadge label={false} className="absolute -bottom-1 -right-1 border-2 border-white shadow-sm" />
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
+          <div className="mb-1 flex min-w-0 items-center gap-1.5">
             <Link href={`/professionals/${pro.id}`} className="truncate font-semibold text-slate-900 transition-colors group-hover:text-brand-500">
               {pro.firstName} {pro.lastName}
             </Link>
-            {pro.isVerified && <VerifiedBusinessBadge size="sm" />}
           </div>
           <p className="truncate text-sm text-slate-500">{primarySkill}</p>
           {location && <p className="mt-0.5 truncate text-xs text-slate-400">{location}</p>}
         </div>
       </div>
 
-      <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+      <div className="mb-3 flex min-w-0 items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
         <div className="min-w-0">
           {rating > 0 ? <Stars rating={rating} count={pro.reviewCount} /> : <span className="text-xs font-medium text-slate-500">New vendor</span>}
         </div>
@@ -77,9 +76,9 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
       </div>
 
       {pro.skills && pro.skills.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 my-3">
+        <div className="my-3 flex min-w-0 flex-wrap gap-1.5">
           {pro.skills.slice(0, 3).map((skill) => (
-            <Badge key={skill} variant="green">{skill}</Badge>
+            <Badge key={skill} variant="green" className="max-w-full truncate">{skill}</Badge>
           ))}
         </div>
       )}
@@ -90,17 +89,18 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
         </p>
       )}
 
-      <div className="mt-auto flex gap-2 border-t border-slate-100 pt-3">
+      <div className="mt-auto grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t border-slate-100 pt-3">
         <Link
           href={`/professionals/${pro.id}`}
-          className="btn-primary flex-1 px-3 py-2 text-xs"
+          className="btn-primary min-w-0 px-3 py-2 text-xs"
         >
           Book
         </Link>
         <button
           onClick={handleStartChat}
           disabled={startingChat}
-          className="btn-ghost px-3 py-2 text-xs disabled:opacity-50"
+          className="btn-ghost min-w-[44px] px-3 py-2 text-xs disabled:opacity-50"
+          aria-label={startingChat ? 'Starting chat' : `Message ${pro.firstName}`}
         >
           {startingChat ? (
             <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
@@ -109,7 +109,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              Message
+              <span className="hidden min-[360px]:inline">Message</span>
             </>
           )}
         </button>

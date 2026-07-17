@@ -23,7 +23,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
 
   return (
     <form
-      className="sticky top-[72px] z-30 mb-5 grid gap-3 rounded-lg border border-slate-200 bg-white/95 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.07)] backdrop-blur supports-[backdrop-filter]:bg-white/85 md:static md:z-auto md:mb-6 md:grid-cols-2 md:bg-white md:shadow-none lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,0.8fr))_auto]"
+      className="mb-5 grid min-w-0 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] sm:gap-3 md:sticky md:top-[72px] md:z-30 md:mb-6 md:grid-cols-2 md:bg-white/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-white/85 lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,0.8fr))_auto]"
       method="GET"
     >
       <div className="relative">
@@ -39,7 +39,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
           aria-label="Search professionals"
         />
       </div>
-      <select name="category" defaultValue={category || ''} className="input-field appearance-none">
+      <select name="category" defaultValue={category || ''} className="input-field appearance-none truncate">
         <option value="">All categories</option>
         {BUSINESS_CATEGORY_GROUPS.map((group) => (
           <optgroup key={group.label} label={group.label}>
@@ -52,7 +52,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
       <select
         name="state"
         value={selectedState}
-        className="input-field appearance-none"
+        className="input-field appearance-none truncate"
         onChange={(event) => {
           setSelectedState(event.target.value as NigerianState | '')
           setSelectedLga('')
@@ -66,7 +66,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
       <select
         name="lga"
         value={selectedLga}
-        className="input-field appearance-none disabled:bg-slate-50 disabled:text-slate-400"
+        className="input-field appearance-none truncate disabled:bg-slate-50 disabled:text-slate-400"
         onChange={(event) => setSelectedLga(event.target.value)}
         disabled={!selectedState}
       >
@@ -75,8 +75,8 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
           <option key={item} value={item}>{item}</option>
         ))}
       </select>
-      <div className="flex gap-2 md:col-span-2 lg:col-span-1">
-        <button type="submit" className="btn-primary flex-1 px-5 lg:flex-none">Find</button>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 md:col-span-2 lg:col-span-1">
+        <button type="submit" className="btn-primary min-w-0 px-5 lg:flex-none">Find</button>
         {hasFilters && <Link href="/professionals" className="btn-ghost px-4">Clear</Link>}
       </div>
     </form>

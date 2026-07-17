@@ -17,10 +17,11 @@ export async function GET(req: NextRequest) {
   }
 
   const ref = req.nextUrl.searchParams.get('ref')
+  const walletPath = session.role === 'vendor' ? '/dashboard/wallet' : '/wallet'
 
   if (!ref) {
     return NextResponse.redirect(
-      new URL('/dashboard/wallet?status=error&msg=Missing+reference', req.url)
+      new URL(`${walletPath}?status=error&msg=Missing+reference`, req.url)
     )
   }
 
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
 
     if (result.data.status !== 'success') {
       return NextResponse.redirect(
-        new URL(`/dashboard/wallet?status=failed&ref=${ref}`, req.url)
+        new URL(`${walletPath}?status=failed&ref=${ref}`, req.url)
       )
     }
 
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     if (!userId || userId !== session.id) {
       return NextResponse.redirect(
-        new URL('/dashboard/wallet?status=error&msg=Invalid+payment+metadata', req.url)
+        new URL(`${walletPath}?status=error&msg=Invalid+payment+metadata`, req.url)
       )
     }
 
@@ -49,12 +50,12 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.redirect(
-      new URL(`/dashboard/wallet?status=success&amount=${amountNGN}`, req.url)
+      new URL(`${walletPath}?status=success&amount=${amountNGN}`, req.url)
     )
   } catch (err) {
     console.error('[WALLET VERIFY]', err)
     return NextResponse.redirect(
-      new URL('/dashboard/wallet?status=error&msg=Verification+failed', req.url)
+      new URL(`${walletPath}?status=error&msg=Verification+failed`, req.url)
     )
   }
 }

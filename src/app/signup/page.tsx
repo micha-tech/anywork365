@@ -93,15 +93,15 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-start px-4 py-6 sm:justify-center sm:py-10">
       <div className="w-full max-w-lg">
-        <div className="text-center mb-7">
+        <div className="text-center mb-5 sm:mb-7">
           <BrandLogo size="lg" priority imageClassName="mx-auto object-contain" />
         </div>
 
-        <div className="card p-6 sm:p-8">
+        <div className="card p-5 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Create your account</h1>
-          <p className="text-sm text-slate-500 text-center mb-6">Nigeria&apos;s premium marketplace for verified professionals across home services, logistics, construction, legal, finance, technology, and business support.</p>
+          <p className="text-sm text-slate-500 text-center mb-6">Clients see vendors and jobs right after verification. Vendors can build a business profile and receive bookings.</p>
 
           <div className="mb-5">
             <p className="label mb-2">I want to...</p>

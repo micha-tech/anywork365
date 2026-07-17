@@ -76,31 +76,25 @@ export default async function JobsPage({ searchParams }: Props) {
 
   return (
     <div className="bg-surface-base">
-      <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#FAFBFC_100%)] px-4 py-8 sm:px-6 sm:py-10">
-        <div className="max-w-5xl mx-auto flex items-end justify-between gap-4">
+      <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#FAFBFC_100%)] px-4 py-5 sm:px-6 sm:py-10">
+        <div className="max-w-5xl mx-auto">
           <div>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Browse Jobs</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">Browse Jobs</h1>
             <p className="mt-2 text-sm text-slate-600">Open opportunities across Nigeria</p>
           </div>
-          <Link href="/dashboard/post-job" className="btn-primary text-sm flex-shrink-0">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" d="M12 5v14M5 12h14" />
-            </svg>
-            Post Job
-          </Link>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <form className="mb-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:p-4" method="GET">
+      <div className="max-w-5xl mx-auto px-3 py-4 sm:px-6 sm:py-8">
+        <form className="mb-5 grid min-w-0 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-6 sm:gap-3 sm:p-4" method="GET">
           <input
             name="search"
             defaultValue={search}
             className="input-field w-full"
             placeholder="Search by role, company, or keyword..."
           />
-          <div className="flex gap-2">
-            <select name="category" defaultValue={category} className="input-field flex-1 appearance-none">
+          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+            <select name="category" defaultValue={category} className="input-field min-w-0 appearance-none truncate">
               <option value="">All Categories</option>
               {BUSINESS_CATEGORY_GROUPS.map((group) => (
                 <optgroup key={group.label} label={group.label}>
@@ -110,32 +104,32 @@ export default async function JobsPage({ searchParams }: Props) {
                 </optgroup>
               ))}
             </select>
-            <select name="state" defaultValue={city} className="input-field flex-1 appearance-none">
+            <select name="state" defaultValue={city} className="input-field min-w-0 appearance-none truncate">
               <option value="">All States</option>
               {NIGERIAN_STATE_NAMES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-            <button type="submit" className="btn-primary px-5 flex-shrink-0">Go</button>
+            <button type="submit" className="btn-primary px-5">Go</button>
           </div>
         </form>
 
         {jobs.length > 0 ? (
           <>
-            <p className="text-sm text-slate-500 mb-4">{totalCount.toLocaleString()} jobs found</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <p className="text-sm text-slate-500 mb-3 sm:mb-4">{totalCount.toLocaleString()} jobs found</p>
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               {jobs.map((job) => (
                 <Link
                   key={job.id}
                   href={`/jobs/${job.id}`}
-                  className="card hover:border-brand-300 hover:shadow-card-md transition-all duration-200"
+                  className="card min-w-0 p-4 transition-all duration-200 hover:border-brand-300 hover:shadow-card-md sm:p-5"
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${job.jobType === 'full-time' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'}`}>
+                  <div className="mb-2 flex min-w-0 items-start justify-between gap-2">
+                    <span className={`flex-shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${job.jobType === 'full-time' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'}`}>
                       {job.jobType === 'full-time' ? 'Full-time' : 'Contract'}
                     </span>
                     {job.closingDate && (
-                      <span className="text-xs text-slate-400 whitespace-nowrap">
+                      <span className="min-w-0 truncate text-right text-xs text-slate-400">
                         Closes {new Date(job.closingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                       </span>
                     )}
@@ -154,7 +148,7 @@ export default async function JobsPage({ searchParams }: Props) {
             </div>
             {hasMore && (
               <div className="flex justify-center mt-6 sm:mt-8">
-                <a href={loadMoreHref} className="btn-outline px-8 py-3">
+                <a href={loadMoreHref} className="btn-outline w-full max-w-sm px-5 py-3 sm:w-auto sm:px-8">
                   Load More ({totalCount - currentPage * PAGE_SIZE} remaining)
                 </a>
               </div>

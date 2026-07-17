@@ -1,0 +1,13 @@
+
+> anywork365@0.1.0 dev
+> next dev --turbopack -p 3017
+
+   ▲ Next.js 15.5.15 (Turbopack)
+   - Local:        http://localhost:3017
+   - Network:      http://169.254.83.107:3017
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 1094ms
+ ✓ Ready in 5.1s
