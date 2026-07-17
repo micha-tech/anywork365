@@ -7,15 +7,15 @@ import type { NextRequest } from 'next/server'
  * the `exp` claim without needing Firebase Admin SDK (Edge-unsafe).
  * Full cryptographic verification happens in the API routes via getSession().
  */
-function isSessionValid(cookie: string | undefined): boolean {
-  if (!cookie) return false
+function getSessionPayload(cookie: string | undefined): { valid: boolean; role?: string } {
+  if (!cookie) return { valid: false }
   try {
     const parts = cookie.split('.')
-    if (parts.length !== 3) return false
+    if (parts.length !== 3) return { valid: false }
     const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'))
-    return payload.exp > Math.floor(Date.now() / 1000)
+    return { valid: payload.exp > Math.floor(Date.now() / 1000), role: payload.role }
   } catch {
-    return false
+    return { valid: false }
   }
 }
 
@@ -25,6 +25,10 @@ export async function middleware(request: NextRequest) {
   const protectedPaths = [
     '/admin',
     '/dashboard',
+    '/bookings',
+    '/wallet',
+    '/notifications',
+    '/profile',
     '/messages',
   ]
 
@@ -32,7 +36,8 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = pathname === '/login' || pathname === '/signup'
 
   const sessionCookie = request.cookies.get('__session')?.value
-  const sessionOk = isSessionValid(sessionCookie)
+  const session = getSessionPayload(sessionCookie)
+  const sessionOk = session.valid
 
   if (isProtectedPath && !sessionOk) {
     const url = request.nextUrl.clone()
@@ -42,7 +47,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAuthPage && sessionOk) {
-    const dest = request.nextUrl.searchParams.get('redirect') || '/dashboard'
+    const dest = request.nextUrl.searchParams.get('redirect') || '/home'
     const url = request.nextUrl.clone()
     url.pathname = dest
     return NextResponse.redirect(url)

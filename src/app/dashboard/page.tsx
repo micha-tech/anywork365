@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, type ComponentType, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { SkeletonMetricCard } from '@/components/ui/Skeleton'
@@ -75,6 +76,7 @@ function getTimeOfDayGreeting() {
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const { user, loading } = useCurrentUser()
   const isVendor = user?.role === 'vendor'
   const [metrics, setMetrics] = useState<Metric[]>([
@@ -210,15 +212,35 @@ export default function DashboardPage() {
       ]
 
   useEffect(() => {
+    if (isClientDashboard) {
+      router.replace('/professionals')
+      return
+    }
     if (!isClientDashboard) return
     void loadVendors(1, false)
     void loadJobs(1, false)
-  }, [isClientDashboard, loadJobs, loadVendors])
+  }, [isClientDashboard, loadJobs, loadVendors, router])
 
   function handleDiscoverSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     void loadVendors(1, false)
     void loadJobs(1, false)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50dvh] items-center justify-center text-sm text-slate-500">
+        Loading...
+      </div>
+    )
+  }
+
+  if (isClientDashboard) {
+    return (
+      <div className="flex min-h-[50dvh] items-center justify-center text-sm text-slate-500">
+        Opening vendors...
+      </div>
+    )
   }
 
   return (

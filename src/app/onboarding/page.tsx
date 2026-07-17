@@ -6,6 +6,7 @@ import Image from 'next/image'
 
 const ONBOARDING_KEY = 'anywork365_onboarding_seen'
 const MOBILE_VIEW_QUERY = '(max-width: 767px)'
+const AUTH_ENTRY_PATH = '/login'
 
 const slides = [
   {
@@ -79,7 +80,16 @@ export default function OnboardingPage() {
     document.documentElement.classList.add('page-exit')
     timerRef.current = setTimeout(() => {
       document.documentElement.classList.remove('page-exit')
-      router.replace('/')
+      router.replace(AUTH_ENTRY_PATH)
+    }, 300)
+  }, [router])
+
+  const createAccount = useCallback(() => {
+    sessionStorage.setItem(ONBOARDING_KEY, 'true')
+    document.documentElement.classList.add('page-exit')
+    timerRef.current = setTimeout(() => {
+      document.documentElement.classList.remove('page-exit')
+      router.replace('/signup')
     }, 300)
   }, [router])
 
@@ -218,15 +228,22 @@ export default function OnboardingPage() {
           onClick={goNext}
           className="mt-7 flex h-14 w-full items-center justify-center rounded-lg bg-brand-500 text-base font-bold text-white shadow-[0_18px_44px_rgba(15,79,74,0.35)] transition-all duration-200 hover:bg-brand-600 active:scale-[0.98]"
         >
-          {isLast ? 'Get Started' : 'Continue'}
+          {isLast ? 'Log in' : 'Continue'}
         </button>
 
-        {!isLast && (
+        {isLast ? (
+          <button
+            onClick={createAccount}
+            className="mt-3 flex min-h-[48px] w-full items-center justify-center rounded-lg border border-white/20 bg-white/10 text-sm font-bold text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-[0.98]"
+          >
+            Create account
+          </button>
+        ) : (
           <button
             onClick={complete}
             className="mt-3 min-h-[44px] w-full rounded-lg text-sm font-semibold text-white/70 transition-all hover:bg-white/10 hover:text-white active:scale-[0.98]"
           >
-            I am ready, take me in
+            Skip to login
           </button>
         )}
         </div>

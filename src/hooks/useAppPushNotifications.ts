@@ -54,7 +54,7 @@ export function useAppPushNotifications(onConversationOpen?: (conversationId: st
           if (data?.conversationId) {
             window.location.href = `/messages?conversationId=${data.conversationId}`
           } else if (data?.bookingId) {
-            window.location.href = `/dashboard/bookings`
+            window.location.href = `/bookings`
           } else {
             window.location.href = data?.url || '/messages'
           }

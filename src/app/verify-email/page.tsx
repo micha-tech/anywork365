@@ -83,10 +83,10 @@ export default function VerifyEmailPage() {
     try {
       await refreshSession()
     } catch {
-      // Session refresh is best-effort; dashboard will redirect back if it fails
+      // Session refresh is best-effort; protected pages will redirect back if it fails.
     }
-    router.push('/dashboard')
-  }, [refreshSession, router])
+    router.push(user?.role === 'vendor' ? '/dashboard' : '/professionals')
+  }, [refreshSession, router, user?.role])
 
   useEffect(() => {
     const code = getEmailVerificationCode()
@@ -135,12 +135,12 @@ export default function VerifyEmailPage() {
       toast.success('Email verified successfully')
 
       if (sessionRefreshed) {
-        router.push('/dashboard')
+        router.push(user?.role === 'vendor' ? '/dashboard' : '/professionals')
       }
     }
 
     void applyVerificationCode()
-  }, [verificationCode, refreshSession, router])
+  }, [verificationCode, refreshSession, router, user?.role])
 
   useEffect(() => {
     if (!loading && !user && !verificationCode && linkState !== 'applying' && linkState !== 'verified') {

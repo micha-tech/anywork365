@@ -16,9 +16,16 @@ const PUBLIC_NAV = [
 ]
 
 const AUTH_NAV = [
-  { href: '/dashboard',     label: 'Dashboard' },
+  { href: '/professionals', label: 'Vendors' },
+  { href: '/jobs', label: 'Jobs' },
+  { href: '/bookings', label: 'Bookings' },
+  { href: '/messages', label: 'Messages' },
+]
+
+const VENDOR_AUTH_NAV = [
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/dashboard/bookings', label: 'Bookings' },
-  { href: '/messages',      label: 'Messages' },
+  { href: '/messages', label: 'Messages' },
 ]
 
 const ADMIN_NAV = [
@@ -56,7 +63,8 @@ export function Navbar() {
 
   const isLoggedIn = !loading && !!user
   const isAdmin    = user?.role === 'admin'
-  const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? AUTH_NAV : PUBLIC_NAV
+  const isVendor   = user?.role === 'vendor'
+  const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? (user?.role === 'vendor' ? VENDOR_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
   const initials   = getInitialsFromUser(user)
 
   const handleConversationOpen = useCallback((conversationId: string) => {
@@ -127,7 +135,7 @@ export function Navbar() {
 
             <div className="hidden md:flex items-center gap-2">
               {isLoggedIn && (
-                <NotificationBell unreadCount={unreadCount} onClick={() => router.push('/dashboard/notifications')} />
+                <NotificationBell unreadCount={unreadCount} onClick={() => router.push(isVendor ? '/dashboard/notifications' : '/notifications')} />
               )}
               {isLoggedIn ? (
                 <div className="relative">
@@ -154,11 +162,18 @@ export function Navbar() {
                       </div>
                       {(isAdmin ? [
                         { href: '/admin', label: 'Admin Panel' },
-                      ] : [
-                        { href: '/dashboard',        label: 'Dashboard' },
-                        { href: '/messages',         label: 'Messages' },
+                      ] : isVendor ? [
+                        { href: '/dashboard', label: 'Dashboard' },
+                        { href: '/messages', label: 'Messages' },
                         { href: '/dashboard/wallet', label: 'Wallet' },
-                        { href: '/dashboard/profile',label: 'My Profile' },
+                        { href: '/dashboard/profile', label: 'My Profile' },
+                      ] : [
+                        { href: '/professionals', label: 'Vendors' },
+                        { href: '/jobs', label: 'Jobs' },
+                        { href: '/bookings', label: 'Bookings' },
+                        { href: '/messages', label: 'Messages' },
+                        { href: '/wallet', label: 'Wallet' },
+                        { href: '/profile', label: 'My Profile' },
                       ]).map((item) => (
                         <Link
                           key={item.href}
@@ -191,7 +206,7 @@ export function Navbar() {
 
             <div className="flex md:hidden flex-shrink-0 items-center gap-1.5">
               {isLoggedIn && (
-                <NotificationBell unreadCount={unreadCount} onClick={() => router.push('/dashboard/notifications')} />
+                <NotificationBell unreadCount={unreadCount} onClick={() => router.push(isVendor ? '/dashboard/notifications' : '/notifications')} />
               )}
               {isLoggedIn ? (
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
@@ -251,8 +266,15 @@ export function Navbar() {
                 <>
                   <div className="border-t border-slate-100 mt-2 pt-2">
                     {[
-                      { href: '/dashboard/wallet',  label: 'Wallet' },
-                      { href: '/dashboard/profile', label: 'My Profile' },
+                      ...(isVendor
+                        ? [
+                            { href: '/dashboard/wallet', label: 'Wallet' },
+                            { href: '/dashboard/profile', label: 'My Profile' },
+                          ]
+                        : [
+                            { href: '/wallet', label: 'Wallet' },
+                            { href: '/profile', label: 'My Profile' },
+                          ]),
                     ].map((item) => (
                       <Link
                         key={item.href}
