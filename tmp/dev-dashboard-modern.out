@@ -15,3 +15,14 @@
  ✓ Compiled / in 16.7s
  GET / 200 in 712ms
  ✓ Compiled in 897ms
+ ✓ Compiled middleware in 86ms
+ ✓ Compiled middleware in 95ms
+ ✓ Compiled in 5ms
+ ✓ Compiled middleware in 17ms
+ ✓ Compiled in 39ms
+ ✓ Compiled middleware in 50ms
+ ✓ Compiled in 549ms
+ ○ Compiling /professionals ...
+ ✓ Compiled /professionals in 2.7s
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.8s

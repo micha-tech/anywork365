@@ -253,7 +253,10 @@ export default function BookingsPage() {
             </p>
           </div>
           {!isVendor && (
-            <Link href="/professionals" className="btn-primary px-4 py-2.5 text-sm">
+            <Link
+              href="/professionals"
+              className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3.5 py-2 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(15,79,74,0.14)] transition-colors hover:bg-brand-600 active:bg-brand-700"
+            >
               Find vendor
             </Link>
           )}
@@ -295,7 +298,14 @@ export default function BookingsPage() {
             description={bookings.length === 0
               ? (isVendor ? 'Client bookings will appear here.' : 'Book a vendor to start tracking work.')
               : 'Try another status tab.'}
-            action={!isVendor && bookings.length === 0 ? <Link href="/professionals" className="btn-primary inline-flex px-6 py-2.5 text-sm">Find vendor</Link> : undefined}
+            action={!isVendor && bookings.length === 0 ? (
+              <Link
+                href="/professionals"
+                className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(15,79,74,0.14)] transition-colors hover:bg-brand-600 active:bg-brand-700"
+              >
+                Find vendor
+              </Link>
+            ) : undefined}
           />
         ) : visibleBookings.map((b) => (
           <div key={b.id} className="card">
