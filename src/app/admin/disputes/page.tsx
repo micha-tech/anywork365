@@ -83,7 +83,7 @@ export default function AdminDisputesPage() {
             <tr className="border-b border-slate-200 text-left text-xs text-slate-500 uppercase">
               <th className="p-3 font-medium">#</th>
               <th className="p-3 font-medium">Client</th>
-              <th className="p-3 font-medium">Vendor</th>
+              <th className="p-3 font-medium">Artisan</th>
               <th className="p-3 font-medium">Reason</th>
               <th className="p-3 font-medium">Status</th>
               <th className="p-3 font-medium">Date</th>

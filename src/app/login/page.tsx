@@ -52,9 +52,9 @@ export default function LoginPage() {
 
       window.location.href = body.data?.role === 'admin'
         ? '/admin'
-        : body.data?.role === 'vendor'
+        : body.data?.role === 'artisan'
           ? '/dashboard'
-          : '/professionals'
+          : '/artisans'
     } catch (err: unknown) {
       toast.error(toErrorMessage(err))
     }
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
         <div className="card p-5 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Welcome back</h1>
-          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to discover vendors, jobs, and your bookings.</p>
+          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to discover artisans, jobs, and your bookings.</p>
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="form-group">

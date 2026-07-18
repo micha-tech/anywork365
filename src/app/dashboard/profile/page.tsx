@@ -165,7 +165,7 @@ export default function ProfilePage() {
   }, [user])
 
   useEffect(() => {
-    if (user?.role !== 'vendor') return
+    if (user?.role !== 'artisan') return
     setPortfolioLoading(true)
     fetch('/api/profile/portfolio')
       .then((response) => response.json())
@@ -186,7 +186,7 @@ export default function ProfilePage() {
 
   const initials    = getInitialsFromUser(user)
   const fullName    = user ? `${user.firstName} ${user.lastName}` : ''
-  const roleLabel   = user?.role === 'vendor' ? 'Vendor' : 'User'
+  const roleLabel   = user?.role === 'artisan' ? 'Artisan' : user?.role === 'professional' ? 'Professional' : user?.role === 'recruiter' ? 'Recruiter' : 'Client'
   // Show uploaded photo, else existing avatarUrl from session, else null (shows initials)
   const displayPhoto = photoUrl ?? user?.avatarUrl ?? null
 
@@ -598,7 +598,7 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          {user?.role === 'vendor' && (
+          {user?.role === 'artisan' && (
             <Link href="/dashboard/verify-business" className="card block hover:ring-1 hover:ring-brand-500 transition-all">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
@@ -663,7 +663,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {user?.role === 'vendor' && (
+      {user?.role === 'artisan' && (
         <section className="card mt-4 sm:mt-6">
           <div className="mb-5">
             <h2 className="font-medium text-base">Portfolio</h2>

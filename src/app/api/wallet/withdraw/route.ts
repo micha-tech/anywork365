@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (session.role !== 'vendor') {
+    if (session.role !== 'artisan') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only vendors can withdraw funds' },
+        { success: false, error: 'Only artisans can withdraw funds' },
         { status: 403 }
       )
     }

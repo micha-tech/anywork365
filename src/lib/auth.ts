@@ -33,9 +33,11 @@ export async function getUserFromFirebase(uid: string): Promise<AuthUser | null>
     const parts = user.fullName.trim().split(/\s+/)
     const role: AuthUser['role'] =
       user.role === 'admin' ? 'admin' :
-      user.role === 'vendor' ? 'vendor' :
+      user.role === 'artisan' || user.role === 'vendor' ? 'artisan' :
+      user.role === 'professional' ? 'professional' :
+      user.role === 'recruiter' ? 'recruiter' :
       user.role === 'client' ? 'client' :
-      user.hasBusinessAccount ? 'vendor' : 'client'
+      user.hasBusinessAccount ? 'artisan' : 'client'
     return {
       id: uid,
       email: user.email,

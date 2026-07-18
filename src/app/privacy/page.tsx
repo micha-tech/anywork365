@@ -8,7 +8,7 @@ export const metadata = {
 const sections = [
   {
     title: 'Information We Collect',
-    content: `We collect information you provide when creating an account: name, email address, phone number, and National Identification Number (NIN), if provided, for verification purposes. If you are a vendor, we may collect business details, portfolio items, and bank account information for payments.
+    content: `We collect information you provide when creating an account: name, email address, phone number, and National Identification Number (NIN), if provided, for verification purposes. If you are an artisan, we may collect business details, portfolio items, and bank account information for payments.
 
 We also collect data automatically: device information, IP address, browser type, pages visited, and usage patterns to improve our service.`,
   },
@@ -17,7 +17,7 @@ We also collect data automatically: device information, IP address, browser type
     content: `Your information is used to:
 • Create and manage your account
 • Process bookings and payments
-• Verify vendor identities and business credentials
+• Verify artisan identities and business credentials
 • Send notifications about bookings, messages, and account updates
 • Improve platform performance and user experience
 • Comply with legal and regulatory obligations in Nigeria`,

@@ -78,7 +78,7 @@ function getTimeOfDayGreeting() {
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading } = useCurrentUser()
-  const isVendor = user?.role === 'vendor'
+  const isVendor = user?.role === 'artisan'
   const [metrics, setMetrics] = useState<Metric[]>([
     { label: 'Active Jobs', value: '-', change: 'Loading...', icon: BriefcaseIcon, tone: 'brand' },
     { label: 'Applications', value: '-', change: 'Loading...', icon: BookingsIcon, tone: 'amber' },
@@ -134,7 +134,7 @@ export default function DashboardPage() {
         setMetrics([
           { label: 'Bookings', value: String(stats.activeJobs), change: stats.activeJobs > 0 ? `${stats.activeJobs} total requests` : 'Start your first booking', icon: BookingsIcon, tone: 'brand' },
           { label: 'Active Now', value: String(activeNow), change: activeNow > 0 ? `${activeNow} in progress` : 'No active bookings', icon: ClockIcon, tone: 'amber' },
-          { label: 'Vendors Hired', value: String(stats.hiredPros), change: stats.hiredPros > 0 ? `${stats.hiredPros} confirmed` : 'No confirmed vendors yet', icon: UserIcon, tone: 'slate' },
+          { label: 'Artisans Hired', value: String(stats.hiredPros), change: stats.hiredPros > 0 ? `${stats.hiredPros} confirmed` : 'No confirmed artisans yet', icon: UserIcon, tone: 'slate' },
           { label: 'Completed', value: String(stats.jobsCompleted), change: stats.jobsCompleted > 0 ? `${stats.jobsCompleted} finished` : 'No completed jobs yet', icon: CheckCircleIcon, tone: 'green' },
         ])
       }
@@ -165,7 +165,7 @@ export default function DashboardPage() {
         setVendorMeta(json.meta ?? null)
       }
     } catch {
-      toast.error('Failed to load vendors')
+      toast.error('Failed to load artisans')
     } finally {
       setVendorsLoading(false)
     }
@@ -195,9 +195,9 @@ export default function DashboardPage() {
 
   const greetingBase = getTimeOfDayGreeting()
   const greeting = loading ? greetingBase : `${greetingBase}, ${user?.firstName ?? 'there'}`
-  const isClientDashboard = !loading && user?.role !== 'vendor'
-  const isVendorDashboard = !loading && user?.role === 'vendor'
-  const quickActions: QuickAction[] = user?.role === 'vendor'
+  const isClientDashboard = !loading && user?.role !== 'artisan'
+  const isVendorDashboard = !loading && user?.role === 'artisan'
+  const quickActions: QuickAction[] = user?.role === 'artisan'
     ? [
         { href: '/dashboard/bookings', icon: BookingsIcon, label: 'Bookings', sub: 'Review client requests' },
         { href: '/messages', icon: ChatIcon, label: 'Messages', sub: 'Reply to clients' },
@@ -213,7 +213,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isClientDashboard) {
-      router.replace('/professionals')
+      router.replace('/artisans')
       return
     }
     if (!isClientDashboard) return
@@ -238,7 +238,7 @@ export default function DashboardPage() {
   if (isClientDashboard) {
     return (
       <div className="flex min-h-[50dvh] items-center justify-center text-sm text-slate-500">
-        Opening vendors...
+        Opening artisans...
       </div>
     )
   }
@@ -255,14 +255,14 @@ export default function DashboardPage() {
             <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{greeting}</h1>
             <p className="mt-1 text-sm text-slate-600">
               {isClientDashboard
-                ? 'Find a trusted vendor and get the job moving.'
+                ? 'Find a trusted artisan and get the job moving.'
                 : isVendorDashboard
                   ? 'Manage requests, keep your business profile sharp, and track earnings.'
                   : 'Here is what is happening with your projects.'}
             </p>
           </div>
           {isClientDashboard ? (
-            <form action="/professionals" method="GET" className="flex w-full flex-col gap-2 sm:max-w-xl sm:flex-row">
+            <form action="/artisans" method="GET" className="flex w-full flex-col gap-2 sm:max-w-xl sm:flex-row">
               <div className="relative flex-1">
                 <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
@@ -272,7 +272,7 @@ export default function DashboardPage() {
                 />
               </div>
               <button type="submit" className="btn-primary h-12 px-5 py-2.5 text-sm">
-                Find vendor
+                Find artisan
               </button>
               <Link href="/dashboard/bookings" className="btn-ghost h-12 px-4 py-2.5 text-sm justify-center bg-white">
                 Bookings
@@ -314,8 +314,8 @@ export default function DashboardPage() {
                 </p>
                 <p className="mt-1 text-sm text-slate-500">
                   {clientSummary?.activeBookings
-                    ? 'Review active requests, confirm progress, or message your vendor.'
-                    : 'Browse verified vendors and send your first service request.'}
+                    ? 'Review active requests, confirm progress, or message your artisan.'
+                    : 'Browse verified artisans and send your first service request.'}
                 </p>
               </div>
             </div>
@@ -333,12 +333,12 @@ export default function DashboardPage() {
         <section className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:mb-7 sm:p-5">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="font-display text-lg font-bold text-slate-900">Discover work and vendors</h2>
-              <p className="mt-1 text-sm text-slate-500">Search once, compare vendors and open jobs from here.</p>
+              <h2 className="font-display text-lg font-bold text-slate-900">Discover work and artisans</h2>
+              <p className="mt-1 text-sm text-slate-500">Search once, compare artisans and open jobs from here.</p>
             </div>
             <div className="inline-flex w-fit rounded-lg border border-slate-200 bg-slate-50 p-1">
               {([
-                { id: 'vendors', label: `Vendors${vendorMeta ? ` ${vendorMeta.total}` : ''}` },
+                { id: 'vendors', label: `Artisans${vendorMeta ? ` ${vendorMeta.total}` : ''}` },
                 { id: 'jobs', label: `Jobs${jobMeta ? ` ${jobMeta.total}` : ''}` },
               ] as const).map((tab) => (
                 <button
@@ -381,7 +381,7 @@ export default function DashboardPage() {
               onChange={(event) => setDiscoverCategory(event.target.value)}
               disabled={discoverTab === 'jobs'}
             >
-              <option value="">{discoverTab === 'jobs' ? 'Category filter for vendors' : 'All vendor categories'}</option>
+              <option value="">{discoverTab === 'jobs' ? 'Category filter for artisans' : 'All artisan categories'}</option>
               {BUSINESS_CATEGORY_GROUPS.map((group) => (
                 <optgroup key={group.label} label={group.label}>
                   {group.categories.map((category) => (
@@ -405,7 +405,7 @@ export default function DashboardPage() {
                 </div>
               ) : vendors.length === 0 ? (
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-8 text-center">
-                  <p className="text-sm font-semibold text-slate-900">No vendors found</p>
+                  <p className="text-sm font-semibold text-slate-900">No artisans found</p>
                   <p className="mt-1 text-sm text-slate-500">Try another service, category, or state.</p>
                 </div>
               ) : (
@@ -423,7 +423,7 @@ export default function DashboardPage() {
                     disabled={vendorsLoading}
                     className="btn-outline px-6 py-2.5 text-sm"
                   >
-                    {vendorsLoading ? 'Loading...' : 'Load more vendors'}
+                    {vendorsLoading ? 'Loading...' : 'Load more artisans'}
                   </button>
                 </div>
               )}
@@ -601,14 +601,14 @@ export default function DashboardPage() {
               </p>
               <p className="mt-1 max-w-sm text-sm text-slate-500">
                 {isClientDashboard
-                  ? 'Find a trusted vendor near you and your updates will appear here.'
+                  ? 'Find a trusted artisan near you and your updates will appear here.'
                   : isVendorDashboard
                     ? 'Client requests and booking updates will appear here when they start coming in.'
                     : 'New project updates will appear here.'}
               </p>
               {isClientDashboard && (
-                <Link href="/professionals" className="btn-primary mt-4 px-5 py-2.5 text-sm">
-                  Find vendors
+                <Link href="/artisans" className="btn-primary mt-4 px-5 py-2.5 text-sm">
+                  Find artisans
                 </Link>
               )}
               {isVendorDashboard && (

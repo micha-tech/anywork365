@@ -58,7 +58,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex min-w-0 items-center gap-1.5">
-            <Link href={`/professionals/${pro.id}`} className="truncate font-semibold text-slate-900 transition-colors group-hover:text-brand-500">
+            <Link href={`/artisans/${pro.id}`} className="truncate font-semibold text-slate-900 transition-colors group-hover:text-brand-500">
               {displayName}
             </Link>
           </div>
@@ -80,7 +80,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
 
       <div className="mt-auto grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t border-slate-100 pt-3">
         <Link
-          href={`/professionals/${pro.id}`}
+          href={`/artisans/${pro.id}`}
           className="btn-primary min-w-0 px-3 py-2 text-xs"
         >
           Book

@@ -159,9 +159,9 @@ function ChatPageContent() {
                 </svg>
               </div>
               <p className="text-sm text-gray-500">No messages yet</p>
-              <p className="text-xs text-gray-400 mt-1">Start a conversation with a vendor</p>
-              <Link href="/professionals" className="mt-4 inline-block text-sm text-[#00A884] hover:underline">
-                Browse Vendors
+              <p className="text-xs text-gray-400 mt-1">Start a conversation with an artisan</p>
+              <Link href="/artisans" className="mt-4 inline-block text-sm text-[#00A884] hover:underline">
+                Browse Artisans
               </Link>
             </div>
           </div>

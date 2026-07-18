@@ -1,7 +1,7 @@
 import { query, queryOne, execute, type SqlValue } from './db'
 import type { RowDataPacket } from 'mysql2/promise'
 import type {
-  User, AuthUser, PortfolioItem,
+  User, AuthUser, UserRole, PortfolioItem,
   Booking, BookingStatus,
 } from '@/types'
 import { getAvatarUrl } from '@/lib/avatar'
@@ -22,7 +22,7 @@ interface UserRow extends RowDataPacket {
   address: string
   bio: string | null
   hasBusinessAccount: number
-  role: 'client' | 'vendor' | 'admin' | null
+  role: UserRole | 'vendor' | null
   verified: number
   suspended: number
   dateJoined: string
@@ -211,11 +211,13 @@ interface WithdrawalRow extends RowDataPacket {
 
 // ─── Transform helpers ────────────────────────────────────────────────────
 
-function resolveRole(row: UserRow): 'client' | 'vendor' | 'admin' {
+function resolveRole(row: UserRow): UserRole {
   if (row.role === 'admin') return 'admin'
-  if (row.role === 'vendor') return 'vendor'
+  if (row.role === 'artisan' || row.role === 'vendor') return 'artisan'
+  if (row.role === 'professional') return 'professional'
+  if (row.role === 'recruiter') return 'recruiter'
   if (row.role === 'client') return 'client'
-  return row.hasBusinessAccount ? 'vendor' : 'client'
+  return row.hasBusinessAccount ? 'artisan' : 'client'
 }
 
 function userRowToAuthUser(row: UserRow): AuthUser {
@@ -287,7 +289,7 @@ export async function createUser(data: {
   email: string
   fullName: string
   phoneNumber: string
-  role?: 'client' | 'vendor' | 'admin'
+  role?: UserRole
   state?: string
   nin?: string
 }): Promise<void> {
@@ -567,7 +569,7 @@ export async function listVendors(filters?: {
       lastName: parts.slice(1).join(' ') || '',
       email: r.user_email ?? '',
       phone: r.businessContact || r.user_phoneNumber || undefined,
-      role: 'vendor',
+      role: 'artisan',
       city: r.state,
       lga: r.lga || undefined,
       address: r.location || undefined,
@@ -603,7 +605,7 @@ function businessRowToUser(b: BusinessRow, user?: UserRow): User {
     lastName: parts.slice(1).join(' ') || '',
     email: user?.email ?? '',
     phone: b.businessContact || user?.phoneNumber || undefined,
-    role: 'vendor',
+    role: 'artisan',
     city: b.state,
     lga: b.lga || undefined,
     address: b.location || undefined,
@@ -988,9 +990,65 @@ export async function createBusiness(data: {
   return result.insertId
 }
 
+export async function createProfessionalProfile(data: {
+  uid: string
+  industryCategory: string
+  professionalServiceCategory: string
+  jobTitle: string
+  qualification: string
+  yearsExperience: number
+  linkedinOrPortfolioUrl?: string
+}): Promise<number> {
+  const result = await execute(
+    `INSERT INTO professional_profiles
+      (uid, industry_category, professional_service_category, job_title, qualification,
+       years_experience, linkedin_or_portfolio_url, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+    [
+      data.uid,
+      data.industryCategory,
+      data.professionalServiceCategory,
+      data.jobTitle,
+      data.qualification,
+      data.yearsExperience,
+      data.linkedinOrPortfolioUrl || null,
+    ]
+  )
+  return result.insertId
+}
+
+export async function createRecruiterProfile(data: {
+  uid: string
+  companyName: string
+  companySize: string
+  industryCategory: string
+  recruitmentFunction: string
+  position: string
+  companyWebsite?: string
+}): Promise<number> {
+  const result = await execute(
+    `INSERT INTO recruiter_profiles
+      (uid, company_name, company_size, industry_category, recruitment_function,
+       position, company_website, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+    [
+      data.uid,
+      data.companyName,
+      data.companySize,
+      data.industryCategory,
+      data.recruitmentFunction,
+      data.position,
+      data.companyWebsite || null,
+    ]
+  )
+  return result.insertId
+}
+
 // ─── FCM Tokens ──────────────────────────────────────────────────────────
 
 export async function deleteSignupProfileByUid(uid: string): Promise<void> {
+  await execute('DELETE FROM professional_profiles WHERE uid = ?', [uid])
+  await execute('DELETE FROM recruiter_profiles WHERE uid = ?', [uid])
   await execute('DELETE FROM businesses WHERE uid = ?', [uid])
   await execute('DELETE FROM users WHERE uid = ?', [uid])
 }
@@ -1038,7 +1096,7 @@ export interface ActivityItem {
 const ACTIVITY_COLORS = ['bg-brand-500', 'bg-blue-600', 'bg-amber-500', 'bg-rose-500', 'bg-teal-600', 'bg-purple-600']
 
 export async function getDashboardStats(uid: string, role: string): Promise<DashboardStats> {
-  const business = role === 'vendor' ? await getBusinessByUid(uid) : null
+  const business = role === 'artisan' ? await getBusinessByUid(uid) : null
 
   if (business) {
     const [activeJobs] = await query<CountRow[]>('SELECT COUNT(*) AS c FROM vacancies WHERE company_id = ? AND closed = 0', [business.businessId])
@@ -1069,7 +1127,7 @@ export async function getDashboardStats(uid: string, role: string): Promise<Dash
 }
 
 export async function getRecentActivity(uid: string, role: string): Promise<ActivityItem[]> {
-  const business = role === 'vendor' ? await getBusinessByUid(uid) : null
+  const business = role === 'artisan' ? await getBusinessByUid(uid) : null
   const items: ActivityItem[] = []
 
   if (business) {
@@ -1101,7 +1159,7 @@ export async function getRecentActivity(uid: string, role: string): Promise<Acti
       [uid]
     )
     for (const row of rows) {
-      const name = row.businessName || 'A vendor'
+      const name = row.businessName || 'An artisan'
       const initials = name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase() || '??'
       const statusMap: Record<string, string> = { Pending: 'requested service from', Confirmed: 'confirmed booking with', Closed: 'completed work with', Cancelled: 'cancelled with' }
       const action = statusMap[row.bookingStatus] || 'interacted with'

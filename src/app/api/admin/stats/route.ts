@@ -8,7 +8,7 @@ type CountRow = RowDataPacket & { count: number }
 type TotalRow = RowDataPacket & { total: number }
 type CountTotalRow = RowDataPacket & { count: number; total: number }
 type StatsData = {
-  users: { total: number; vendors: number; clients: number; admins: number }
+  users: { total: number; artisans: number; professionals: number; recruiters: number; clients: number; admins: number }
   bookings: { total: number; pending: number; completed: number }
   jobs: { total: number; open: number }
   revenue: { total: number; withdrawn: number }
@@ -21,7 +21,7 @@ type StatsData = {
 
 async function computeStats(): Promise<StatsData> {
   const [
-    totalUsers, totalVendors, totalClients, totalAdmins,
+    totalUsers, totalArtisans, totalProfessionals, totalRecruiters, totalClients, totalAdmins,
     totalBookings, pendingBookings, completedBookings,
     totalJobs, openJobs,
     totalRevenue, totalWithdrawn,
@@ -31,7 +31,9 @@ async function computeStats(): Promise<StatsData> {
     activeEscrows,
   ] = await Promise.all([
     query<CountRow[]>('SELECT COUNT(*) AS count FROM users WHERE deleted = 0'),
-    query<CountRow[]>("SELECT COUNT(*) AS count FROM users WHERE deleted = 0 AND (role = 'vendor' OR (role IS NULL AND hasBusinessAccount = 1))"),
+    query<CountRow[]>("SELECT COUNT(*) AS count FROM users WHERE deleted = 0 AND (role = 'artisan' OR (role IS NULL AND hasBusinessAccount = 1))"),
+    query<CountRow[]>("SELECT COUNT(*) AS count FROM users WHERE deleted = 0 AND role = 'professional'"),
+    query<CountRow[]>("SELECT COUNT(*) AS count FROM users WHERE deleted = 0 AND role = 'recruiter'"),
     query<CountRow[]>("SELECT COUNT(*) AS count FROM users WHERE deleted = 0 AND (role = 'client' OR (role IS NULL AND hasBusinessAccount = 0))"),
     query<CountRow[]>("SELECT COUNT(*) AS count FROM users WHERE deleted = 0 AND role = 'admin'"),
     query<CountRow[]>('SELECT COUNT(*) AS count FROM bookings'),
@@ -49,7 +51,14 @@ async function computeStats(): Promise<StatsData> {
   ])
 
   return {
-    users: { total: totalUsers[0]?.count ?? 0, vendors: totalVendors[0]?.count ?? 0, clients: totalClients[0]?.count ?? 0, admins: totalAdmins[0]?.count ?? 0 },
+    users: {
+      total: totalUsers[0]?.count ?? 0,
+      artisans: totalArtisans[0]?.count ?? 0,
+      professionals: totalProfessionals[0]?.count ?? 0,
+      recruiters: totalRecruiters[0]?.count ?? 0,
+      clients: totalClients[0]?.count ?? 0,
+      admins: totalAdmins[0]?.count ?? 0,
+    },
     bookings: { total: totalBookings[0]?.count ?? 0, pending: pendingBookings[0]?.count ?? 0, completed: completedBookings[0]?.count ?? 0 },
     jobs: { total: totalJobs[0]?.count ?? 0, open: openJobs[0]?.count ?? 0 },
     revenue: { total: totalRevenue[0]?.total ?? 0, withdrawn: totalWithdrawn[0]?.total ?? 0 },

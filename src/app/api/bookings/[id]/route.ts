@@ -93,7 +93,7 @@ export async function PATCH(
     if (action === 'confirm' && !isVendor) {
       await conn.rollback()
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only the vendor can confirm a booking' },
+        { success: false, error: 'Only the artisan can confirm a booking' },
         { status: 403 }
       )
     }
@@ -200,7 +200,7 @@ export async function PATCH(
         ? booking.businessUid
         : isClient ? booking.businessUid : booking.clientUID
     const notification = action === 'confirm'
-      ? { title: 'Booking Confirmed', body: `Booking #${bookingId} was accepted by the vendor.` }
+      ? { title: 'Booking Confirmed', body: `Booking #${bookingId} was accepted by the artisan.` }
       : action === 'complete'
         ? { title: 'Booking Completed', body: `Booking #${bookingId} was completed and payment was released.` }
         : { title: 'Booking Cancelled', body: `Booking #${bookingId} was cancelled.` }
@@ -219,7 +219,7 @@ export async function PATCH(
         data: { id: bookingId, status: action === 'complete' ? 'completed' : action === 'cancel' ? 'cancelled' : 'confirmed' },
         message:
           action === 'confirm' ? 'Booking confirmed!' :
-          action === 'complete' ? 'Job marked as complete. Payment released to vendor.' :
+          action === 'complete' ? 'Job marked as complete. Payment released to artisan.' :
           'Booking cancelled.',
       },
       { status: 200 }

@@ -36,7 +36,7 @@ async function main() {
 
   // ── Ensure role column exists ────────────────────────────────────────
   await conn.execute(
-    `ALTER TABLE users ADD COLUMN role ENUM('client','vendor','admin') DEFAULT NULL AFTER hasBusinessAccount`
+    `ALTER TABLE users ADD COLUMN role ENUM('client','artisan','professional','recruiter','admin') DEFAULT NULL AFTER hasBusinessAccount`
   ).catch(() => {})
 
   // ── Ensure disputes + audit log tables ────────────────────────────────

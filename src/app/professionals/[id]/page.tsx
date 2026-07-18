@@ -112,7 +112,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
   function handleCall(type: 'voice' | 'video') {
     if (!pro?.phone) {
-      toast.error('This vendor hasn\u2019t shared their phone number')
+      toast.error('This artisan hasn\u2019t shared their phone number')
       return
     }
     setCalling(type)
@@ -141,7 +141,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
   function handleQuickConnect() {
     if (!pro?.phone) {
-      toast.error('This vendor hasn\u2019t shared their phone number')
+      toast.error('This artisan hasn\u2019t shared their phone number')
       return
     }
     setQuickConnecting(true)
@@ -172,8 +172,8 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="max-w-4xl mx-auto px-3 pb-40 pt-4 sm:px-6 sm:py-10">
-      <Link href="/professionals" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-500 mb-5">
-        ← Back to Vendors
+      <Link href="/artisans" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-500 mb-5">
+        ← Back to Artisans
       </Link>
 
       <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur pb-safe">

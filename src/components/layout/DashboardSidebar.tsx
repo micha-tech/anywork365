@@ -43,8 +43,8 @@ export function DashboardSidebar() {
 
   const initials = getInitialsFromUser(user)
   const fullName = user ? `${user.firstName} ${user.lastName}` : '...'
-  const role = user ? (user.role === 'vendor' ? 'Vendor' : user.role === 'admin' ? 'Admin' : 'Client') : ''
-  const isVendor = user?.role === 'vendor'
+  const role = user ? (user.role === 'artisan' ? 'Artisan' : user.role === 'professional' ? 'Professional' : user.role === 'recruiter' ? 'Recruiter' : user.role === 'admin' ? 'Admin' : 'Client') : ''
+  const isVendor = user?.role === 'artisan'
   const isAdmin = user?.role === 'admin'
   const nav = isVendor ? VENDOR_NAV : []
 

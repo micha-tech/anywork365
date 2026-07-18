@@ -39,8 +39,8 @@ export async function GET() {
 
   const [balance, escrowBalance, totalEarned, ledger, accounts, withdrawals] = await Promise.all([
     getWalletBalance(wallet.id),
-    session.role === 'vendor' ? getHeldEscrowBalance(wallet.id) : Promise.resolve(0),
-    session.role === 'vendor' ? getTotalWalletEarnings(wallet.id) : Promise.resolve(0),
+    session.role === 'artisan' ? getHeldEscrowBalance(wallet.id) : Promise.resolve(0),
+    session.role === 'artisan' ? getTotalWalletEarnings(wallet.id) : Promise.resolve(0),
     getWalletLedger(wallet.id),
     getWithdrawalAccounts(user.userId),
     getUserWithdrawals(user.userId),

@@ -18,9 +18,9 @@ export default async function HomeRedirectPage() {
     redirect('/admin')
   }
 
-  if (session.role === 'vendor') {
+  if (session.role === 'artisan') {
     redirect('/dashboard')
   }
 
-  redirect('/professionals')
+  redirect('/artisans')
 }

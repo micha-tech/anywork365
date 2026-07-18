@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (session.role !== 'vendor') {
+    if (session.role !== 'artisan') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only vendors can submit business verification' },
+        { success: false, error: 'Only artisans can submit business verification' },
         { status: 403 }
       )
     }
@@ -106,9 +106,9 @@ export async function GET() {
       )
     }
 
-    if (session.role !== 'vendor') {
+    if (session.role !== 'artisan') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only vendors can check verification status' },
+        { success: false, error: 'Only artisans can check verification status' },
         { status: 403 }
       )
     }

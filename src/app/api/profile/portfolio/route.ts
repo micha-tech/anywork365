@@ -49,9 +49,9 @@ export async function POST(req: NextRequest) {
       { status: 401 }
     )
   }
-  if (session.role !== 'vendor') {
+  if (session.role !== 'artisan') {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Portfolio items are available to vendors' },
+      { success: false, error: 'Portfolio items are available to artisans' },
       { status: 403 }
     )
   }

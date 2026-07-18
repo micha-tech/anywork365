@@ -43,7 +43,7 @@ export default function VerifyBusinessPage() {
 
   useEffect(() => {
     if (userLoading) return
-    if (user?.role !== 'vendor') {
+    if (user?.role !== 'artisan') {
       setLoading(false)
       return
     }

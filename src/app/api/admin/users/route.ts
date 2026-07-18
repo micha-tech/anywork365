@@ -22,15 +22,18 @@ export async function GET(request: NextRequest) {
       const q = `%${search}%`
       params.push(q, q, q)
     }
-    if (role === 'admin' || role === 'vendor' || role === 'client') {
+    if (['admin', 'artisan', 'professional', 'recruiter', 'client'].includes(role)) {
       if (role === 'admin') {
         where += " AND u.role = 'admin'"
-      } else if (role === 'vendor') {
+      } else if (role === 'artisan') {
         where += ' AND (u.role = ? OR (u.role IS NULL AND u.hasBusinessAccount = 1))'
-        params.push('vendor')
-      } else {
+        params.push('artisan')
+      } else if (role === 'client') {
         where += ' AND (u.role = ? OR (u.role IS NULL AND u.hasBusinessAccount = 0))'
         params.push('client')
+      } else {
+        where += ' AND u.role = ?'
+        params.push(role)
       }
     }
 

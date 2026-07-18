@@ -7,7 +7,7 @@ interface UserRow {
   uid: string
   email: string
   fullName: string
-  role: 'client' | 'vendor' | 'admin' | null
+  role: 'client' | 'artisan' | 'professional' | 'recruiter' | 'admin' | null
   hasBusinessAccount: number
   verified: number
   suspended: number
@@ -82,7 +82,9 @@ export default function AdminUsersPage() {
         >
           <option value="">All roles</option>
           <option value="client">Clients</option>
-          <option value="vendor">Vendors</option>
+          <option value="artisan">Artisans</option>
+          <option value="professional">Professionals</option>
+          <option value="recruiter">Recruiters</option>
           <option value="admin">Admins</option>
         </select>
       </div>
@@ -112,10 +114,12 @@ export default function AdminUsersPage() {
                 <td className="p-3">
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                     u.role === 'admin' ? 'bg-purple-100 text-purple-700' :
-                    u.role === 'vendor' ? 'bg-blue-100 text-blue-700' :
+                    u.role === 'artisan' ? 'bg-blue-100 text-blue-700' :
+                    u.role === 'professional' ? 'bg-emerald-100 text-emerald-700' :
+                    u.role === 'recruiter' ? 'bg-amber-100 text-amber-700' :
                     'bg-slate-100 text-slate-600'
                   }`}>
-                    {u.role || (u.hasBusinessAccount ? 'vendor' : 'client')}
+                    {u.role || (u.hasBusinessAccount ? 'artisan' : 'client')}
                   </span>
                 </td>
                 <td className="p-3">

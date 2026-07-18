@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   }
 
   const ref = req.nextUrl.searchParams.get('ref')
-  const walletPath = session.role === 'vendor' ? '/dashboard/wallet' : '/wallet'
+  const walletPath = session.role === 'artisan' ? '/dashboard/wallet' : '/wallet'
 
   if (!ref) {
     return NextResponse.redirect(

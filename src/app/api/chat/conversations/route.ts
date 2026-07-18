@@ -40,7 +40,7 @@ async function enrichConversation(conv: ChatConversation, currentUserId: string)
       id: pid,
       firstName: user?.firstName ?? 'User',
       lastName: user?.lastName ?? '',
-      role: user?.role ?? 'vendor',
+      role: user?.role ?? 'artisan',
       avatarUrl: user?.avatarUrl,
       isVerified: user?.isVerified,
       city: user?.city,

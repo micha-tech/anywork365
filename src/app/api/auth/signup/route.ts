@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { setSession, createSessionCookie } from '@/lib/auth'
 import { auth as adminAuth } from '@/lib/firebase/admin'
 import { query } from '@/lib/db'
-import { createUser, createBusiness, deleteSignupProfileByUid, getUserByUid } from '@/lib/queries'
+import {
+  createBusiness,
+  createProfessionalProfile,
+  createRecruiterProfile,
+  createUser,
+  deleteSignupProfileByUid,
+  getUserByUid,
+} from '@/lib/queries'
 import { hardDeleteAccount } from '@/lib/account-delete'
 import type { RowDataPacket } from 'mysql2/promise'
 import { signupSchema } from '@/lib/validators/auth'
@@ -55,7 +62,26 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { firstName, lastName, phone, nin, role, category, city } = parsed.data
+    const {
+      firstName,
+      lastName,
+      phone,
+      nin,
+      role,
+      state,
+      artisanServiceCategory,
+      industryCategory,
+      professionalServiceCategory,
+      jobTitle,
+      qualification,
+      yearsExperience,
+      linkedinOrPortfolioUrl,
+      companyName,
+      companySize,
+      recruitmentFunction,
+      position,
+      companyWebsite,
+    } = parsed.data
     const email = parsed.data.email.trim().toLowerCase()
 
     const existingFirebaseUser = await adminAuth.getUserByEmail(email).catch(() => null)
@@ -75,20 +101,44 @@ export async function POST(req: NextRequest) {
       fullName: `${firstName} ${lastName}`,
       phoneNumber: phone,
       role,
-      state: city || 'Lagos',
+      state,
       nin,
     })
     createdProfileUid = uid
 
-    if (role === 'vendor') {
+    if (role === 'artisan') {
       await createBusiness({
         uid,
         businessName: `${firstName} ${lastName}`,
-        category,
+        category: artisanServiceCategory,
         businessContact: phone,
-        state: city || 'Lagos',
+        state,
       })
       revalidateTag(CACHE_TAGS.PROFESSIONALS)
+    }
+
+    if (role === 'professional') {
+      await createProfessionalProfile({
+        uid,
+        industryCategory: industryCategory!,
+        professionalServiceCategory: professionalServiceCategory!,
+        jobTitle: jobTitle!,
+        qualification: qualification!,
+        yearsExperience: yearsExperience!,
+        linkedinOrPortfolioUrl: linkedinOrPortfolioUrl || undefined,
+      })
+    }
+
+    if (role === 'recruiter') {
+      await createRecruiterProfile({
+        uid,
+        companyName: companyName!,
+        companySize: companySize!,
+        industryCategory: industryCategory!,
+        recruitmentFunction: recruitmentFunction!,
+        position: position!,
+        companyWebsite: companyWebsite || undefined,
+      })
     }
 
     const authUser: AuthUser = {
@@ -98,7 +148,7 @@ export async function POST(req: NextRequest) {
       lastName,
       role,
       phone,
-      city: city || 'Lagos',
+      city: state,
     }
 
     const sessionCookie = await createSessionCookie(idToken)
