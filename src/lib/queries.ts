@@ -205,6 +205,8 @@ interface WithdrawalRow extends RowDataPacket {
   account_id: number | null
   status: string
   created_at: string
+  bank_name: string | null
+  account_number: string | null
 }
 
 // ─── Transform helpers ────────────────────────────────────────────────────
@@ -564,12 +566,16 @@ export async function listVendors(filters?: {
       firstName: parts[0] || '',
       lastName: parts.slice(1).join(' ') || '',
       email: r.user_email ?? '',
-      phone: r.user_phoneNumber || undefined,
+      phone: r.businessContact || r.user_phoneNumber || undefined,
       role: 'vendor',
       city: r.state,
       lga: r.lga || undefined,
       address: r.location || undefined,
       bio: r.description,
+      businessName: r.businessName,
+      businessContact: r.businessContact || undefined,
+      yearsOfExperience: r.yearsOfExperience ?? undefined,
+      feePerHour: Number(r.feePerHour) || undefined,
       avatarUrl: getAvatarUrl(r.user_profileImage || r.businessLogo),
       skills: splitBusinessCategories(r.category),
       rating: r.rating,
@@ -596,12 +602,16 @@ function businessRowToUser(b: BusinessRow, user?: UserRow): User {
     firstName: parts[0] || '',
     lastName: parts.slice(1).join(' ') || '',
     email: user?.email ?? '',
-    phone: user?.phoneNumber || undefined,
+    phone: b.businessContact || user?.phoneNumber || undefined,
     role: 'vendor',
     city: b.state,
     lga: b.lga || undefined,
     address: b.location || undefined,
     bio: user?.bio || b.description,
+    businessName: b.businessName,
+    businessContact: b.businessContact || undefined,
+    yearsOfExperience: b.yearsOfExperience ?? undefined,
+    feePerHour: Number(b.feePerHour) || undefined,
     avatarUrl: getAvatarUrl(user?.profileImage || b.businessLogo),
     skills: splitBusinessCategories(b.category),
     rating: b.rating,
@@ -738,6 +748,29 @@ export async function getWalletLedger(walletId: number, limit = 100): Promise<Wa
     'SELECT * FROM wallet_ledger WHERE wallet_id = ? ORDER BY created_at DESC LIMIT ?',
     [walletId, safeLimit]
   )
+}
+
+export async function getHeldEscrowBalance(walletId: number): Promise<number> {
+  const rows = await query<RowDataPacket[]>(
+    `SELECT COALESCE(SUM(amount), 0) AS amount
+     FROM wallet_escrow
+     WHERE vendor_wallet_id = ? AND status = 'held'`,
+    [walletId]
+  )
+  return Number((rows[0] as { amount?: number } | undefined)?.amount ?? 0)
+}
+
+export async function getTotalWalletEarnings(walletId: number): Promise<number> {
+  const rows = await query<RowDataPacket[]>(
+    `SELECT COALESCE(SUM(amount), 0) AS amount
+     FROM wallet_ledger
+     WHERE wallet_id = ?
+       AND direction = 'credit'
+       AND description LIKE 'Job earnings%'
+    `,
+    [walletId]
+  )
+  return Number((rows[0] as { amount?: number } | undefined)?.amount ?? 0)
 }
 
 export async function addLedgerEntry(data: {
@@ -900,7 +933,14 @@ export async function createWithdrawal(data: {
 }
 
 export async function getUserWithdrawals(userId: number): Promise<WithdrawalRow[]> {
-  return query<WithdrawalRow[]>('SELECT * FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC', [userId])
+  return query<WithdrawalRow[]>(
+    `SELECT w.*, wa.bank_name, wa.account_number
+     FROM withdrawals w
+     LEFT JOIN withdrawal_accounts wa ON wa.id = w.account_id
+     WHERE w.user_id = ?
+     ORDER BY w.created_at DESC`,
+    [userId]
+  )
 }
 
 // ─── Vendor creation(for signup) ──────────────────────────────────────────

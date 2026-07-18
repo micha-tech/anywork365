@@ -62,13 +62,29 @@ export default function VerifyBusinessPage() {
 
   async function handleFileSelect(field: DocField, file: File) {
     setUploading(prev => ({ ...prev, [field]: true }))
-    const url = await uploadDoc(field, file)
-    if (url) {
-      setUrls(prev => ({ ...prev, [field]: url }))
-    } else {
+    try {
+      const url = await uploadDoc(field, file)
+      if (url) {
+        setUrls(prev => ({ ...prev, [field]: url }))
+      } else {
+        toast.error(`Couldn\u2019t upload ${DOC_LABELS[field]}`)
+      }
+    } catch {
       toast.error(`Couldn\u2019t upload ${DOC_LABELS[field]}`)
+    } finally {
+      setUploading(prev => ({ ...prev, [field]: false }))
     }
-    setUploading(prev => ({ ...prev, [field]: false }))
+  }
+
+  async function handleRemove(field: DocField) {
+    const url = urls[field]
+    if (!url) return
+    const response = await fetch(url, { method: 'DELETE' }).catch(() => null)
+    if (!response || (!response.ok && response.status !== 404)) {
+      toast.error(`Couldn\u2019t remove ${DOC_LABELS[field]}`)
+      return
+    }
+    setUrls(prev => ({ ...prev, [field]: null }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -76,6 +92,14 @@ export default function VerifyBusinessPage() {
     const normalizedNin = nin.trim()
     if (normalizedNin && !/^\d{11}$/.test(normalizedNin)) {
       toast.error('Enter an 11-digit NIN or leave it blank')
+      return
+    }
+    if (!normalizedNin && !urls.nin_card) {
+      toast.error('Provide your NIN or upload a NIN card')
+      return
+    }
+    if (!urls.utility_bill && !urls.business_registration && !urls.trade_certificate) {
+      toast.error('Upload a utility bill, business registration document, or trade certificate')
       return
     }
     setSubmitting(true)
@@ -98,7 +122,7 @@ export default function VerifyBusinessPage() {
         setVerification({ ...data.data, status: 'pending', submitted_at: new Date().toISOString() })
         toast.success('Verification submitted for review')
       } else {
-        toast.error('Couldn\u2019t submit verification')
+        toast.error(data.error || 'Couldn\u2019t submit verification')
       }
     } catch {
       toast.error('Network error')
@@ -118,6 +142,9 @@ export default function VerifyBusinessPage() {
   const pendingVerification = verification?.status === 'pending'
   const docFields: DocField[] = ['photo', 'nin_card', 'utility_bill', 'business_registration', 'trade_certificate']
   const uploadedDocs = docFields.filter((field) => urls[field]).length
+  const hasIdentityEvidence = /^\d{11}$/.test(nin.trim()) || Boolean(urls.nin_card)
+  const hasSupportingEvidence = Boolean(urls.utility_bill || urls.business_registration || urls.trade_certificate)
+  const canSubmit = hasIdentityEvidence && hasSupportingEvidence && !Object.values(uploading).some(Boolean)
 
   return (
     <>
@@ -152,7 +179,7 @@ export default function VerifyBusinessPage() {
           <div className="mb-5 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-display text-base font-semibold text-slate-900">Submit documents</h2>
-              <p className="mt-1 text-sm text-slate-500">Upload what you have now. Admins can review the files attached to this request.</p>
+              <p className="mt-1 text-sm text-slate-500">Identity evidence and one supporting business or address document are required.</p>
             </div>
             <span className="inline-flex w-fit rounded-lg bg-brand-50 px-3 py-2 text-sm font-bold text-brand-600">
               {uploadedDocs}/{docFields.length} uploaded
@@ -161,7 +188,7 @@ export default function VerifyBusinessPage() {
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
-              <label className="label">National Identity Number (NIN) (optional)</label>
+              <label className="label">National Identity Number (NIN)</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -171,7 +198,7 @@ export default function VerifyBusinessPage() {
                 placeholder="12345678901"
                 maxLength={11}
               />
-              <p className="text-xs text-slate-500 mt-1.5">Add 11 digits or leave this blank</p>
+              <p className="text-xs text-slate-500 mt-1.5">Enter 11 digits or upload your NIN card below.</p>
             </div>
 
             {docFields.map((field) => (
@@ -183,7 +210,7 @@ export default function VerifyBusinessPage() {
                       <span className="text-sm text-green-600 truncate">Uploaded</span>
                       <button
                         type="button"
-                        onClick={() => setUrls(prev => ({ ...prev, [field]: null }))}
+                        onClick={() => handleRemove(field)}
                         className="text-xs text-amber-600 hover:text-amber-700 flex-shrink-0"
                       >
                         Remove
@@ -219,11 +246,16 @@ export default function VerifyBusinessPage() {
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !canSubmit}
               className="btn-primary w-full py-3 justify-center"
             >
               {submitting ? 'Submitting...' : 'Verify'}
             </button>
+            {!canSubmit && (
+              <p className="mt-2 text-center text-xs text-slate-500">
+                Add identity evidence and at least one utility, registration, or trade document to continue.
+              </p>
+            )}
           </form>
         </div>
       )}

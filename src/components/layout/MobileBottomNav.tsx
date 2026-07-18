@@ -10,7 +10,7 @@ export function MobileBottomNav() {
   const { user, loading } = useCurrentUser()
   const isVendor = user?.role === 'vendor'
   const isAdmin = user?.role === 'admin'
-  const hideOnPaths = pathname === '/login' || pathname === '/signup' || pathname === '/onboarding' || pathname === '/verify-email'
+  const hideOnPaths = pathname === '/login' || pathname.startsWith('/signup') || pathname === '/onboarding' || pathname === '/verify-email'
 
   if (loading || !user || hideOnPaths) return null
 

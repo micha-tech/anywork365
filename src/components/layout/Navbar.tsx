@@ -59,7 +59,7 @@ export function Navbar() {
   const [dropOpen, setDropOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const { user, loading }  = useCurrentUser()
-  const hideNavbar = pathname === '/login' || pathname === '/signup' || pathname === '/onboarding'
+  const hideNavbar = pathname === '/login' || pathname.startsWith('/signup') || pathname === '/onboarding'
 
   const isLoggedIn = !loading && !!user
   const isAdmin    = user?.role === 'admin'

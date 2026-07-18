@@ -53,14 +53,21 @@ export function getVerificationDocMimeType(filename: string): string {
   return MIME_BY_EXT[ext] ?? 'application/octet-stream'
 }
 
+function isValidVerificationDocCoordinates(ownerSegment: string, filename: string): boolean {
+  return /^[a-f0-9]{32}$/.test(ownerSegment)
+    && /^(photo|nin_card|utility_bill|business_registration|trade_certificate)-\d{10,}-[a-f0-9]{16}\.(jpg|png|webp|pdf)$/.test(filename)
+}
+
+export function getVerificationDocObjectPath(ownerSegment: string, filename: string): string | null {
+  if (!isValidVerificationDocCoordinates(ownerSegment, filename)) return null
+  return `verification/${ownerSegment}/${filename}`
+}
+
 export function resolveVerificationDocPath(ownerSegment: string, filename: string): {
   directory: string
   filepath: string
 } | null {
-  if (!/^[a-f0-9]{32}$/.test(ownerSegment)) return null
-  if (!/^(photo|nin_card|utility_bill|business_registration|trade_certificate)-\d{10,}-[a-f0-9]{16}\.(jpg|png|webp|pdf)$/.test(filename)) {
-    return null
-  }
+  if (!isValidVerificationDocCoordinates(ownerSegment, filename)) return null
 
   const root = getVerificationUploadRoot()
   const directory = join(root, ownerSegment)

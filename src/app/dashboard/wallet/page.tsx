@@ -27,6 +27,7 @@ function WalletPageContent() {
   const searchParams = useSearchParams()
 
   const [walletData, setWalletData] = useState<WalletData | null>(null)
+  const [walletError, setWalletError] = useState(false)
   const [banks, setBanks] = useState<NigerianBank[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'fund' | 'withdraw' | 'bank'>('overview')
@@ -47,10 +48,14 @@ function WalletPageContent() {
 
   const fetchWallet = useCallback(async () => {
     setLoadingData(true)
+    setWalletError(false)
     try {
       const res = await fetch('/api/wallet')
       const data = await res.json()
-      if (data.success) setWalletData(data.data)
+      if (!res.ok || !data.success) throw new Error('Unable to load wallet')
+      setWalletData(data.data)
+    } catch {
+      setWalletError(true)
     } finally {
       setLoadingData(false)
     }
@@ -222,6 +227,24 @@ function WalletPageContent() {
   const txHistory = walletData?.transactions ?? []
   const quickAmounts = [5000, 10000, 25000, 50000]
 
+  if (!loadingData && !userLoading && walletError) {
+    return (
+      <PullToRefresh onRefresh={fetchWallet}>
+        <div className="mb-5 sm:mb-7">
+          <h1 className="font-display text-xl sm:text-2xl font-semibold">Wallet</h1>
+          <p className="text-sm text-slate-500 mt-1">We couldn’t load your current balances.</p>
+        </div>
+        <div className="card max-w-xl text-center">
+          <p className="text-sm font-medium text-slate-900">Wallet temporarily unavailable</p>
+          <p className="mt-1 text-sm text-slate-500">No balance is shown until the financial data can be verified.</p>
+          <button type="button" onClick={fetchWallet} className="btn-primary mt-4 px-6 py-2.5">
+            Try again
+          </button>
+        </div>
+      </PullToRefresh>
+    )
+  }
+
   return (
     <PullToRefresh onRefresh={fetchWallet}>
       <div className="mb-5 sm:mb-7">
@@ -251,7 +274,7 @@ function WalletPageContent() {
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-amber-600 break-words">
               {formatCurrency(wallet?.escrowBalance ?? 0)}
             </p>
-            <p className="text-xs text-slate-500">Pending job completion</p>
+            <p className="text-xs text-slate-500">Client funds held; the 5% platform fee is deducted on release</p>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">Total Earned</p>
@@ -344,7 +367,7 @@ function WalletPageContent() {
             <div className="divide-y divide-slate-200">
               {txHistory.map((tx) => {
                 const meta = TX_META[tx.type] ?? { label: tx.type, color: 'text-slate-900', sign: '' }
-                const direction = tx.type === 'credit' || tx.type === 'escrow_release' || tx.type === 'refund' ? '↓' : '↑'
+                const direction = tx.type === 'credit' || tx.type === 'earning' || tx.type === 'escrow_release' || tx.type === 'refund' ? '↓' : '↑'
 
                 return (
                   <div key={tx.id} className="py-3.5">
@@ -370,7 +393,7 @@ function WalletPageContent() {
                                 tx.status === 'success'
                                   ? 'text-green-600'
                                   : tx.status === 'failed'
-                                    ? 'text-amber-600'
+                                  ? 'text-red-600'
                                     : 'text-amber-600'
                               }`}
                             >

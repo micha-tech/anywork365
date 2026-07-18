@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
+import { getStorage } from 'firebase-admin/storage'
 import { getSession } from '@/lib/auth'
+import { firebaseAdminApp } from '@/lib/firebase/admin'
 import { checkRateLimit } from '@/lib/wallet'
 import {
   createVerificationDocFilename,
   getVerificationDocOwnerSegment,
+  getVerificationDocObjectPath,
   getVerificationDocUrl,
-  resolveVerificationDocPath,
   VERIFICATION_DOC_FIELDS,
   type VerificationDocField,
 } from '@/lib/verification-docs'
@@ -92,16 +93,13 @@ export async function POST(req: NextRequest) {
 
     const ownerSegment = getVerificationDocOwnerSegment(session.id)
     const filename = createVerificationDocFilename(field as VerificationDocField, file.type)
-    const target = resolveVerificationDocPath(ownerSegment, filename)
-
-    if (!target) {
+    const objectPath = getVerificationDocObjectPath(ownerSegment, filename)
+    if (!objectPath) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Invalid upload path' },
         { status: 400 }
       )
     }
-
-    await mkdir(target.directory, { recursive: true })
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
@@ -111,7 +109,20 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    await writeFile(target.filepath, buffer)
+    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    if (!bucketName) throw new Error('Firebase Storage bucket is not configured')
+
+    await getStorage(firebaseAdminApp).bucket(bucketName).file(objectPath).save(buffer, {
+      resumable: false,
+      contentType: file.type,
+      metadata: {
+        cacheControl: 'private, no-store, max-age=0',
+        metadata: {
+          ownerUid: session.id,
+          verificationField: field,
+        },
+      },
+    })
 
     const privateUrl = getVerificationDocUrl(ownerSegment, filename)
 

@@ -1,0 +1,21 @@
+import { ActiveRegistrationForm } from '@/components/auth/ActiveRegistrationForm'
+import { RegistrationShell } from '@/components/auth/RegistrationShell'
+
+export default function ArtisanRegistrationPage() {
+  return (
+    <RegistrationShell
+      role="Artisan"
+      eyebrow="Grow your craft"
+      title="Turn your skill into more opportunities."
+      description="Create an artisan account to showcase your work, connect with nearby clients, receive booking requests, and build a trusted reputation."
+      benefits={['Showcase your practical skills', 'Receive local booking requests', 'Build trust through reviews and verification']}
+      icon={<ArtisanIcon />}
+    >
+      <ActiveRegistrationForm accountType="artisan" />
+    </RegistrationShell>
+  )
+}
+
+function ArtisanIcon() {
+  return <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m14.7 6.3 3-3a4 4 0 0 1-5 5L6 15l-3 1 1-3 6.7-6.7a4 4 0 0 1 5-5l-3 3 2 2Z" /><path d="m14 14 6 6" /></svg>
+}

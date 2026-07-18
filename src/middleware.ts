@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   ]
 
   const isProtectedPath = protectedPaths.some((p) => pathname.startsWith(p))
-  const isAuthPage = pathname === '/login' || pathname === '/signup'
+  const isAuthPage = pathname === '/login' || pathname.startsWith('/signup')
 
   const sessionCookie = request.cookies.get('__session')?.value
   const session = getSessionPayload(sessionCookie)
