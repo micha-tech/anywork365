@@ -395,20 +395,13 @@ export default function ProfilePage() {
 
           {/* Avatar with overlay edit button */}
           <div className="relative flex-shrink-0 group">
-            {currentPhoto ? (
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 ring-2 ring-slate-200">
-                <Image
-                  src={currentPhoto}
-                  alt={fullName}
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover"
-                  unoptimized={currentPhoto.startsWith('/uploads/')}
-                />
-              </div>
-            ) : (
-              <Avatar initials={initials} size="xl" colorIndex={0} />
-            )}
+            <Avatar
+              src={currentPhoto}
+              initials={initials}
+              size="xl"
+              colorIndex={0}
+              className="ring-2 ring-slate-200"
+            />
 
             {/* Edit overlay — appears on hover */}
             <button

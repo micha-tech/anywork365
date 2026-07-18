@@ -1,6 +1,7 @@
-import Image from 'next/image'
 import { type HTMLAttributes, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+
+export { Avatar } from './Avatar'
 
 type BadgeVariant = 'green' | 'gray' | 'blue' | 'red' | 'amber'
 
@@ -78,63 +79,6 @@ export function Card({ size = 'md', hover = false, className, children, ...props
       {...props}
     >
       {children}
-    </div>
-  )
-}
-
-const AVATAR_COLORS = [
-  'bg-brand-500',
-  'bg-blue-600',
-  'bg-purple-600',
-  'bg-amber-500',
-  'bg-rose-500',
-  'bg-teal-600',
-  'bg-indigo-600',
-]
-
-interface AvatarProps {
-  initials: string
-  src?: string | null
-  size?: 'sm' | 'md' | 'lg' | 'xl'
-  colorIndex?: number
-  className?: string
-}
-
-const sizeMap = {
-  sm: 'h-8 w-8 text-xs',
-  md: 'h-10 w-10 text-sm',
-  lg: 'h-14 w-14 text-lg',
-  xl: 'h-20 w-20 text-2xl',
-}
-
-export function Avatar({ initials, src, size = 'md', colorIndex = 0, className }: AvatarProps) {
-  const color = AVATAR_COLORS[colorIndex % AVATAR_COLORS.length]
-
-  if (src) {
-    return (
-      <div className={cn('overflow-hidden rounded-full bg-slate-100', sizeMap[size], className)}>
-        <Image
-          src={src}
-          alt={initials}
-          width={80}
-          height={80}
-          className="h-full w-full object-cover"
-          unoptimized={src.startsWith('/uploads/')}
-        />
-      </div>
-    )
-  }
-
-  return (
-    <div
-      className={cn(
-        'flex flex-shrink-0 items-center justify-center rounded-full font-semibold text-white overflow-hidden',
-        sizeMap[size],
-        color,
-        className
-      )}
-    >
-      <span className="leading-none">{initials}</span>
     </div>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { Avatar } from '@/components/ui'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
@@ -61,20 +61,12 @@ export function DashboardSidebar() {
       </div>
 
       <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 mb-5">
-        <div className="w-9 h-9 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-          {loading ? '...' : user?.avatarUrl ? (
-            <Image
-              src={user.avatarUrl}
-              alt={initials}
-              width={36}
-              height={36}
-              className="w-full h-full object-cover"
-              unoptimized={user.avatarUrl.startsWith('/uploads/')}
-            />
-          ) : (
-            <span className="leading-none">{initials}</span>
-          )}
-        </div>
+        <Avatar
+          src={loading ? undefined : user?.avatarUrl}
+          initials={loading ? '...' : initials}
+          size="sm"
+          className="h-9 w-9"
+        />
         <div className="min-w-0">
           <p className="text-sm font-medium text-slate-900 truncate">
             {loading ? 'Loading...' : fullName}
