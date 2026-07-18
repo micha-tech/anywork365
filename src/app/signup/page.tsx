@@ -1,240 +1,155 @@
-'use client'
-
-export const dynamic = 'force-dynamic'
-
-import { useState } from 'react'
 import Link from 'next/link'
-import { toast } from 'sonner'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { signupSchema, type SignupInput, COUNTRY_CODES } from '@/lib/validators/auth'
-import { sendVerificationEmail, signUp } from '@/lib/firebase/auth'
-import { toErrorMessage } from '@/lib/utils'
-import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
-import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/layout/BrandLogo'
 
+const accountTypes = [
+  {
+    href: '/signup/client',
+    title: 'Client',
+    description: 'Hire trusted people and manage work from one place.',
+    icon: ClientIcon,
+    accent: 'bg-brand-50 text-brand-600 group-hover:bg-brand-500 group-hover:text-white',
+  },
+  {
+    href: '/signup/artisan',
+    title: 'Artisan',
+    description: 'Offer skilled, hands-on services and get discovered locally.',
+    icon: ArtisanIcon,
+    accent: 'bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white',
+  },
+  {
+    href: '/signup/professional',
+    title: 'Professional',
+    description: 'Showcase your expertise and access career opportunities.',
+    icon: ProfessionalIcon,
+    accent: 'bg-sky-50 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
+  },
+  {
+    href: '/signup/recruiter',
+    title: 'Recruiter',
+    description: 'Find qualified talent and recruit for your organisation.',
+    icon: RecruiterIcon,
+    accent: 'bg-violet-50 text-violet-600 group-hover:bg-violet-500 group-hover:text-white',
+  },
+] as const
+
 export default function SignupPage() {
-  const [showPw, setShowPw] = useState(false)
-  const [role, setRole] = useState<'client' | 'vendor'>('client')
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<SignupInput>({ resolver: zodResolver(signupSchema), defaultValues: { role: 'client', countryCode: '+234' } })
-
-  function handleRoleSelect(r: 'client' | 'vendor') {
-    setRole(r)
-    setValue('role', r)
-    if (r === 'client') setValue('category', '')
-  }
-
-  async function onSubmit(data: SignupInput) {
-    try {
-      const email = data.email.trim().toLowerCase()
-      const payload = { ...data, email }
-      const submitToFirebase = () => signUp({
-          email,
-          password: data.password,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phone: data.phone,
-          countryCode: data.countryCode,
-          nin: data.nin || undefined,
-          role: data.role,
-        })
-
-      let { data: result, user: fbUser, error } = await submitToFirebase()
-
-      if (error?.code === 'auth/email-already-in-use') {
-        const cleanup = await fetch('/api/auth/cleanup-stale', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        })
-        const cleanupBody = await cleanup.json()
-        if (!cleanup.ok || !cleanupBody.success) {
-          toast.error(cleanupBody.error || 'An account with this email already exists. Please log in.')
-          return
-        }
-
-        ;({ data: result, user: fbUser, error } = await submitToFirebase())
-      }
-
-      if (error || !result || !fbUser) {
-        toast.error(toErrorMessage(error))
-        return
-      }
-
-      const idToken = await fbUser.getIdToken()
-
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, ...payload }),
-      })
-
-      const body = await res.json()
-
-      if (!res.ok) {
-        toast.error(body.error ?? 'Failed to complete signup')
-        return
-      }
-
-      const { error: verificationEmailError } = await sendVerificationEmail()
-      window.location.href = verificationEmailError
-        ? `/verify-email?emailStatus=failed&reason=${encodeURIComponent(verificationEmailError)}`
-        : '/verify-email'
-    } catch {
-      toast.error('An unexpected error occurred. Please try again.')
-    }
-  }
-
   return (
-    <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-start px-4 py-6 sm:justify-center sm:py-10">
-      <div className="w-full max-w-lg">
-        <div className="text-center mb-5 sm:mb-7">
-          <BrandLogo size="lg" priority imageClassName="mx-auto object-contain" />
-        </div>
+    <div className="relative min-h-dvh overflow-hidden bg-brand-900 px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-brand-400/20 blur-3xl" />
+        <div className="absolute -bottom-28 -right-20 h-80 w-80 rounded-full bg-amber-400/15 blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.055] [background-image:linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)] [background-size:32px_32px]" />
+      </div>
 
-        <div className="card p-5 sm:p-8">
-          <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Create your account</h1>
-          <p className="text-sm text-slate-500 text-center mb-6">Clients see vendors and jobs right after verification. Vendors can build a business profile and receive bookings.</p>
+      <main className="relative mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-6xl items-center justify-center sm:min-h-[calc(100dvh-5rem)]">
+        <section className="grid w-full overflow-hidden rounded-[28px] border border-white/15 bg-white shadow-[0_32px_90px_rgba(0,0,0,0.28)] lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="relative hidden overflow-hidden bg-[linear-gradient(145deg,#0F4F4A_0%,#062d2b_62%,#041f1e_100%)] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-12">
+            <div className="absolute -right-16 top-28 h-56 w-56 rounded-full border border-white/10" />
+            <div className="absolute -right-3 top-40 h-32 w-32 rounded-full border border-amber-300/25" />
 
-          <div className="mb-5">
-            <p className="label mb-2">I want to...</p>
-            <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              {(['client', 'vendor'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => handleRoleSelect(r)}
-                  className={cn(
-                    'py-3 px-3 rounded-lg border text-sm font-semibold transition-all min-h-[52px]',
-                    role === r
-                      ? 'border-brand-500 bg-brand-50 text-brand-600'
-                      : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
-                  )}
-                >
-                  {r === 'client' ? 'Register as User' : 'Register as Vendor'}
-                </button>
+            <div className="relative flex items-center gap-3">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-lg">
+                <BrandLogo href="" size="md" priority imageClassName="object-contain" />
+              </span>
+              <div>
+                <p className="font-display text-xl font-extrabold tracking-tight">Anywork365</p>
+                <p className="text-xs font-medium text-brand-200">Work. Talent. Opportunity.</p>
+              </div>
+            </div>
+
+            <div className="relative max-w-md py-12">
+              <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-amber-300 backdrop-blur">
+                One platform, built around you
+              </span>
+              <h1 className="mt-5 font-display text-4xl font-extrabold leading-tight xl:text-5xl">
+                Start with the account that fits your goals.
+              </h1>
+              <p className="mt-5 max-w-sm text-base leading-relaxed text-brand-100">
+                Whether you need work done, offer a skill, build a career, or hire talent, your experience begins here.
+              </p>
+            </div>
+
+            <div className="relative grid grid-cols-2 gap-3 text-sm text-brand-100">
+              {['Trusted connections', 'Secure platform', 'Built for Nigeria', 'Opportunities daily'].map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-amber-300">✓</span>
+                  <span>{item}</span>
+                </div>
               ))}
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="form-group">
-                <label className="label">First name</label>
-                <input {...register('firstName')} className={`input-field ${errors.firstName ? 'border-amber-300' : ''}`} placeholder="Emeka" autoComplete="given-name" />
-                {errors.firstName && <p className="mt-1 text-xs text-amber-600">{errors.firstName.message}</p>}
-              </div>
-              <div className="form-group">
-                <label className="label">Last name</label>
-                <input {...register('lastName')} className={`input-field ${errors.lastName ? 'border-amber-300' : ''}`} placeholder="Obi" autoComplete="family-name" />
-                {errors.lastName && <p className="mt-1 text-xs text-amber-600">{errors.lastName.message}</p>}
+          <div className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fbfb_100%)] p-5 sm:p-8 lg:p-10 xl:p-12">
+            <div className="mb-7 flex items-center justify-center gap-3 lg:hidden">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-[0_10px_30px_rgba(15,79,74,0.14)] ring-1 ring-brand-100">
+                <BrandLogo href="" size="md" priority imageClassName="object-contain" />
+              </span>
+              <div>
+                <p className="font-display text-xl font-extrabold text-brand-900">Anywork365</p>
+                <p className="text-xs font-semibold text-brand-500">Work. Talent. Opportunity.</p>
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="label">Email address</label>
-              <input {...register('email')} type="email" inputMode="email" autoComplete="email" className={`input-field ${errors.email ? 'border-amber-300' : ''}`} placeholder="you@example.com" />
-              {errors.email && <p className="mt-1 text-xs text-amber-600">{errors.email.message}</p>}
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <div className="form-group col-span-1">
-                <label className="label">Country</label>
-                <select {...register('countryCode')} className="input-field appearance-none">
-                  {COUNTRY_CODES.map((c) => (
-                    <option key={c.code} value={c.code}>{c.code}</option>
-                  ))}
-                </select>
+            <div className="mx-auto max-w-xl">
+              <div className="text-center lg:text-left">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-500">Create your account</p>
+                <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">Register as</h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500 sm:text-base">
+                  Choose the option that best describes how you want to use Anywork365.
+                </p>
               </div>
-              <div className="form-group col-span-2">
-                <label className="label">Phone number</label>
-                <input {...register('phone')} type="tel" inputMode="tel" autoComplete="tel" className={`input-field ${errors.phone ? 'border-amber-300' : ''}`} placeholder="800 000 0000" />
-                {errors.phone && <p className="mt-1 text-xs text-amber-600">{errors.phone.message}</p>}
+
+              <div className="mt-7 space-y-3">
+                {accountTypes.map(({ href, title, description, icon: Icon, accent }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="group flex min-h-[82px] items-center gap-4 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_15px_34px_rgba(15,79,74,0.11)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 sm:p-4"
+                  >
+                    <span className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl transition-colors duration-200 sm:h-14 sm:w-14 ${accent}`}>
+                      <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-display text-base font-bold text-slate-900 sm:text-lg">{title}</span>
+                      <span className="mt-0.5 block text-xs leading-relaxed text-slate-500 sm:text-sm">{description}</span>
+                    </span>
+                    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-all group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white" aria-hidden="true">
+                      <ArrowIcon className="h-4 w-4" />
+                    </span>
+                  </Link>
+                ))}
               </div>
+
+              <p className="mt-7 text-center text-sm text-slate-500">
+                Already have an account?{' '}
+                <Link href="/login" className="font-bold text-brand-600 hover:text-brand-700 hover:underline">
+                  Log in
+                </Link>
+              </p>
             </div>
-
-            <div className="form-group">
-              <label className="label">11-digit NIN (optional)</label>
-              <input {...register('nin')} type="text" inputMode="numeric" maxLength={11} className={`input-field ${errors.nin ? 'border-amber-300' : ''}`} placeholder="12345678901" />
-              {errors.nin && <p className="mt-1 text-xs text-amber-600">{errors.nin.message}</p>}
-            </div>
-
-            <div className="form-group">
-              <label className="label">Password</label>
-              <div className="relative">
-                <input
-                  {...register('password')}
-                  type={showPw ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  placeholder="Min 8 chars, 1 uppercase, 1 number"
-                  className={`input-field pr-14 ${errors.password ? 'border-amber-300' : ''}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium px-1 min-h-[44px] flex items-center"
-                >
-                  {showPw ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              {errors.password && <p className="mt-1 text-xs text-amber-600">{errors.password.message}</p>}
-            </div>
-
-            <div className="form-group">
-              <label className="label">Confirm password</label>
-              <input {...register('confirmPassword')} type="password" autoComplete="new-password" className={`input-field ${errors.confirmPassword ? 'border-amber-300' : ''}`} placeholder="Repeat your password" />
-              {errors.confirmPassword && <p className="mt-1 text-xs text-amber-600">{errors.confirmPassword.message}</p>}
-            </div>
-
-            <div className="form-group">
-              <label className="label">State</label>
-              <select {...register('city')} className={`input-field appearance-none ${errors.city ? 'border-amber-300' : ''}`}>
-                <option value="">Select your state</option>
-                {NIGERIAN_STATE_NAMES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-              {errors.city && <p className="mt-1 text-xs text-amber-600">{errors.city.message}</p>}
-            </div>
-
-            {role === 'vendor' && (
-              <div className="form-group">
-                <label className="label">Business category you serve</label>
-                <select {...register('category')} className={`input-field appearance-none ${errors.category ? 'border-amber-300' : ''}`}>
-                  <option value="">Select your primary business category</option>
-                  {BUSINESS_CATEGORY_GROUPS.map((group) => (
-                    <optgroup key={group.label} label={group.label}>
-                      {group.categories.map((category) => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
-                {errors.category && <p className="mt-1 text-xs text-amber-600">{errors.category.message}</p>}
-              </div>
-            )}
-
-            <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-3 text-base justify-center mt-2">
-              {isSubmitting ? 'Creating account...' : 'Create account'}
-            </button>
-          </form>
-
-          <p className="text-xs text-slate-500 text-center mt-4 leading-relaxed">
-            By signing up you agree to our{' '}
-            <span className="text-brand-500">Terms of Service</span> and{' '}
-            <span className="text-brand-500">Privacy Policy</span>
-          </p>
-          <p className="text-sm text-slate-500 text-center mt-4">
-            Already have an account?{' '}
-            <Link href="/login" className="text-brand-500 font-medium">Log in</Link>
-          </p>
-        </div>
-      </div>
+          </div>
+        </section>
+      </main>
     </div>
   )
+}
+
+function ClientIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c.7-4 3.1-6 7-6s6.3 2 7 6" /></svg>
+}
+
+function ArtisanIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m14.7 6.3 3-3a4 4 0 0 1-5 5L6 15l-3 1 1-3 6.7-6.7a4 4 0 0 1 5-5l-3 3 2 2Z" /><path d="m14 14 6 6" /></svg>
+}
+
+function ProfessionalIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2" /></svg>
+}
+
+function RecruiterIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3" /><path d="M3 19c.6-3.6 2.6-5.4 6-5.4 1.2 0 2.3.2 3.1.7" /><circle cx="17" cy="16" r="3" /><path d="m19.2 18.2 2.3 2.3" /></svg>
+}
+
+function ArrowIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 }

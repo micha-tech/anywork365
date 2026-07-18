@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation'
 import { toast } from 'sonner'
 import { Avatar, Badge, Stars, VerifiedBusinessBadge } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
-import { getInitials } from '@/lib/utils'
+import { formatCurrency, getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 
 export default function ProDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -47,6 +47,8 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
   if (loading || !pro) return <div className="max-w-4xl mx-auto px-4 py-10"><div className="animate-pulse h-40 bg-gray-100 rounded-2xl" /></div>
 
   const initials    = getInitials(pro.firstName, pro.lastName)
+  const ownerName = `${pro.firstName} ${pro.lastName}`.trim()
+  const displayName = pro.businessName || ownerName
 
   async function handleBook(e: React.FormEvent) {
     e.preventDefault()
@@ -202,7 +204,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
           <div className="card p-4 sm:p-6">
             <div className="flex min-w-0 items-start gap-3 sm:gap-4">
               <div className="relative flex-shrink-0">
-                <Avatar initials={initials} size="lg" colorIndex={colorIndex} className="mb-4 h-12 w-12 text-base sm:h-14 sm:w-14 sm:text-lg" />
+                <Avatar src={pro.avatarUrl} initials={initials} size="lg" colorIndex={colorIndex} className="mb-4 h-12 w-12 text-base sm:h-14 sm:w-14 sm:text-lg" />
                 {pro.isVerified && (
                   <VerifiedBusinessBadge label={false} className="absolute -bottom-2 left-8 border-2 border-white shadow-sm" />
                 )}
@@ -210,11 +212,13 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
               <div className="flex-1 min-w-0">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <h1 className="min-w-0 break-words font-display text-lg font-semibold leading-snug sm:text-xl">
-                    {pro.firstName} {pro.lastName}
+                    {displayName}
                   </h1>
                   {pro.isVerified && <VerifiedBusinessBadge size="sm" />}
                 </div>
-                <p className="text-sm text-slate-500 mt-0.5">{pro.skills?.[0]} · {pro.city}</p>
+                <p className="text-sm text-slate-500 mt-0.5">
+                  {[pro.businessName ? ownerName : null, pro.skills?.[0], pro.city].filter(Boolean).join(' · ')}
+                </p>
                 {pro.rating && (
                   <div className="mt-2">
                     <Stars rating={pro.rating} count={pro.reviewCount} />
@@ -284,20 +288,23 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
         <div className="hidden sm:flex flex-col gap-5">
           <div className="card">
             <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
-              Hire {pro.firstName}
+              Hire {displayName}
             </p>
             <div className="space-y-2 text-sm mb-5">
               {[
-                { label: 'Location',     value: [pro.lga, pro.city].filter(Boolean).join(', ') },
-                { label: 'Rating',       value: `${pro.rating?.toFixed(1)} / 5.0` },
-                { label: 'Reviews',      value: String(pro.reviewCount) },
-                { label: 'Availability', value: 'Available now' },
+                { label: 'Location', value: [pro.lga, pro.city].filter(Boolean).join(', ') },
+                ...(pro.yearsOfExperience !== undefined
+                  ? [{ label: 'Experience', value: `${pro.yearsOfExperience} year${pro.yearsOfExperience === 1 ? '' : 's'}` }]
+                  : []),
+                ...(pro.feePerHour
+                  ? [{ label: 'Hourly rate', value: `${formatCurrency(pro.feePerHour)} / hour` }]
+                  : []),
+                { label: 'Rating', value: pro.rating !== undefined ? `${pro.rating.toFixed(1)} / 5.0` : 'Not rated' },
+                { label: 'Reviews', value: String(pro.reviewCount ?? 0) },
               ].map((r) => (
                 <div key={r.label} className="flex justify-between">
                   <span className="text-slate-500">{r.label}</span>
-                  <span className={`font-medium ${r.label === 'Availability' ? 'text-brand-500' : ''}`}>
-                    {r.value}
-                  </span>
+                  <span className="font-medium text-right">{r.value}</span>
                 </div>
               ))}
             </div>
@@ -376,7 +383,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
-      <Modal open={bookOpen} onClose={() => setBookOpen(false)} title={`Book ${pro.firstName} ${pro.lastName}`}>
+      <Modal open={bookOpen} onClose={() => setBookOpen(false)} title={`Book ${displayName}`}>
         <form onSubmit={handleBook}>
           <div className="form-group">
             <label className="label">Describe your job *</label>

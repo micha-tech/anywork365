@@ -19,6 +19,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
   const initials = getInitials(pro.firstName, pro.lastName)
   const location = [pro.lga, pro.city].filter(Boolean).join(', ')
   const primarySkill = pro.skills?.[0] || 'Service provider'
+  const displayName = pro.businessName || `${pro.firstName} ${pro.lastName}`.trim()
   const bio = pro.bio?.trim()
   const hasRealBio = Boolean(bio && !/^lorem ipsum/i.test(bio) && !/dummy text/i.test(bio))
 
@@ -58,7 +59,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex min-w-0 items-center gap-1.5">
             <Link href={`/professionals/${pro.id}`} className="truncate font-semibold text-slate-900 transition-colors group-hover:text-brand-500">
-              {pro.firstName} {pro.lastName}
+              {displayName}
             </Link>
           </div>
           {location && <p className="line-clamp-1 text-sm text-slate-500">{location}</p>}
@@ -88,7 +89,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
           onClick={handleStartChat}
           disabled={startingChat}
           className="btn-ghost min-w-[44px] px-3 py-2 text-xs disabled:opacity-50"
-          aria-label={startingChat ? 'Starting chat' : `Message ${pro.firstName}`}
+          aria-label={startingChat ? 'Starting chat' : `Message ${displayName}`}
         >
           {startingChat ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />

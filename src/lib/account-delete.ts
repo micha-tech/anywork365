@@ -5,6 +5,11 @@ import type { PoolConnection, RowDataPacket } from 'mysql2/promise'
 import { auth as adminAuth, firebaseAdminApp } from '@/lib/firebase/admin'
 import { getConnection, query, type SqlValue } from '@/lib/db'
 import { purgeChatUserData } from '@/lib/chat'
+import {
+  getVerificationDocObjectPath,
+  getVerificationDocOwnerSegment,
+  resolveVerificationDocPath,
+} from '@/lib/verification-docs'
 
 type IdRow = RowDataPacket & { id: number }
 type FileRow = RowDataPacket & Record<string, string | null>
@@ -30,6 +35,18 @@ async function deleteFiles(urls: string[]): Promise<void> {
 
   await Promise.all(urls.filter(Boolean).map(async (rawUrl) => {
     try {
+      const verificationMatch = rawUrl.match(/^\/api\/upload\/verify-doc\/([a-f0-9]{32})\/([^/]+)$/)
+      if (verificationMatch) {
+        const [, owner, filename] = verificationMatch
+        const objectPath = getVerificationDocObjectPath(owner, filename)
+        if (bucketName && objectPath) {
+          await getStorage(firebaseAdminApp).bucket(bucketName).file(objectPath).delete({ ignoreNotFound: true })
+        }
+        const legacyTarget = resolveVerificationDocPath(owner, filename)
+        if (legacyTarget) await unlink(legacyTarget.filepath).catch(() => {})
+        return
+      }
+
       if (rawUrl.startsWith('/uploads/')) {
         const filepath = normalize(join(process.cwd(), 'public', rawUrl))
         if (filepath.startsWith(publicRoot)) await unlink(filepath).catch(() => {})
@@ -194,5 +211,13 @@ export async function hardDeleteAccount(uid: string): Promise<void> {
   }
 
   await deleteFiles(fileUrls)
+  const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+  if (bucketName) {
+    const owner = getVerificationDocOwnerSegment(uid)
+    await getStorage(firebaseAdminApp).bucket(bucketName).deleteFiles({
+      prefix: `verification/${owner}/`,
+      force: true,
+    }).catch((error) => console.warn('[ACCOUNT DELETE VERIFICATION FILE WARN]', error))
+  }
   await purgeChatUserData(uid)
 }

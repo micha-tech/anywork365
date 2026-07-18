@@ -42,6 +42,19 @@ export async function POST(req: NextRequest) {
       utility_bill_url: docUrlSchema.nullable().optional(),
       business_registration_url: docUrlSchema.nullable().optional(),
       trade_certificate_url: docUrlSchema.nullable().optional(),
+    }).superRefine((data, ctx) => {
+      if (!data.nin && !data.nin_card_url) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Provide your NIN or upload a NIN card as identity evidence',
+        })
+      }
+      if (!data.utility_bill_url && !data.business_registration_url && !data.trade_certificate_url) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Upload a utility bill, business registration document, or trade certificate',
+        })
+      }
     })
 
     const parsed = schema.safeParse(await req.json())

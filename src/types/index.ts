@@ -15,6 +15,10 @@ export interface User {
   lga?: string
   address?: string
   bio?: string
+  businessName?: string
+  businessContact?: string
+  yearsOfExperience?: number
+  feePerHour?: number
   skills?: string[]
   avatarUrl?: string
   rating?: number
