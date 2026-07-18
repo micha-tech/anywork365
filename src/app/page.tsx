@@ -81,7 +81,7 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
               Book verified artisans, technicians, and service providers near you. Secure payments. Guaranteed quality.
             </p>
 
-            <form action="/professionals" method="GET" className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:flex-row">
+            <form action="/artisans" method="GET" className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:flex-row">
               <div className={`relative flex-1 transition-all duration-200 ${searchFocused ? 'scale-[1.01]' : ''}`}>
                 <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                 <input
@@ -185,7 +185,7 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-slate-800">500+ Vendors</p>
+                    <p className="text-xs font-semibold text-slate-800">500+ Artisans</p>
                     <p className="text-[10px] text-slate-400">Ready to help</p>
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export default function HomePage() {
               <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Services</p>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Browse by category</h2>
             </div>
-            <Link href="/professionals" className="text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors">
+            <Link href="/artisans" className="text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors">
               View all
             </Link>
           </div>
@@ -255,7 +255,7 @@ export default function HomePage() {
             {displayCategories.map((service) => (
               <Link
                 key={service}
-                href={`/professionals?category=${encodeURIComponent(service)}`}
+                href={`/artisans?category=${encodeURIComponent(service)}`}
                 className="group flex min-h-[132px] flex-col items-center justify-center rounded-lg border border-slate-200 bg-white p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md"
               >
                 <CategoryIcon category={service} size={40} />
@@ -274,7 +274,7 @@ export default function HomePage() {
               <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Top Rated</p>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Featured Professionals</h2>
             </div>
-            <Link href="/professionals" className="text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors">
+            <Link href="/artisans" className="text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors">
               View all
             </Link>
           </div>
@@ -283,11 +283,11 @@ export default function HomePage() {
             {vendorsLoading ? (
               Array.from({ length: 4 }).map((_, i) => <SkeletonProCard key={i} />)
             ) : featuredVendors.length === 0 ? (
-              <p className="col-span-full text-sm text-slate-500 text-center py-8">No vendors found</p>
+              <p className="col-span-full text-sm text-slate-500 text-center py-8">No artisans found</p>
             ) : featuredVendors.map((vendor) => (
               <Link
                 key={vendor.id}
-                href={`/professionals/${vendor.id}`}
+                href={`/artisans/${vendor.id}`}
                   className="card group hover:border-brand-300 hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5"
               >
                 <div className="flex items-start gap-3 mb-3">
@@ -451,7 +451,7 @@ export default function HomePage() {
               <Link href="/signup" className="h-[52px] px-8 rounded-lg bg-white text-brand-600 font-bold text-sm flex items-center justify-center hover:bg-brand-50 active:scale-[0.98] transition-all shadow-sm">
                 Create Free Account
               </Link>
-              <Link href="/professionals" className="h-[52px] px-8 rounded-lg border border-white/30 text-white font-semibold text-sm flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
+              <Link href="/artisans" className="h-[52px] px-8 rounded-lg border border-white/30 text-white font-semibold text-sm flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
                 Browse Professionals
               </Link>
             </div>

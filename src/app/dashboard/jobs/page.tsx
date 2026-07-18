@@ -18,7 +18,7 @@ export default async function MyJobsPage({
   searchParams: Promise<{ tab?: string }>
 }) {
   const session = await getSession()
-  if (!session || session.role !== 'vendor') redirect('/dashboard')
+  if (!session || session.role !== 'artisan') redirect('/dashboard')
 
   const { tab: rawTab } = await searchParams
   const currentTab: Tab = TABS.includes(rawTab as Tab) ? (rawTab as Tab) : 'active'

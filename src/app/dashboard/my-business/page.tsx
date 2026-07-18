@@ -39,7 +39,7 @@ export default function MyBusinessPage() {
 
   useEffect(() => {
     if (userLoading) return
-    if (!user || user.role !== 'vendor') {
+    if (!user || user.role !== 'artisan') {
       setFetching(false)
       return
     }
@@ -108,10 +108,10 @@ export default function MyBusinessPage() {
     )
   }
 
-  if (!user || user.role !== 'vendor') {
+  if (!user || user.role !== 'artisan') {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-sm text-slate-500">Only vendors can manage a business profile.</p>
+        <p className="text-sm text-slate-500">Only artisans can manage a business profile.</p>
       </div>
     )
   }

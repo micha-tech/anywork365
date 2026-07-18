@@ -16,7 +16,7 @@ type ActiveRegistrationFormProps = {
 
 export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormProps) {
   const [showPassword, setShowPassword] = useState(false)
-  const backendRole = accountType === 'artisan' ? 'vendor' : 'client'
+  const backendRole = accountType
   const isArtisan = accountType === 'artisan'
 
   const {
@@ -125,8 +125,8 @@ export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormPr
         </div>
 
         <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-          <Field label="State" error={errors.city?.message}>
-            <select {...register('city')} className={`input-field appearance-none ${errorClass(!!errors.city)}`}>
+          <Field label="State" error={errors.state?.message}>
+            <select {...register('state')} className={`input-field appearance-none ${errorClass(!!errors.state)}`}>
               <option value="">Select your state</option>
               {NIGERIAN_STATE_NAMES.map((state) => <option key={state} value={state}>{state}</option>)}
             </select>
@@ -137,8 +137,8 @@ export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormPr
         </div>
 
         {isArtisan && (
-          <Field label="Primary service category" error={errors.category?.message}>
-            <select {...register('category')} className={`input-field appearance-none ${errorClass(!!errors.category)}`}>
+          <Field label="Primary service category" error={errors.artisanServiceCategory?.message}>
+            <select {...register('artisanServiceCategory')} className={`input-field appearance-none ${errorClass(!!errors.artisanServiceCategory)}`}>
               <option value="">Select the service you provide</option>
               {BUSINESS_CATEGORY_GROUPS.map((group) => (
                 <optgroup key={group.label} label={group.label}>

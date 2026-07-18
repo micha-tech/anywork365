@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (session.role !== 'vendor') {
+    if (session.role !== 'artisan') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only vendors can upload verification documents' },
+        { success: false, error: 'Only artisans can upload verification documents' },
         { status: 403 }
       )
     }

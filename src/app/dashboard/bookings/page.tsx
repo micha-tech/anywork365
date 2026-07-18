@@ -28,7 +28,7 @@ interface BookingItem {
 
 const BOOKING_STEPS = [
   { status: 'pending', label: 'Requested', detail: 'Payment secured' },
-  { status: 'confirmed', label: 'Accepted', detail: 'Vendor confirmed' },
+  { status: 'confirmed', label: 'Accepted', detail: 'Artisan confirmed' },
   { status: 'completed', label: 'Completed', detail: 'Payment released' },
 ] as const
 
@@ -124,7 +124,7 @@ export default function BookingsPage() {
   }, [user, loading])
 
   useEffect(() => {
-    if (!loading && user?.role === 'vendor') setStatusFilter('pending')
+    if (!loading && user?.role === 'artisan') setStatusFilter('pending')
   }, [loading, user?.role])
 
   async function handleAction(bookingId: number, action: string) {
@@ -225,7 +225,7 @@ export default function BookingsPage() {
     cancelled: 'bg-slate-100 text-slate-600',
   }
 
-  const isVendor = user?.role === 'vendor'
+  const isVendor = user?.role === 'artisan'
   const activeBookings = bookings.filter((booking) => booking.status === 'pending' || booking.status === 'confirmed')
   const visibleBookings = statusFilter === 'all'
     ? bookings
@@ -288,14 +288,14 @@ export default function BookingsPage() {
             icon="bookings"
             title={bookings.length === 0 ? 'No bookings yet' : 'Nothing here'}
             description={bookings.length === 0
-              ? (isVendor ? 'Client bookings will appear here.' : 'Book a vendor to start tracking work.')
+              ? (isVendor ? 'Client bookings will appear here.' : 'Book an artisan to start tracking work.')
               : 'Try another status tab.'}
             action={!isVendor && bookings.length === 0 ? (
               <Link
-                href="/professionals"
+                href="/artisans"
                 className="inline-flex w-fit rounded-md border border-brand-100 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-100"
               >
-                Find vendor
+                Find artisan
               </Link>
             ) : undefined}
           />
@@ -304,7 +304,7 @@ export default function BookingsPage() {
             <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
               <div className="flex-1 min-w-0">
                 <p className="mb-1 break-words text-xs text-slate-500 sm:text-sm">
-                  {isVendor ? (b.clientName || 'Client') : (b.businessName || 'Vendor')} &middot; Booking #{b.id} &middot; {new Date(b.createdAt).toLocaleDateString()}
+                  {isVendor ? (b.clientName || 'Client') : (b.businessName || 'Artisan')} &middot; Booking #{b.id} &middot; {new Date(b.createdAt).toLocaleDateString()}
                 </p>
                 <p className="mb-2 break-words text-sm font-medium leading-snug">{b.description}</p>
                 <div className="grid gap-1 text-xs text-slate-500 sm:flex sm:flex-wrap sm:gap-x-4">
@@ -379,7 +379,7 @@ export default function BookingsPage() {
         {reviewBooking && (
           <div>
             <p className="text-sm text-slate-500 mb-4">
-              Rate your experience with <strong>{reviewBooking.businessName || 'this vendor'}</strong>
+              Rate your experience with <strong>{reviewBooking.businessName || 'this artisan'}</strong>
             </p>
 
             <div className="flex gap-1 mb-4">

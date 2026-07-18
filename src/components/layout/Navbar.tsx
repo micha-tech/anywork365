@@ -11,12 +11,12 @@ import { useAppPushNotifications } from '@/hooks/useAppPushNotifications'
 import { logoutCurrentUser } from '@/lib/clientLogout'
 
 const PUBLIC_NAV = [
-  { href: '/professionals', label: 'Find Vendors' },
+  { href: '/artisans', label: 'Find Artisans' },
   { href: '/jobs',          label: 'Browse Jobs' },
 ]
 
 const AUTH_NAV = [
-  { href: '/professionals', label: 'Vendors' },
+  { href: '/artisans', label: 'Artisans' },
   { href: '/jobs', label: 'Jobs' },
   { href: '/bookings', label: 'Bookings' },
   { href: '/messages', label: 'Messages' },
@@ -63,8 +63,8 @@ export function Navbar() {
 
   const isLoggedIn = !loading && !!user
   const isAdmin    = user?.role === 'admin'
-  const isVendor   = user?.role === 'vendor'
-  const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? (user?.role === 'vendor' ? VENDOR_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
+  const isVendor   = user?.role === 'artisan'
+  const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? (user?.role === 'artisan' ? VENDOR_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
   const initials   = getInitialsFromUser(user)
 
   const handleConversationOpen = useCallback((conversationId: string) => {
@@ -164,7 +164,7 @@ export function Navbar() {
                         { href: '/dashboard/wallet', label: 'Wallet' },
                         { href: '/dashboard/profile', label: 'My Profile' },
                       ] : [
-                        { href: '/professionals', label: 'Vendors' },
+                        { href: '/artisans', label: 'Artisans' },
                         { href: '/jobs', label: 'Jobs' },
                         { href: '/bookings', label: 'Bookings' },
                         { href: '/messages', label: 'Messages' },

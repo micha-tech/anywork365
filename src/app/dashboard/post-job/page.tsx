@@ -46,10 +46,10 @@ export default function PostJobPage() {
     )
   }
 
-  if (user?.role !== 'vendor') {
+  if (user?.role !== 'artisan') {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-sm text-slate-500 mb-4">Only vendors can post jobs.</p>
+        <p className="text-sm text-slate-500 mb-4">Only artisans can post jobs.</p>
         <Link href="/dashboard" className="text-sm text-brand-500 font-medium">
           Back to Dashboard
         </Link>

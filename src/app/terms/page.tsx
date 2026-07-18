@@ -19,8 +19,8 @@ const sections = [
     content: `You are solely responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account. We are not liable for any loss or damage arising from your failure to safeguard your account.`,
   },
   {
-    title: 'Vendor Obligations',
-    content: `Vendors listing services on Anywork365 agree to:
+    title: 'Artisan Obligations',
+    content: `Artisans listing services on Anywork365 agree to:
 • Provide accurate descriptions of their services, qualifications, and pricing
 • Complete booked jobs professionally and within agreed timelines
 • Maintain valid identification and business documentation for verification
@@ -34,9 +34,9 @@ Failure to meet these obligations may result in account suspension or permanent 
     content: `Clients using Anywork365 agree to:
 • Provide accurate job descriptions and requirements
 • Pay agreed amounts through the platform's escrow system
-• Communicate respectfully with vendors
+• Communicate respectfully with artisans
 • Release payments promptly upon satisfactory completion of work
-• Not attempt to circumvent the platform to engage vendors off-platform`,
+• Not attempt to circumvent the platform to engage artisans off-platform`,
   },
   {
     title: 'Payments & Fees',
@@ -46,7 +46,7 @@ We reserve the right to adjust fees with notice to users.`,
   },
   {
     title: 'Dispute Resolution',
-    content: `If a dispute arises between a client and vendor, both parties agree to first attempt resolution through the platform's dispute resolution process. Anywork365 may review evidence and make a determination, which both parties agree to accept as binding.
+    content: `If a dispute arises between a client and artisan, both parties agree to first attempt resolution through the platform's dispute resolution process. Anywork365 may review evidence and make a determination, which both parties agree to accept as binding.
 
 For unresolved disputes, the matter shall be referred to mediation in Lagos, Nigeria, before any court action.`,
   },
@@ -68,7 +68,7 @@ Violation of these prohibitions will result in immediate account termination and
   },
   {
     title: 'Limitation of Liability',
-    content: `Anywork365 acts as a marketplace connecting clients and vendors. We are not a party to any service agreement between users and are not liable for the quality, safety, or legality of services provided. Our liability is limited to the maximum extent permitted by Nigerian law.
+    content: `Anywork365 acts as a marketplace connecting clients and artisans. We are not a party to any service agreement between users and are not liable for the quality, safety, or legality of services provided. Our liability is limited to the maximum extent permitted by Nigerian law.
 
 The platform is provided "as is" without warranties of merchantability or fitness for a particular purpose.`,
   },

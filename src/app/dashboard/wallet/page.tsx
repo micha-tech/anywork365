@@ -222,7 +222,7 @@ function WalletPageContent() {
     }
   }
 
-  const isPro = user?.role === 'vendor'
+  const isPro = user?.role === 'artisan'
   const wallet = walletData?.wallet
   const txHistory = walletData?.transactions ?? []
   const quickAmounts = [5000, 10000, 25000, 50000]

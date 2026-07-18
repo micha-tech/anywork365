@@ -72,9 +72,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (session.role !== 'vendor') {
+    if (session.role !== 'artisan') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only vendors can add bank accounts' },
+        { success: false, error: 'Only artisans can add bank accounts' },
         { status: 403 }
       )
     }
@@ -143,9 +143,9 @@ export async function DELETE() {
       )
     }
 
-    if (session.role !== 'vendor') {
+    if (session.role !== 'artisan') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only vendors can remove bank accounts' },
+        { success: false, error: 'Only artisans can remove bank accounts' },
         { status: 403 }
       )
     }

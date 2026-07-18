@@ -1,7 +1,14 @@
 import { z } from 'zod'
 import { JOB_CATEGORIES } from '@/types'
+import {
+  COMPANY_SIZES,
+  INDUSTRY_CATEGORIES,
+  PROFESSIONAL_QUALIFICATIONS,
+  PROFESSIONAL_SERVICE_CATEGORIES,
+  RECRUITMENT_FUNCTIONS,
+} from '@/lib/registration-options'
 
-const signupCategorySchema = z
+const artisanServiceCategorySchema = z
   .union([
     z.literal(''),
     z.enum(JOB_CATEGORIES as [string, ...string[]], {
@@ -71,19 +78,70 @@ export const signupSchema = z
       .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
       .regex(/[0-9]/, 'Password must contain at least one number'),
     confirmPassword: z.string(),
-    role: z.enum(['client', 'vendor'], {
+    role: z.enum(['client', 'artisan', 'professional', 'recruiter'], {
       required_error: 'Please select your account type',
     }),
-    category: signupCategorySchema,
-    city: z.string().min(1, 'Please select your city'),
+    state: z.string().min(1, 'Please select your state'),
+    artisanServiceCategory: artisanServiceCategorySchema,
+    industryCategory: z.enum(INDUSTRY_CATEGORIES).optional(),
+    professionalServiceCategory: z.enum(PROFESSIONAL_SERVICE_CATEGORIES).optional(),
+    jobTitle: z.string().trim().max(160).optional(),
+    qualification: z.enum(PROFESSIONAL_QUALIFICATIONS).optional(),
+    yearsExperience: z.coerce.number().int().min(0).max(70).optional(),
+    linkedinOrPortfolioUrl: z.union([z.literal(''), z.string().url('Please enter a valid LinkedIn or portfolio URL')]).optional(),
+    companyName: z.string().trim().max(180).optional(),
+    companySize: z.enum(COMPANY_SIZES).optional(),
+    recruitmentFunction: z.enum(RECRUITMENT_FUNCTIONS).optional(),
+    position: z.string().trim().max(160).optional(),
+    companyWebsite: z.union([z.literal(''), z.string().url('Please enter a valid company website URL')]).optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
     path: ['confirmPassword'],
   })
-  .refine((data) => data.role !== 'vendor' || !!data.category, {
-    message: 'Please select the business category you serve',
-    path: ['category'],
+  .refine((data) => data.role !== 'artisan' || !!data.artisanServiceCategory, {
+    message: 'Please select the primary service you provide',
+    path: ['artisanServiceCategory'],
+  })
+  .refine((data) => data.role !== 'professional' || !!data.industryCategory, {
+    message: 'Please select your industry',
+    path: ['industryCategory'],
+  })
+  .refine((data) => data.role !== 'professional' || !!data.professionalServiceCategory, {
+    message: 'Please select your professional service',
+    path: ['professionalServiceCategory'],
+  })
+  .refine((data) => data.role !== 'professional' || !!data.jobTitle, {
+    message: 'Please enter your current or preferred job title',
+    path: ['jobTitle'],
+  })
+  .refine((data) => data.role !== 'professional' || !!data.qualification, {
+    message: 'Please select your highest qualification',
+    path: ['qualification'],
+  })
+  .refine((data) => data.role !== 'professional' || data.yearsExperience !== undefined, {
+    message: 'Please enter your years of experience',
+    path: ['yearsExperience'],
+  })
+  .refine((data) => data.role !== 'recruiter' || !!data.companyName, {
+    message: 'Please enter your company name',
+    path: ['companyName'],
+  })
+  .refine((data) => data.role !== 'recruiter' || !!data.companySize, {
+    message: 'Please select your company size',
+    path: ['companySize'],
+  })
+  .refine((data) => data.role !== 'recruiter' || !!data.industryCategory, {
+    message: 'Please select the primary industry you recruit for',
+    path: ['industryCategory'],
+  })
+  .refine((data) => data.role !== 'recruiter' || !!data.recruitmentFunction, {
+    message: 'Please select your recruitment function',
+    path: ['recruitmentFunction'],
+  })
+  .refine((data) => data.role !== 'recruiter' || !!data.position, {
+    message: 'Please enter your position',
+    path: ['position'],
   })
 
 export type LoginInput = z.infer<typeof loginSchema>

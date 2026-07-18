@@ -38,7 +38,7 @@ export async function GET() {
 
   let bookings: any[] = []
 
-  if (session.role === 'vendor') {
+  if (session.role === 'artisan') {
     const business = await getBusinessByUid(session.id)
     if (business) {
       const rows = await getBookingsByBusiness(business.businessId)
@@ -98,9 +98,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  if (session.role === 'vendor') {
+  if (session.role === 'artisan') {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Only clients can book vendors' },
+      { success: false, error: 'Only clients can book artisans' },
       { status: 403 }
     )
   }
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
   const schema = z.object({
-    vendorId: z.string().min(1, 'Vendor is required'),
+    vendorId: z.string().min(1, 'Artisan is required'),
     description: z.string().min(1, 'Description is required').max(2000, 'Description must be under 2000 characters'),
     budget: z.number().int().min(1000, 'Minimum booking budget is ₦1,000').max(10_000_000, 'Maximum booking budget is ₦10,000,000'),
     date: z.string().min(1, 'Date is required'),
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
   const vendor = await getBusinessByUid(vendorId)
   if (!vendor) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Vendor not found' },
+      { success: false, error: 'Artisan not found' },
       { status: 404 }
     )
   }
@@ -253,7 +253,7 @@ export async function POST(req: NextRequest) {
           status: 'pending',
           createdAt: new Date().toISOString(),
         },
-        message: 'Booking request sent! The vendor will respond shortly.',
+        message: 'Booking request sent! The artisan will respond shortly.',
       },
       { status: 201 }
     )

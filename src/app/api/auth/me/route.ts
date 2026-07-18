@@ -96,7 +96,7 @@ export async function PATCH(req: NextRequest) {
       address,
       bio,
     })
-    if (session.role === 'vendor') {
+    if (session.role === 'artisan') {
       await updateBusiness(session.id, {
         businessContact: phone,
         description: bio,

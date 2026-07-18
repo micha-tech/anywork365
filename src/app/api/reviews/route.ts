@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       await connection.execute('ROLLBACK')
       connReleased = true; connection.release()
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'You have already reviewed this vendor for this booking' },
+        { success: false, error: 'You have already reviewed this artisan for this booking' },
         { status: 409 }
       )
     }

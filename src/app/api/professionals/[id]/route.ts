@@ -10,13 +10,13 @@ export async function GET(
   const { id } = await params
   const vendor = await cachedQuery(
     () => getVendorByUid(id),
-    ['vendor', id],
+    ['artisan', id],
     [CACHE_TAGS.PROFESSIONAL(id), CACHE_TAGS.PROFESSIONALS],
     120
   )
   if (!vendor) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Vendor not found' },
+      { success: false, error: 'Artisan not found' },
       { status: 404 }
     )
   }

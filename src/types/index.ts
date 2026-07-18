@@ -1,6 +1,6 @@
 // ─── User & Auth ─────────────────────────────────────────────────────────────
 
-export type UserRole = 'client' | 'vendor' | 'admin'
+export type UserRole = 'client' | 'artisan' | 'professional' | 'recruiter' | 'admin'
 
 export interface User {
   id: string
@@ -66,7 +66,7 @@ export interface SignupPayload {
   phone: string
   password: string
   role: UserRole
-  city: string
+  state: string
 }
 
 // ─── Jobs ─────────────────────────────────────────────────────────────────────

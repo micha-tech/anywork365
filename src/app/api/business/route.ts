@@ -17,9 +17,9 @@ export async function GET() {
       )
     }
 
-    if (session.role !== 'vendor') {
+    if (session.role !== 'artisan') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only vendors can access business info' },
+        { success: false, error: 'Only artisans can access business info' },
         { status: 403 }
       )
     }
@@ -80,9 +80,9 @@ export async function PUT(req: NextRequest) {
       )
     }
 
-    if (session.role !== 'vendor') {
+    if (session.role !== 'artisan') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only vendors can update business info' },
+        { success: false, error: 'Only artisans can update business info' },
         { status: 403 }
       )
     }

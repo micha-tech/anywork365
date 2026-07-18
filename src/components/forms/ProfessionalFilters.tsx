@@ -35,7 +35,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
           name="search"
           defaultValue={search}
           className="input-field pl-10"
-          placeholder="Search service or vendor"
+          placeholder="Search service or artisan"
           aria-label="Search professionals"
         />
       </div>
@@ -77,7 +77,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
       </select>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 md:col-span-2 lg:col-span-1">
         <button type="submit" className="btn-primary min-w-0 px-5 lg:flex-none">Find</button>
-        {hasFilters && <Link href="/professionals" className="btn-ghost px-4">Clear</Link>}
+        {hasFilters && <Link href="/artisans" className="btn-ghost px-4">Clear</Link>}
       </div>
     </form>
   )

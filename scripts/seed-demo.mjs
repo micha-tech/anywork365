@@ -16,7 +16,7 @@ const mysql = require('mysql2/promise')
 const admin = require('firebase-admin')
 
 const DEMO_CLIENT = { email: 'demo.client@anywork365.com', password: 'DemoTest123!' }
-const DEMO_VENDOR = { email: 'demo.vendor@anywork365.com', password: 'DemoTest123!' }
+const DEMO_ARTISAN = { email: 'demo.artisan@anywork365.com', password: 'DemoTest123!' }
 
 async function main() {
   // ── Firebase Admin ──────────────────────────────────────────────
@@ -122,8 +122,8 @@ async function main() {
     console.log(`  ~ Client wallet already has ₦${clientCurrentBal.toLocaleString()}`)
   }
 
-  console.log('\n=== Creating demo vendor ===')
-  const vendor = await createDemoUser(DEMO_VENDOR.email, DEMO_VENDOR.password, 'Demo Vendor', 'vendor')
+  console.log('\n=== Creating demo artisan ===')
+  const vendor = await createDemoUser(DEMO_ARTISAN.email, DEMO_ARTISAN.password, 'Demo Artisan', 'artisan')
 
   // Create business
   const [bizRows] = await pool.execute("SELECT businessId FROM businesses WHERE uid = ? AND deleted = 0", [vendor.uid])
@@ -179,7 +179,7 @@ async function main() {
   console.log(`    Password: ${DEMO_CLIENT.password}`)
   console.log(`    Wallet:   ₦500,000`)
   console.log('')
-  console.log('  Vendor:')
+  console.log('  Artisan:')
   console.log(`    Email:    ${DEMO_VENDOR.email}`)
   console.log(`    Password: ${DEMO_VENDOR.password}`)
   console.log(`    Wallet:   ₦100,000`)

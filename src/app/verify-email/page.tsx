@@ -85,7 +85,7 @@ export default function VerifyEmailPage() {
     } catch {
       // Session refresh is best-effort; protected pages will redirect back if it fails.
     }
-    router.push(user?.role === 'vendor' ? '/dashboard' : '/professionals')
+    router.push(user?.role === 'artisan' ? '/dashboard' : '/artisans')
   }, [refreshSession, router, user?.role])
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export default function VerifyEmailPage() {
       toast.success('Email verified successfully')
 
       if (sessionRefreshed) {
-        router.push(user?.role === 'vendor' ? '/dashboard' : '/professionals')
+        router.push(user?.role === 'artisan' ? '/dashboard' : '/artisans')
       }
     }
 

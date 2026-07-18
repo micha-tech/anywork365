@@ -28,8 +28,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Nigeria's trusted work platform",
-  description: 'Connect with verified artisans, technicians, and vendors across Nigeria.',
-  keywords: ['Nigeria', 'freelance', 'artisans', 'technicians', 'vendors', 'Lagos', 'Abuja'],
+  description: 'Connect with verified artisans and professionals across Nigeria.',
+  keywords: ['Nigeria', 'freelance', 'artisans', 'professionals', 'recruiters', 'Lagos', 'Abuja'],
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Anywork365',
-    description: 'Find skilled vendors for any job in Nigeria',
+    description: 'Find skilled artisans and professionals in Nigeria',
     type: 'website',
     images: [
       {

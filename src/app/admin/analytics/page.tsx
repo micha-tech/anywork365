@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 interface Stats {
-  users: { total: number; vendors: number; clients: number; admins: number }
+  users: { total: number; artisans: number; professionals: number; recruiters: number; clients: number; admins: number }
   bookings: { total: number; pending: number; completed: number }
   jobs: { total: number; open: number }
   revenue: { total: number; withdrawn: number }
@@ -39,7 +39,9 @@ export default function AdminAnalyticsPage() {
 
       <Section title="Users">
         <Bar label="Total" value={stats.users.total} max={stats.users.total} />
-        <Bar label="Vendors" value={stats.users.vendors} max={stats.users.total} />
+        <Bar label="Artisans" value={stats.users.artisans} max={stats.users.total} />
+        <Bar label="Professionals" value={stats.users.professionals} max={stats.users.total} />
+        <Bar label="Recruiters" value={stats.users.recruiters} max={stats.users.total} />
         <Bar label="Clients" value={stats.users.clients} max={stats.users.total} />
         <Bar label="Admins" value={stats.users.admins} max={stats.users.total} />
       </Section>

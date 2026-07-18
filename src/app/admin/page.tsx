@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 interface Stats {
-  users: { total: number; vendors: number; clients: number; admins: number }
+  users: { total: number; artisans: number; professionals: number; recruiters: number; clients: number; admins: number }
   bookings: { total: number; pending: number; completed: number }
   jobs: { total: number; open: number }
   revenue: { total: number; withdrawn: number }
@@ -38,7 +38,7 @@ export default function AdminOverviewPage() {
       <h1 className="text-xl font-semibold text-slate-900">Admin Overview</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <StatCard label="Total Users" value={stats?.users.total ?? 0} sub={`${stats?.users.vendors ?? 0} vendors`} />
+        <StatCard label="Total Users" value={stats?.users.total ?? 0} sub={`${stats?.users.artisans ?? 0} artisans`} />
         <StatCard label="Today's Users" value={stats?.usersToday ?? 0} sub="new signups" />
         <StatCard label="Total Bookings" value={stats?.bookings.total ?? 0} sub={`${stats?.bookings.pending ?? 0} pending`} />
         <StatCard label="Open Jobs" value={stats?.jobs.open ?? 0} sub={`${stats?.jobs.total ?? 0} total`} />
