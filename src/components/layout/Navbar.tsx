@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
+import { Avatar } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useCurrentUser, getInitialsFromUser } from '@/hooks/useCurrentUser'
 import { BrandLogo } from '@/components/layout/BrandLogo'
@@ -143,11 +143,7 @@ export function Navbar() {
                     onClick={() => setDropOpen(!dropOpen)}
                     className="flex items-center gap-2 rounded-lg border border-transparent py-1.5 pl-1.5 pr-3 transition-colors hover:border-slate-200 hover:bg-white"
                   >
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {user?.avatarUrl
-                        ? <Image src={user.avatarUrl} alt={initials} width={32} height={32} className="w-full h-full object-cover" unoptimized={user.avatarUrl.startsWith('/uploads/')} />
-                        : <span>{initials}</span>}
-                    </div>
+                    <Avatar src={user?.avatarUrl} initials={initials} size="sm" className="font-bold" />
                     <span className="text-sm font-medium text-slate-700">{user?.firstName}</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="6 9 12 15 18 9"/>
@@ -209,11 +205,7 @@ export function Navbar() {
                 <NotificationBell unreadCount={unreadCount} onClick={() => router.push(isVendor ? '/dashboard/notifications' : '/notifications')} />
               )}
               {isLoggedIn ? (
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
-                  {user?.avatarUrl
-                    ? <Image src={user.avatarUrl} alt={initials} width={32} height={32} className="w-full h-full object-cover" unoptimized={user.avatarUrl.startsWith('/uploads/')} />
-                    : <span>{initials}</span>}
-                </div>
+                <Avatar src={user?.avatarUrl} initials={initials} size="sm" className="font-bold" />
               ) : pathname === '/' ? (
                 <Link href="/signup" className="btn-primary-sm text-xs px-3 py-2">
                   Sign up
