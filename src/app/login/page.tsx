@@ -10,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginInput } from '@/lib/validators/auth'
 import { signIn } from '@/lib/firebase/auth'
 import { toErrorMessage } from '@/lib/utils'
-import { BrandLogo } from '@/components/layout/BrandLogo'
+import { BrandWordmark } from '@/components/layout/BrandLogo'
 
 export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
@@ -63,9 +63,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-start px-4 py-6 sm:justify-center sm:py-10">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-5 sm:mb-7">
-          <BrandLogo size="lg" priority imageClassName="mx-auto object-contain" />
+        <div className="mb-6 flex justify-center sm:mb-8">
+          <BrandWordmark priority className="w-[245px] sm:w-[285px]" />
         </div>
 
         <div className="card p-5 sm:p-8">

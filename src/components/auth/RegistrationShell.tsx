@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { BrandLogo } from '@/components/layout/BrandLogo'
+import { BrandWordmark } from '@/components/layout/BrandLogo'
 
 type RegistrationShellProps = {
   role: string
@@ -28,16 +28,31 @@ export function RegistrationShell({
   imagePosition = 'center',
   children,
 }: RegistrationShellProps) {
+  const marketingCopy = (
+    <>
+      <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md lg:mb-4">
+        <span className="flex h-6 w-6 items-center justify-center text-amber-300 [&>svg]:h-5 [&>svg]:w-5">{icon}</span>
+        Register as {role}
+      </div>
+      <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">{eyebrow}</p>
+      <h1 className="mt-2 max-w-lg font-display text-2xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-3xl lg:text-[2.6rem]">{title}</h1>
+      <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/85 lg:text-base">{description}</p>
+
+      <div className="mt-4 grid gap-2 border-t border-white/20 pt-4 lg:mt-5 lg:grid-cols-1 lg:pt-5 xl:grid-cols-3">
+        {benefits.map((benefit) => (
+          <div key={benefit} className="flex items-start gap-2 text-xs font-medium leading-relaxed text-white/90">
+            <span className="mt-0.5 text-amber-300">✓</span>
+            <span>{benefit}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+
   return (
     <div className="min-h-dvh bg-[#f5f8f7]">
-      <header className="flex min-h-[64px] items-center justify-between border-b border-slate-200 bg-white px-4 py-2.5 lg:hidden">
-        <Link href="/" className="inline-flex min-w-0 items-center gap-2.5">
-          <BrandLogo href="" size="sm" priority imageClassName="object-contain" />
-          <div className="min-w-0">
-            <p className="truncate font-display text-sm font-extrabold leading-none text-slate-950">Anywork365</p>
-            <p className="mt-1 truncate text-[10px] font-medium text-slate-500">Work. Talent. Opportunity.</p>
-          </div>
-        </Link>
+      <header className="flex min-h-[68px] items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+        <BrandWordmark priority className="w-[190px] max-w-[calc(100vw-6.5rem)]" />
         <Link href="/login" className="inline-flex min-h-[44px] flex-shrink-0 items-center px-1 text-sm font-semibold text-brand-700">
           Log in
         </Link>
@@ -51,57 +66,58 @@ export function RegistrationShell({
           </Link>
         </div>
 
-        <div className="mb-5 hidden items-center justify-between gap-4 px-1 lg:flex">
-          <Link href="/signup" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand-600">
-            <span aria-hidden="true">←</span>
-            Change account type
-          </Link>
-          <Link href="/login" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800">
-            <span className="hidden sm:inline">Already have an account?&nbsp;</span>
-            <span className="underline underline-offset-4">Log in</span>
-          </Link>
+        <div className="mb-5 hidden min-h-[52px] items-center justify-between gap-6 lg:flex">
+          <BrandWordmark priority className="w-[250px]" />
+          <div className="flex items-center gap-6">
+            <Link href="/signup" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand-600">
+              <span aria-hidden="true">←</span>
+              Change account type
+            </Link>
+            <Link href="/login" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800">
+              Already have an account?&nbsp;<span className="underline underline-offset-4">Log in</span>
+            </Link>
+          </div>
         </div>
 
         <section className="grid items-start sm:px-6 lg:grid-cols-[minmax(0,0.88fr)_minmax(560px,1.12fr)] lg:gap-7 lg:px-0">
-          <aside className="relative h-[260px] overflow-hidden bg-slate-900 text-white sm:h-[390px] sm:rounded-3xl sm:shadow-[0_18px_50px_rgba(15,23,42,0.14)] lg:sticky lg:top-8 lg:h-[calc(100dvh-4rem)] lg:min-h-[680px] lg:max-h-[880px]">
+          <div className="relative h-[560px] overflow-hidden bg-slate-900 text-white sm:h-[600px] sm:rounded-3xl sm:shadow-[0_18px_50px_rgba(15,23,42,0.14)] lg:hidden">
+            <Image
+              src={imageSrc}
+              alt=""
+              fill
+              priority
+              aria-hidden="true"
+              sizes="100vw"
+              className="scale-110 object-cover opacity-35 blur-xl"
+              style={{ objectPosition: imagePosition }}
+            />
             <Image
               src={imageSrc}
               alt={imageAlt}
               fill
               priority
-              sizes="(max-width: 1023px) 100vw, 42vw"
+              sizes="100vw"
+              className="object-contain"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,24,23,0.02)_0%,rgba(3,24,23,0.08)_32%,rgba(3,24,23,0.93)_72%,rgba(3,15,14,0.98)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+              {marketingCopy}
+            </div>
+          </div>
+
+          <aside className="relative hidden overflow-hidden rounded-3xl bg-slate-900 text-white shadow-[0_18px_50px_rgba(15,23,42,0.16)] lg:sticky lg:top-8 lg:block lg:h-[calc(100dvh-4rem)] lg:min-h-[680px] lg:max-h-[880px]">
+            <Image
+              src={imageSrc}
+              alt={imageAlt}
+              fill
+              priority
+              sizes="42vw"
               className="object-cover"
               style={{ objectPosition: imagePosition }}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,24,23,0.12)_0%,rgba(3,24,23,0.04)_40%,rgba(3,24,23,0.88)_100%)] lg:bg-[linear-gradient(180deg,rgba(3,24,23,0.48)_0%,rgba(3,24,23,0.04)_38%,rgba(3,24,23,0.88)_100%)]" />
-
-            <div className="absolute inset-x-0 top-0 hidden p-7 lg:block">
-              <div className="inline-flex items-center gap-2.5 rounded-xl bg-white/95 px-3 py-2 text-slate-950 shadow-sm backdrop-blur">
-                <BrandLogo href="" size="sm" priority imageClassName="object-contain" />
-                <div>
-                  <p className="font-display text-sm font-extrabold leading-none">Anywork365</p>
-                  <p className="mt-1 text-[10px] font-medium text-slate-500">Work. Talent. Opportunity.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 lg:p-9">
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-1.5 text-xs font-semibold backdrop-blur-md sm:mb-3 lg:mb-4">
-                <span className="flex h-6 w-6 items-center justify-center text-amber-300 [&>svg]:h-5 [&>svg]:w-5">{icon}</span>
-                Register as {role}
-              </div>
-              <p className="hidden text-xs font-bold uppercase tracking-[0.16em] text-amber-300 sm:block">{eyebrow}</p>
-              <h1 className="max-w-lg font-display text-2xl font-extrabold leading-[1.1] tracking-tight sm:mt-2 sm:text-3xl lg:text-[2.6rem]">{title}</h1>
-              <p className="mt-2 hidden max-w-lg text-sm leading-relaxed text-white/85 sm:block lg:mt-3 lg:text-base">{description}</p>
-
-              <div className="mt-5 hidden gap-2 border-t border-white/20 pt-5 lg:grid lg:grid-cols-1 xl:grid-cols-3">
-                {benefits.map((benefit) => (
-                  <div key={benefit} className="flex items-start gap-2 text-xs font-medium leading-relaxed text-white/90">
-                    <span className="mt-0.5 text-amber-300">✓</span>
-                    <span>{benefit}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,24,23,0.18)_0%,rgba(3,24,23,0.04)_38%,rgba(3,24,23,0.9)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 p-9">
+              {marketingCopy}
             </div>
           </aside>
 

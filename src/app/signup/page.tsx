@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BrandLogo } from '@/components/layout/BrandLogo'
+import { BrandWordmark } from '@/components/layout/BrandLogo'
 
 const accountTypes = [
   {
@@ -34,64 +34,16 @@ const accountTypes = [
 
 export default function SignupPage() {
   return (
-    <div className="relative min-h-dvh overflow-hidden bg-brand-900 px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-brand-400/20 blur-3xl" />
-        <div className="absolute -bottom-28 -right-20 h-80 w-80 rounded-full bg-amber-400/15 blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.055] [background-image:linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)] [background-size:32px_32px]" />
-      </div>
-
-      <main className="relative mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-6xl items-center justify-center sm:min-h-[calc(100dvh-5rem)]">
-        <section className="grid w-full overflow-hidden rounded-[28px] border border-white/15 bg-white shadow-[0_32px_90px_rgba(0,0,0,0.28)] lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative hidden overflow-hidden bg-[linear-gradient(145deg,#0F4F4A_0%,#062d2b_62%,#041f1e_100%)] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-12">
-            <div className="absolute -right-16 top-28 h-56 w-56 rounded-full border border-white/10" />
-            <div className="absolute -right-3 top-40 h-32 w-32 rounded-full border border-amber-300/25" />
-
-            <div className="relative flex items-center gap-3">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-lg">
-                <BrandLogo href="" size="md" priority imageClassName="object-contain" />
-              </span>
-              <div>
-                <p className="font-display text-xl font-extrabold tracking-tight">Anywork365</p>
-                <p className="text-xs font-medium text-brand-200">Work. Talent. Opportunity.</p>
-              </div>
-            </div>
-
-            <div className="relative max-w-md py-12">
-              <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-amber-300 backdrop-blur">
-                One platform, built around you
-              </span>
-              <h1 className="mt-5 font-display text-4xl font-extrabold leading-tight xl:text-5xl">
-                Start with the account that fits your goals.
-              </h1>
-              <p className="mt-5 max-w-sm text-base leading-relaxed text-brand-100">
-                Whether you need work done, offer a skill, build a career, or hire talent, your experience begins here.
-              </p>
-            </div>
-
-            <div className="relative grid grid-cols-2 gap-3 text-sm text-brand-100">
-              {['Trusted connections', 'Secure platform', 'Built for Nigeria', 'Opportunities daily'].map((item) => (
-                <div key={item} className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-amber-300">✓</span>
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fbfb_100%)] p-5 sm:p-8 lg:p-10 xl:p-12">
-            <div className="mb-7 flex items-center justify-center gap-3 lg:hidden">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-[0_10px_30px_rgba(15,79,74,0.14)] ring-1 ring-brand-100">
-                <BrandLogo href="" size="md" priority imageClassName="object-contain" />
-              </span>
-              <div>
-                <p className="font-display text-xl font-extrabold text-brand-900">Anywork365</p>
-                <p className="text-xs font-semibold text-brand-500">Work. Talent. Opportunity.</p>
-              </div>
+    <div className="min-h-dvh bg-white px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
+      <main className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-4xl items-center justify-center sm:min-h-[calc(100dvh-5rem)]">
+        <section className="w-full bg-white">
+          <div className="bg-white py-2 sm:py-4">
+            <div className="mb-8 flex items-center justify-center">
+              <BrandWordmark priority className="w-[245px] sm:w-[285px]" />
             </div>
 
             <div className="mx-auto max-w-xl">
-              <div className="text-center lg:text-left">
+              <div className="text-center">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-500">Create your account</p>
                 <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">Register as</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500 sm:text-base">
@@ -99,7 +51,7 @@ export default function SignupPage() {
                 </p>
               </div>
 
-              <div className="mt-7 space-y-3">
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
                 {accountTypes.map(({ href, title, description, icon: Icon, accent }) => (
                   <Link
                     key={href}
