@@ -113,7 +113,7 @@ export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormPr
           <input {...register('email')} type="email" inputMode="email" autoComplete="email" className={`input-field ${errorClass(!!errors.email)}`} placeholder="you@example.com" />
         </Field>
 
-        <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3">
+        <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] gap-2.5 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-3">
           <Field label="Country" error={errors.countryCode?.message}>
             <select {...register('countryCode')} className={`input-field appearance-none ${errorClass(!!errors.countryCode)}`}>
               {COUNTRY_CODES.map((country) => <option key={country.code} value={country.code}>{country.code}</option>)}
@@ -175,7 +175,7 @@ export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormPr
 
 function Field({ label, optional, error, children }: { label: string; optional?: boolean; error?: string; children: React.ReactNode }) {
   return (
-    <div className="form-group">
+    <div className="mb-4 sm:mb-5">
       <label className="label">
         {label}
         {optional && <span className="ml-1 font-normal text-slate-400">(optional)</span>}
