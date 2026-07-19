@@ -116,7 +116,7 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
           <input {...register('email')} type="email" inputMode="email" autoComplete="email" className={`input-field ${errorClass(!!errors.email)}`} placeholder={isProfessional ? 'you@example.com' : 'you@company.com'} />
         </Field>
 
-        <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3">
+        <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] gap-2.5 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-3">
           <Field label="Country" error={errors.countryCode?.message}>
             <select {...register('countryCode')} className={`input-field appearance-none ${errorClass(!!errors.countryCode)}`}>
               {COUNTRY_CODES.map((country) => <option key={country.code} value={country.code}>{country.code}</option>)}
@@ -127,7 +127,7 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
           </Field>
         </div>
 
-        <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-4 sm:p-5">
+        <div className="rounded-xl border border-brand-100 bg-brand-50/60 p-3.5 sm:rounded-2xl sm:p-5">
           <div className="mb-4">
             <p className="font-display text-sm font-bold text-brand-900">{isProfessional ? 'Professional information' : 'Company information'}</p>
             <p className="mt-1 text-xs text-slate-500">These details are saved to your {accountType} profile.</p>
@@ -229,7 +229,7 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
 
 function Field({ label, optional, error, children }: { label: string; optional?: boolean; error?: string; children: React.ReactNode }) {
   return (
-    <div className="form-group">
+    <div className="mb-4 sm:mb-5">
       <label className="label">
         {label}
         {optional && <span className="ml-1 font-normal text-slate-400">(optional)</span>}
