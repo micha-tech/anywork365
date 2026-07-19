@@ -83,23 +83,14 @@ export function RegistrationShell({
           <div className="relative h-[560px] overflow-hidden bg-slate-900 text-white sm:h-[600px] sm:rounded-3xl sm:shadow-[0_18px_50px_rgba(15,23,42,0.14)] lg:hidden">
             <Image
               src={imageSrc}
-              alt=""
-              fill
-              priority
-              aria-hidden="true"
-              sizes="100vw"
-              className="scale-110 object-cover opacity-35 blur-xl"
-              style={{ objectPosition: imagePosition }}
-            />
-            <Image
-              src={imageSrc}
               alt={imageAlt}
               fill
               priority
               sizes="100vw"
-              className="object-contain"
+              className="object-cover"
+              style={{ objectPosition: imagePosition }}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,24,23,0.02)_0%,rgba(3,24,23,0.08)_32%,rgba(3,24,23,0.93)_72%,rgba(3,15,14,0.98)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,24,23,0.1)_0%,rgba(3,24,23,0.03)_35%,rgba(3,24,23,0.88)_72%,rgba(3,15,14,0.98)_100%)]" />
             <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
               {marketingCopy}
             </div>
