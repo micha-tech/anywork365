@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { BrandWordmark } from '@/components/layout/BrandLogo'
 
 const ONBOARDING_KEY = 'anywork365_onboarding_seen'
 const MOBILE_VIEW_QUERY = '(max-width: 767px)'
@@ -156,18 +157,8 @@ export default function OnboardingPage() {
       </div>
 
       <div className="relative z-10 flex items-center justify-between px-5 pt-safe">
-        <div className="mt-4 inline-flex h-12 items-center gap-2.5 rounded-lg border border-white/15 bg-white/12 px-2.5 pr-3.5 shadow-[0_14px_34px_rgba(0,0,0,0.18)] backdrop-blur-md">
-          <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-white">
-            <Image
-              src="/logo.png"
-              alt="Anywork365.ng"
-              width={64}
-              height={64}
-              priority
-              className="h-full w-full object-contain"
-            />
-          </span>
-          <span className="text-xs font-bold text-white">Anywork365</span>
+        <div className="mt-4 inline-flex min-h-[46px] items-center rounded-lg bg-white px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.18)]">
+          <BrandWordmark href="" priority className="w-[170px]" />
         </div>
         <button
           onClick={complete}
@@ -257,19 +248,11 @@ function OnboardingSplash() {
     <div className="fixed inset-0 z-50 flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-brand-900 px-6 text-center text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(59,166,159,0.32),transparent_36%),linear-gradient(180deg,#0F4F4A_0%,#041f1e_100%)]" />
       <div className="relative flex flex-col items-center">
-        <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-lg border border-white/10 bg-white shadow-[0_22px_60px_rgba(0,0,0,0.24)]">
-          <Image
-            src="/logo.png"
-            alt="Anywork365.ng"
-            width={512}
-            height={512}
-            priority
-            className="h-24 w-24 object-contain"
-          />
+        <div className="mb-7 flex min-h-[76px] items-center justify-center rounded-xl bg-white px-5 py-4 shadow-[0_22px_60px_rgba(0,0,0,0.24)]">
+          <BrandWordmark href="" priority className="w-[280px] max-w-[78vw]" />
         </div>
 
-        <p className="text-xs font-bold text-amber-300">Anywork365</p>
-        <h1 className="mt-3 max-w-xs text-2xl font-extrabold leading-tight text-white">
+        <h1 className="max-w-xs text-2xl font-extrabold leading-tight text-white">
           Trusted professionals for everyday work
         </h1>
 

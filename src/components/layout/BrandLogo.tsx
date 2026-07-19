@@ -12,6 +12,12 @@ type BrandLogoProps = {
   size?: 'sm' | 'md' | 'lg'
 }
 
+type BrandWordmarkProps = {
+  className?: string
+  href?: string
+  priority?: boolean
+}
+
 const SIZE_STYLES = {
   sm: {
     wrapper: 'h-10 w-10',
@@ -46,6 +52,34 @@ export function BrandLogo({
         priority={priority}
         sizes="(max-width: 640px) 40px, (max-width: 1024px) 48px, 80px"
         className={cn('block', styles.image, imageClassName)}
+      />
+    </span>
+  )
+
+  if (!href) return content
+
+  return (
+    <Link href={href} className="inline-flex min-w-0 items-center">
+      {content}
+    </Link>
+  )
+}
+
+export function BrandWordmark({
+  className,
+  href = '/',
+  priority = false,
+}: BrandWordmarkProps) {
+  const content = (
+    <span className={cn('inline-flex w-[220px] max-w-full items-center', className)}>
+      <Image
+        src="/anyworks-logo.webp"
+        alt="Anywork365.ng"
+        width={640}
+        height={102}
+        priority={priority}
+        sizes="(max-width: 640px) 200px, 260px"
+        className="block h-auto w-full object-contain"
       />
     </span>
   )
