@@ -5,10 +5,13 @@ export default function ArtisanRegistrationPage() {
   return (
     <RegistrationShell
       role="Artisan"
-      eyebrow="Grow your craft"
-      title="Turn your skill into more opportunities."
-      description="Create an artisan account to showcase your work, connect with nearby clients, receive booking requests, and build a trusted reputation."
-      benefits={['Showcase your practical skills', 'Receive local booking requests', 'Build trust through reviews and verification']}
+      eyebrow="Grow your business"
+      title="Get discovered. Win more work."
+      description="Build a trusted profile for your craft, connect with nearby clients and turn great work into repeat business."
+      benefits={['Show clients what you do', 'Receive local job requests', 'Build trust with verified reviews']}
+      imageSrc="/images/registration-artisan.jpg"
+      imageAlt="A carpenter working carefully in his workshop"
+      imagePosition="center center"
       icon={<ArtisanIcon />}
     >
       <ActiveRegistrationForm accountType="artisan" />

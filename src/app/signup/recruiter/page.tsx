@@ -5,10 +5,13 @@ export default function RecruiterRegistrationPage() {
   return (
     <RegistrationShell
       role="Recruiter"
-      eyebrow="Hire with confidence"
-      title="Find the talent your organisation needs."
-      description="Create a recruiter account to represent your organisation, publish opportunities, review candidates, and build a reliable talent pipeline."
-      benefits={['Publish opportunities and hiring needs', 'Discover artisans and professionals', 'Organise candidates in one place']}
+      eyebrow="Hire better"
+      title="Meet the people your business needs."
+      description="Set up your recruiter profile to reach qualified professionals and artisans, share opportunities and manage hiring conversations."
+      benefits={['Reach qualified candidates', 'Share the right opportunities', 'Keep hiring conversations organised']}
+      imageSrc="/images/registration-recruiter.jpg"
+      imageAlt="A recruiter speaking with a candidate"
+      imagePosition="center center"
       icon={<RecruiterIcon />}
     >
       <FutureRoleRegistrationForm accountType="recruiter" />
