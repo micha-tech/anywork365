@@ -1,4 +1,4 @@
-import { after, NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { setSession, createSessionCookie } from '@/lib/auth'
 import { auth as adminAuth } from '@/lib/firebase/admin'
 import { query } from '@/lib/db'
@@ -157,14 +157,13 @@ export async function POST(req: NextRequest) {
     await setSession(sessionCookie)
 
     if (isWelcomeEmailConfigured()) {
-      after(async () => {
-        try {
-          await sendWelcomeEmail({ uid, email, firstName, role })
-        } catch (emailError) {
-          // A non-critical email failure must never roll back a completed signup.
-          console.error('[WELCOME EMAIL]', { uid, error: emailError })
-        }
-      })
+      try {
+        const welcomeEmail = await sendWelcomeEmail({ uid, email, firstName, role })
+        console.info('[WELCOME EMAIL SENT]', { uid, resendId: welcomeEmail.id })
+      } catch (emailError) {
+        // A non-critical email failure must never roll back a completed signup.
+        console.error('[WELCOME EMAIL FAILED]', { uid, error: emailError })
+      }
     }
 
     return NextResponse.json<ApiResponse<AuthUser>>(
