@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { setSession, createSessionCookie } from '@/lib/auth'
 import { auth as adminAuth } from '@/lib/firebase/admin'
 import { query } from '@/lib/db'
@@ -15,6 +15,7 @@ import type { RowDataPacket } from 'mysql2/promise'
 import { signupSchema } from '@/lib/validators/auth'
 import { checkRateLimit } from '@/lib/wallet'
 import { revalidateTag, CACHE_TAGS } from '@/lib/cache'
+import { isWelcomeEmailConfigured, sendWelcomeEmail } from '@/lib/email/resend'
 import type { ApiResponse, AuthUser } from '@/types'
 
 export const runtime = 'nodejs'
@@ -154,6 +155,17 @@ export async function POST(req: NextRequest) {
     const sessionCookie = await createSessionCookie(idToken)
     if (!sessionCookie) throw new Error('Failed to create session')
     await setSession(sessionCookie)
+
+    if (isWelcomeEmailConfigured()) {
+      after(async () => {
+        try {
+          await sendWelcomeEmail({ uid, email, firstName, role })
+        } catch (emailError) {
+          // A non-critical email failure must never roll back a completed signup.
+          console.error('[WELCOME EMAIL]', { uid, error: emailError })
+        }
+      })
+    }
 
     return NextResponse.json<ApiResponse<AuthUser>>(
       { success: true, data: authUser, message: 'Account created successfully' },
