@@ -222,7 +222,7 @@ function WalletPageContent() {
     }
   }
 
-  const isPro = user?.role === 'artisan'
+  const isArtisan = user?.role === 'artisan'
   const wallet = walletData?.wallet
   const txHistory = walletData?.transactions ?? []
   const quickAmounts = [5000, 10000, 25000, 50000]
@@ -250,7 +250,7 @@ function WalletPageContent() {
       <div className="mb-5 sm:mb-7">
         <h1 className="font-display text-xl sm:text-2xl font-semibold">Wallet</h1>
         <p className="text-sm text-slate-500 mt-1">
-          {isPro ? 'Manage your earnings and withdrawals' : 'Manage your payments'}
+          {isArtisan ? 'Manage your earnings and withdrawals' : 'Manage your payments'}
         </p>
       </div>
 
@@ -286,7 +286,7 @@ function WalletPageContent() {
         </div>
       )}
 
-      {isPro && !wallet?.isVerified && !loadingData && (
+      {isArtisan && !wallet?.isVerified && !loadingData && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-amber-800">Add a bank account to withdraw</p>
@@ -333,7 +333,7 @@ function WalletPageContent() {
           {([
             { id: 'overview', label: 'Transactions' },
             { id: 'fund', label: 'Add Money' },
-            ...(isPro
+            ...(isArtisan
               ? [
                   { id: 'withdraw', label: 'Withdraw' },
                   { id: 'bank', label: 'Bank Account' },
@@ -460,7 +460,7 @@ function WalletPageContent() {
         </div>
       )}
 
-      {activeTab === 'withdraw' && isPro && (
+      {activeTab === 'withdraw' && isArtisan && (
         <div className="card max-w-xl">
           <h2 className="font-medium text-base mb-1">Withdraw Funds</h2>
           <p className="text-sm text-slate-500 mb-5">Funds arrive in your bank account within 1-2 business days.</p>
@@ -516,7 +516,7 @@ function WalletPageContent() {
         </div>
       )}
 
-      {activeTab === 'bank' && isPro && (
+      {activeTab === 'bank' && isArtisan && (
         <div className="card max-w-xl">
           <h2 className="font-medium text-base mb-1">Bank Account</h2>
           <p className="text-sm text-slate-500 mb-5">

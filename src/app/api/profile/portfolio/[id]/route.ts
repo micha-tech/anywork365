@@ -26,8 +26,8 @@ export async function DELETE(
     )
   }
 
-  const imageUrl = await deletePortfolioItem(portfolioId, session.id)
-  if (!imageUrl) {
+  const deletedItem = await deletePortfolioItem(portfolioId, session.id)
+  if (!deletedItem) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Portfolio item not found' },
       { status: 404 }
@@ -35,9 +35,9 @@ export async function DELETE(
   }
 
   const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-  if (bucketName) {
+  if (bucketName && deletedItem.imageUrl) {
     try {
-      const url = new URL(imageUrl)
+      const url = new URL(deletedItem.imageUrl)
       const prefix = `/${bucketName}/`
       if (url.hostname === 'storage.googleapis.com' && url.pathname.startsWith(prefix)) {
         const objectPath = decodeURIComponent(url.pathname.slice(prefix.length))

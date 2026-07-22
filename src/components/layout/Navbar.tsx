@@ -78,6 +78,7 @@ export function Navbar() {
   const isAdmin    = user?.role === 'admin'
   const isVendor   = user?.role === 'artisan'
   const isRecruiter = user?.role === 'recruiter'
+  const isProfessional = user?.role === 'professional'
   const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? (isVendor ? VENDOR_AUTH_NAV : isRecruiter ? RECRUITER_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
   const initials   = getInitialsFromUser(user)
 
@@ -188,6 +189,12 @@ export function Navbar() {
                         { href: '/dashboard/jobs', label: 'Posted Jobs' },
                         { href: '/dashboard/applications', label: 'Applications' },
                         { href: '/profile', label: 'My Profile' },
+                      ] : isProfessional ? [
+                        { href: '/artisans', label: 'Artisans' },
+                        { href: '/jobs', label: 'Jobs' },
+                        { href: '/professionals', label: 'Professionals' },
+                        { href: '/messages', label: 'Messages' },
+                        { href: '/profile', label: 'My Profile' },
                       ] : [
                         { href: '/artisans', label: 'Artisans' },
                         { href: '/jobs', label: 'Jobs' },
@@ -289,10 +296,14 @@ export function Navbar() {
                             { href: '/dashboard/wallet', label: 'Wallet' },
                             { href: '/dashboard/profile', label: 'My Profile' },
                           ]
-                        : [
+                        : isProfessional || isRecruiter
+                          ? [
+                              { href: '/profile', label: 'My Profile' },
+                            ]
+                          : [
                             { href: '/wallet', label: 'Wallet' },
                             { href: '/profile', label: 'My Profile' },
-                          ]),
+                            ]),
                     ].map((item) => (
                       <Link
                         key={item.href}

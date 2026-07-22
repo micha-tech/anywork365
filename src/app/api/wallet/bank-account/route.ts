@@ -29,6 +29,12 @@ export async function GET(req: NextRequest) {
       { status: 401 }
     )
   }
+  if (session.role !== 'artisan') {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Only artisans can manage withdrawal bank accounts' },
+      { status: 403 }
+    )
+  }
 
   const parsed = previewSchema.safeParse({
     accountNumber: req.nextUrl.searchParams.get('accountNumber') ?? '',

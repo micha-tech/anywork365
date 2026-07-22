@@ -1,1 +1,1 @@
-export { default } from '@/app/professionals/[id]/page'
+export { default } from '@/components/artisans/ArtisanDetailPage'

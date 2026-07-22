@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS user_portfolio (
   uid         VARCHAR(128) NOT NULL,
   title       VARCHAR(120) NOT NULL,
   description VARCHAR(500) DEFAULT NULL,
-  imageUrl    VARCHAR(1000) NOT NULL,
+  imageUrl    VARCHAR(1000) DEFAULT NULL,
+  projectUrl  VARCHAR(1000) DEFAULT NULL,
   createdAt   DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_user_portfolio_uid_created (uid, createdAt DESC)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -75,6 +76,7 @@ CREATE TABLE IF NOT EXISTS professional_profiles (
   qualification                 VARCHAR(120) NOT NULL,
   years_experience              SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   linkedin_or_portfolio_url     VARCHAR(500) DEFAULT NULL,
+  cover_image_url               VARCHAR(1000) DEFAULT NULL,
   created_at                    DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at                    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_professional_industry (industry_category),

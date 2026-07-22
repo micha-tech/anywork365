@@ -3,6 +3,7 @@ import { getAvatarUrl } from '@/lib/avatar'
 import { Avatar, Badge, EmptyState } from '@/components/ui'
 import { INDUSTRY_CATEGORIES } from '@/lib/registration-options'
 import { NIGERIAN_STATE_NAMES } from '@/types'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,7 +53,12 @@ export default async function ProfessionalsPage({
                 const names = professional.full_name.trim().split(/\s+/)
                 const initials = `${names[0]?.[0] || ''}${names[1]?.[0] || names[0]?.[1] || ''}`.toUpperCase()
                 return (
-                  <article key={professional.uid} className="card flex h-full flex-col p-5">
+                  <article key={professional.uid} className="card group relative flex h-full flex-col p-5 transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md">
+                    <Link
+                      href={`/professionals/${encodeURIComponent(professional.uid)}`}
+                      className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                      aria-label={`View ${professional.full_name}'s professional profile`}
+                    />
                     <div className="flex items-start gap-3">
                       <Avatar src={getAvatarUrl(professional.profile_image)} initials={initials} size="lg" colorIndex={index} />
                       <div className="min-w-0">
@@ -70,8 +76,14 @@ export default async function ProfessionalsPage({
                     <div className="mt-auto border-t border-slate-100 pt-4 text-sm">
                       <p className="text-slate-600"><span className="font-semibold">Education:</span> {professional.qualification}</p>
                       {professional.linkedin_or_portfolio_url && (
-                        <a href={professional.linkedin_or_portfolio_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex font-semibold text-brand-600 hover:text-brand-700">View LinkedIn or portfolio →</a>
+                        <a href={professional.linkedin_or_portfolio_url} target="_blank" rel="noreferrer" className="relative z-20 mt-3 inline-flex font-semibold text-brand-600 hover:text-brand-700">View LinkedIn or portfolio →</a>
                       )}
+                      <Link
+                        href={`/professionals/${encodeURIComponent(professional.uid)}`}
+                        className="relative z-20 mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition-colors group-hover:bg-brand-600"
+                      >
+                        View profile
+                      </Link>
                     </div>
                   </article>
                 )

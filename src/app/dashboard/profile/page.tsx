@@ -16,6 +16,9 @@ const AVATAR_IMAGE_TYPE = 'image/webp'
 const AVATAR_IMAGE_QUALITY = 0.82
 const PORTFOLIO_IMAGE_DIMENSION = 1600
 const PORTFOLIO_IMAGE_QUALITY = 0.86
+const COVER_IMAGE_DIMENSION = 1920
+const COVER_IMAGE_QUALITY = 0.86
+const MAX_COVER_UPLOAD_BYTES = 8 * 1024 * 1024
 const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const IMAGE_TYPE_BY_EXTENSION: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -118,12 +121,17 @@ export default function ProfilePage() {
   const { user, loading }   = useCurrentUser()
   const fileInputRef        = useRef<HTMLInputElement>(null)
   const portfolioInputRef   = useRef<HTMLInputElement>(null)
+  const coverInputRef       = useRef<HTMLInputElement>(null)
 
   // Photo state
   const [photoUrl,      setPhotoUrl]      = useState<string | null>(null)
   const [photoPreview,  setPhotoPreview]  = useState<string | null>(null)
   const [uploading,     setUploading]     = useState(false)
   const [dragOver,      setDragOver]      = useState(false)
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const [coverUploading, setCoverUploading] = useState(false)
+  const [coverRemoving, setCoverRemoving] = useState(false)
 
   // Form state
   const [saving, setSaving] = useState(false)
@@ -142,6 +150,7 @@ export default function ProfilePage() {
   const [portfolioUploading, setPortfolioUploading] = useState(false)
   const [portfolioTitle, setPortfolioTitle] = useState('')
   const [portfolioDescription, setPortfolioDescription] = useState('')
+  const [portfolioLink, setPortfolioLink] = useState('')
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null)
   const [portfolioPreview, setPortfolioPreview] = useState<string | null>(null)
 
@@ -165,7 +174,7 @@ export default function ProfilePage() {
   }, [user])
 
   useEffect(() => {
-    if (user?.role !== 'artisan') return
+    if (user?.role !== 'artisan' && user?.role !== 'professional') return
     setPortfolioLoading(true)
     fetch('/api/profile/portfolio')
       .then((response) => response.json())
@@ -177,10 +186,26 @@ export default function ProfilePage() {
   }, [user?.role])
 
   useEffect(() => {
+    if (user?.role !== 'professional') return
+    fetch('/api/upload/cover-image')
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) setCoverUrl(data.data?.url || null)
+      })
+      .catch(() => undefined)
+  }, [user?.role])
+
+  useEffect(() => {
     return () => {
       if (portfolioPreview) URL.revokeObjectURL(portfolioPreview)
     }
   }, [portfolioPreview])
+
+  useEffect(() => {
+    return () => {
+      if (coverPreview) URL.revokeObjectURL(coverPreview)
+    }
+  }, [coverPreview])
 
   const localGovernments = getLocalGovernments(profileForm.state)
 
@@ -317,27 +342,33 @@ export default function ProfilePage() {
   }
 
   async function handlePortfolioUpload() {
-    if (!portfolioFile || !portfolioTitle.trim()) {
-      toast.error('Add an image and title for this portfolio item')
+    if (!portfolioTitle.trim() || portfolioDescription.trim().length < 20) {
+      toast.error('Add a title and a description of at least 20 characters')
+      return
+    }
+    if (user?.role === 'artisan' && !portfolioFile) {
+      toast.error('Add a work image for this portfolio item')
       return
     }
 
     setPortfolioUploading(true)
     try {
-      const uploadFile = await optimizeImageFile(
-        portfolioFile,
-        PORTFOLIO_IMAGE_DIMENSION,
-        PORTFOLIO_IMAGE_QUALITY
-      )
-      if (uploadFile.size > MAX_UPLOAD_IMAGE_BYTES) {
-        toast.error('Portfolio image is too large. Choose a smaller image.')
-        return
-      }
-
       const form = new FormData()
-      form.append('image', uploadFile)
+      if (portfolioFile) {
+        const uploadFile = await optimizeImageFile(
+          portfolioFile,
+          PORTFOLIO_IMAGE_DIMENSION,
+          PORTFOLIO_IMAGE_QUALITY
+        )
+        if (uploadFile.size > MAX_UPLOAD_IMAGE_BYTES) {
+          toast.error('Portfolio image is too large. Choose a smaller image.')
+          return
+        }
+        form.append('image', uploadFile)
+      }
       form.append('title', portfolioTitle.trim())
       form.append('description', portfolioDescription.trim())
+      form.append('projectUrl', portfolioLink.trim())
       const response = await fetch('/api/profile/portfolio', { method: 'POST', body: form })
       const data = await response.json()
 
@@ -349,6 +380,7 @@ export default function ProfilePage() {
       setPortfolio((items) => [data.data, ...items])
       setPortfolioTitle('')
       setPortfolioDescription('')
+      setPortfolioLink('')
       handlePortfolioFile(null)
       if (portfolioInputRef.current) portfolioInputRef.current.value = ''
       toast.success('Portfolio item added')
@@ -370,6 +402,65 @@ export default function ProfilePage() {
     toast.success('Portfolio item removed')
   }
 
+  async function handleCoverUpload(file: File | null) {
+    if (!file) return
+    const sourceFile = withInferredImageType(file)
+    if (!SUPPORTED_IMAGE_TYPES.includes(sourceFile.type)) {
+      toast.error('Use a JPEG, PNG, or WebP cover image.')
+      return
+    }
+    if (sourceFile.size > MAX_SOURCE_IMAGE_BYTES) {
+      toast.error('Cover image must be smaller than 15MB before optimization.')
+      return
+    }
+
+    if (coverPreview) URL.revokeObjectURL(coverPreview)
+    setCoverPreview(URL.createObjectURL(sourceFile))
+    setCoverUploading(true)
+    try {
+      const uploadFile = await optimizeImageFile(sourceFile, COVER_IMAGE_DIMENSION, COVER_IMAGE_QUALITY)
+      if (uploadFile.size > MAX_COVER_UPLOAD_BYTES) {
+        toast.error('Cover image is still too large. Choose a smaller image.')
+        return
+      }
+      const form = new FormData()
+      form.append('cover', uploadFile)
+      const response = await fetch('/api/upload/cover-image', { method: 'POST', body: form })
+      const data = await response.json()
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Could not update your cover image')
+        return
+      }
+      setCoverUrl(data.data.url)
+      setCoverPreview(null)
+      if (coverInputRef.current) coverInputRef.current.value = ''
+      toast.success('Cover image updated')
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setCoverUploading(false)
+    }
+  }
+
+  async function handleCoverRemove() {
+    setCoverRemoving(true)
+    try {
+      const response = await fetch('/api/upload/cover-image', { method: 'DELETE' })
+      const data = await response.json()
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Could not remove your cover image')
+        return
+      }
+      setCoverUrl(null)
+      setCoverPreview(null)
+      toast.success('Cover image removed')
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setCoverRemoving(false)
+    }
+  }
+
   // ─── Loading state ────────────────────────────────────────────────────────
 
   if (loading) {
@@ -381,6 +472,7 @@ export default function ProfilePage() {
   }
 
   const currentPhoto = photoPreview ?? displayPhoto
+  const currentCover = coverPreview ?? coverUrl
 
   return (
     <>
@@ -388,6 +480,59 @@ export default function ProfilePage() {
         <h1 className="font-display text-xl sm:text-2xl font-semibold">My Profile</h1>
         <p className="text-sm text-slate-500 mt-1">Manage your personal information</p>
       </div>
+
+      {user?.role === 'professional' && (
+        <section className="mb-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="relative h-32 overflow-hidden bg-[linear-gradient(120deg,#064e3b_0%,#0f766e_50%,#2dd4bf_100%)] sm:h-52">
+            {currentCover && (
+              <Image
+                src={currentCover}
+                alt="Profile cover preview"
+                fill
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                className="object-cover"
+                unoptimized
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+            <div className="absolute bottom-3 right-3 z-10 flex flex-wrap justify-end gap-2">
+              {currentCover && (
+                <button
+                  type="button"
+                  onClick={handleCoverRemove}
+                  disabled={coverRemoving || coverUploading}
+                  className="rounded-lg bg-black/55 px-3 py-2 text-xs font-semibold text-white backdrop-blur transition-colors hover:bg-black/70 disabled:opacity-50"
+                >
+                  {coverRemoving ? 'Removing...' : 'Remove'}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => coverInputRef.current?.click()}
+                disabled={coverUploading || coverRemoving}
+                className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:opacity-50"
+              >
+                {coverUploading ? 'Uploading...' : currentCover ? 'Change cover' : 'Add cover image'}
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">Profile cover image</h2>
+              <p className="text-xs text-slate-500">A wide 4:1 image works best. JPEG, PNG, or WebP.</p>
+            </div>
+            <span className="text-xs text-slate-400">Recommended: 1584 × 396 px</span>
+          </div>
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            className="hidden"
+            onChange={(event) => handleCoverUpload(event.target.files?.[0] || null)}
+            aria-label="Upload profile cover image"
+          />
+        </section>
+      )}
 
       {/* ── Profile header ───────────────────────────────────────────────── */}
       <div className="card mb-5">
@@ -663,11 +808,11 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {user?.role === 'artisan' && (
+      {(user?.role === 'artisan' || user?.role === 'professional') && (
         <section className="card mt-4 sm:mt-6">
           <div className="mb-5">
             <h2 className="font-medium text-base">Portfolio</h2>
-            <p className="text-sm text-slate-500 mt-1">Show clients examples of your completed work</p>
+            <p className="text-sm text-slate-500 mt-1">Add projects with a title, description, optional image, and optional portfolio link.</p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,320px)_1fr]">
@@ -687,7 +832,7 @@ export default function ProfilePage() {
                     unoptimized
                   />
                 ) : (
-                  <span>Choose work photo</span>
+                  <span>{user?.role === 'professional' ? 'Add an optional project image' : 'Choose work photo'}</span>
                 )}
               </button>
               <input
@@ -710,7 +855,17 @@ export default function ProfilePage() {
                 value={portfolioDescription}
                 onChange={(event) => setPortfolioDescription(event.target.value)}
                 placeholder="Briefly describe the work"
-                maxLength={500}
+                minLength={20}
+                maxLength={1000}
+              />
+              <input
+                className="input-field"
+                type="url"
+                inputMode="url"
+                value={portfolioLink}
+                onChange={(event) => setPortfolioLink(event.target.value)}
+                placeholder="Project or portfolio link (optional)"
+                maxLength={1000}
               />
               <button
                 type="button"
@@ -737,19 +892,30 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {portfolio.map((item) => (
                     <article key={item.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        width={640}
-                        height={480}
-                        className="aspect-[4/3] w-full object-cover"
-                      />
+                      {item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.title}
+                          width={640}
+                          height={480}
+                          className="aspect-[4/3] w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex aspect-[4/3] items-center justify-center bg-brand-50 px-4 text-center text-sm font-semibold text-brand-700">
+                          {item.title}
+                        </div>
+                      )}
                       <div className="p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <h3 className="truncate text-sm font-medium text-slate-900">{item.title}</h3>
                             {item.description && (
                               <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">{item.description}</p>
+                            )}
+                            {item.projectUrl && (
+                              <a href={item.projectUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex text-xs font-semibold text-brand-600 hover:text-brand-700">
+                                Open project →
+                              </a>
                             )}
                           </div>
                           <button
