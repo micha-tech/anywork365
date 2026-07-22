@@ -6,10 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPayment } from '@/lib/paystack'
 import { creditWallet, hasSuccessfulTransactionReference } from '@/lib/wallet'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.redirect(
       new URL('/login', req.url)

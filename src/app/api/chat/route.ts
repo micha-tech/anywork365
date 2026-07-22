@@ -3,7 +3,7 @@
  * Returns user's conversations
  */
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getVerifiedSession } from "@/lib/auth";
 import {  
   getUserConversations,
   getUserNotifications,
@@ -12,7 +12,7 @@ import {
 import type { ApiResponse } from "@/types";
 
 export async function GET() {
-  const session = await getSession();
+  const session = await getVerifiedSession();
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: "Authentication required" },

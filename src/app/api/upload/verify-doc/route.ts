@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStorage } from 'firebase-admin/storage'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { firebaseAdminApp } from '@/lib/firebase/admin'
 import { checkRateLimit } from '@/lib/wallet'
 import {
@@ -36,7 +36,7 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },

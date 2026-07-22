@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { getBusinessByUid, updateBusiness } from '@/lib/queries'
 import { revalidateTag, CACHE_TAGS } from '@/lib/cache'
 import type { ApiResponse } from '@/types'
@@ -9,7 +9,7 @@ export const runtime = 'nodejs'
 
 export async function GET() {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },
@@ -72,7 +72,7 @@ const updateSchema = z.object({
 
 export async function PUT(req: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },

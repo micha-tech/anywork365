@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession, clearSession } from '@/lib/auth'
+import { getSession, getVerifiedSession, clearSession } from '@/lib/auth'
 import { getUserRowByUid, updateBusiness, updateUserProfile } from '@/lib/queries'
 import { getAvatarUrl } from '@/lib/avatar'
 import { hardDeleteAccount } from '@/lib/account-delete'
@@ -70,7 +70,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },

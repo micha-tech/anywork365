@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { getStorage } from 'firebase-admin/storage'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { firebaseAdminApp } from '@/lib/firebase/admin'
 import { updateUserProfile } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
@@ -50,7 +50,7 @@ function getSupportedMimeType(file: File): string {
 export async function POST(req: NextRequest) {
   try {
     // ── Auth check ──────────────────────────────────────────────────────────
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },

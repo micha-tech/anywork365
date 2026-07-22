@@ -1,7 +1,7 @@
 import { readFile, unlink } from 'fs/promises'
 import { getStorage } from 'firebase-admin/storage'
 import { NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { firebaseAdminApp } from '@/lib/firebase/admin'
 import {
   getVerificationDocObjectPath,
@@ -16,7 +16,7 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ owner: string; filename: string }> }
 ) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return new NextResponse('Authentication required', { status: 401 })
   }
@@ -68,7 +68,7 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ owner: string; filename: string }> }
 ) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) return new NextResponse('Authentication required', { status: 401 })
 
   const { owner, filename } = await params
