@@ -8,6 +8,10 @@ interface JobCardProps {
   showApply?: boolean
 }
 
+function formatOption(value: string): string {
+  return value.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('-')
+}
+
 export function JobCard({ job, showApply = true }: JobCardProps) {
   const postedDate = new Date(job.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const deadlineDate = job.closingDate
@@ -20,13 +24,19 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
     }`}>
       <div className="mb-3 flex items-start justify-between gap-2">
         <span className={`flex-shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold border ${
-          job.jobType === 'full-time' 
+          job.jobType === 'full-time'
             ? 'bg-blue-50 text-blue-700 border-blue-100'
             : 'bg-purple-50 text-purple-700 border-purple-100'
         }`}>
-          {job.jobType === 'full-time' ? 'Full-time' : 'Contract'}
+          {formatOption(job.jobType)}
         </span>
         {job.timeline === 'urgent' && <Badge variant="red">Urgent hiring</Badge>}
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+        <span className="rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">
+          {formatOption(job.workArrangement)}
+        </span>
       </div>
 
       <div className="flex items-start justify-between gap-3 mb-2">

@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS businesses (
 
 CREATE TABLE IF NOT EXISTS professional_profiles (
   id                            INT AUTO_INCREMENT PRIMARY KEY,
-  uid                           VARCHAR(128) NOT NULL UNIQUE,
+  uid                           VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL UNIQUE,
   industry_category             VARCHAR(120) NOT NULL,
   professional_service_category VARCHAR(160) NOT NULL,
   job_title                     VARCHAR(160) NOT NULL,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS professional_profiles (
 
 CREATE TABLE IF NOT EXISTS recruiter_profiles (
   id                   INT AUTO_INCREMENT PRIMARY KEY,
-  uid                  VARCHAR(128) NOT NULL UNIQUE,
+  uid                  VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL UNIQUE,
   company_name         VARCHAR(180) NOT NULL,
   company_size         VARCHAR(50) NOT NULL,
   industry_category    VARCHAR(120) NOT NULL,
