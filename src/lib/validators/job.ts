@@ -1,40 +1,52 @@
 import { z } from 'zod'
-import { JOB_CATEGORIES } from '@/types'
+import { INDUSTRY_CATEGORIES } from '@/lib/registration-options'
 
 export const jobPostSchema = z.object({
   title: z
     .string()
     .min(5, 'Title must be at least 5 characters')
     .max(120, 'Title is too long'),
+  shortDescription: z
+    .string()
+    .trim()
+    .min(60, 'Card summary must be at least 60 characters')
+    .max(320, 'Card summary cannot exceed 320 characters'),
   description: z
     .string()
-    .min(10, 'Please provide more detail (at least 10 characters)')
-    .max(2000, 'Description is too long'),
-  category: z.enum(
-    JOB_CATEGORIES as [string, ...string[]],
-    { required_error: 'Please select a category' }
-  ),
+    .trim()
+    .min(200, 'Detailed job description must be at least 200 characters')
+    .max(10_000, 'Detailed job description cannot exceed 10,000 characters'),
+  category: z.enum(INDUSTRY_CATEGORIES, { required_error: 'Please select an industry' }),
   budget: z
     .number({ invalid_type_error: 'Budget must be a number' })
     .min(1000, 'Minimum budget is ₦1,000')
     .max(100_000_000, 'Budget seems too high'),
   city: z.string().min(1, 'Please select a city'),
   timeline: z.enum(['urgent', 'this_week', 'this_month', 'flexible']),
-  businessName: z.string().min(2, 'Business name is required'),
-  businessAddress: z.string().min(5, 'Business address is required'),
+  businessName: z.string().min(2, 'Company name is required'),
+  businessAddress: z.string().min(5, 'Company address is required'),
   jobType: z.enum(['full-time', 'contract']),
   closingDate: z.string().min(1, 'Closing date is required'),
+}).refine((data) => new Date(`${data.closingDate}T23:59:59`).getTime() > Date.now(), {
+  message: 'Closing date must be in the future',
+  path: ['closingDate'],
 })
 
 export const jobApplicationSchema = z.object({
-  jobId: z.string().min(1),
-  coverLetter: z
-    .string()
-    .min(50, 'Please write at least 50 characters in your cover letter'),
-  proposedRate: z
-    .number({ invalid_type_error: 'Rate must be a number' })
-    .min(500, 'Minimum rate is ₦500'),
-  availability: z.enum(['immediately', 'within_3_days', 'within_a_week']),
+  firstName: z.string().trim().min(2, 'First name is required').max(80),
+  lastName: z.string().trim().min(2, 'Last name is required').max(80),
+  coverLetter: z.string().trim()
+    .min(100, 'Please write at least 100 characters in your cover letter')
+    .max(5000, 'Cover letter is too long'),
+  education: z.string().trim().min(10, 'Please provide your education').max(3000),
+  workExperience: z.array(z.object({
+    jobTitle: z.string().trim().min(2, 'Job title is required').max(160),
+    employer: z.string().trim().min(2, 'Employer is required').max(180),
+    startDate: z.string().min(1, 'Start date is required'),
+    endDate: z.string().optional(),
+    current: z.boolean(),
+    description: z.string().trim().max(1500).optional(),
+  })).min(1, 'Add at least one work experience').max(10),
 })
 
 export type JobPostInput = z.infer<typeof jobPostSchema>

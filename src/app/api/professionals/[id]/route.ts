@@ -1,43 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getVendorByUid, getReviewsByBusiness, getBusinessByUid } from '@/lib/queries'
-import { cachedQuery, CACHE_TAGS } from '@/lib/cache'
-import type { ApiResponse } from '@/types'
+import { getProfessionalProfileByUid } from '@/lib/queries'
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const vendor = await cachedQuery(
-    () => getVendorByUid(id),
-    ['artisan', id],
-    [CACHE_TAGS.PROFESSIONAL(id), CACHE_TAGS.PROFESSIONALS],
-    120
-  )
-  if (!vendor) {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Artisan not found' },
-      { status: 404 }
-    )
-  }
-
-  const business = await cachedQuery(
-    () => getBusinessByUid(id),
-    ['business', id],
-    [CACHE_TAGS.PROFESSIONAL(id), CACHE_TAGS.PROFESSIONALS],
-    120
-  )
-  const reviews = business
-    ? await cachedQuery(
-        () => getReviewsByBusiness(business.businessId),
-        ['reviews', String(business.businessId)],
-        [CACHE_TAGS.PROFESSIONAL(id), CACHE_TAGS.PROFESSIONALS],
-        120
-      )
-    : []
-
-  return NextResponse.json(
-    { success: true, data: { vendor, reviews } },
-    { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=120' } }
-  )
+  const professional = await getProfessionalProfileByUid(id)
+  if (!professional) return NextResponse.json({ success: false, error: 'Professional not found' }, { status: 404 })
+  return NextResponse.json({ success: true, data: professional }, { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=120' } })
 }

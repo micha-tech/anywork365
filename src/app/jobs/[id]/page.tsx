@@ -1,11 +1,11 @@
 'use client'
 
 import { use, useState, useEffect } from 'react'
-import { toast } from 'sonner'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
+import { JobApplicationForm } from '@/components/jobs/JobApplicationForm'
 import { formatCurrency, timeAgo } from '@/lib/utils'
 import type { Job } from '@/types'
 
@@ -17,13 +17,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/jobs`)
+    fetch(`/api/jobs/${id}`)
       .then(r => r.json())
       .then(d => {
-        if (d.success) {
-          const found = d.data.find((j: Job) => j.id === id)
-          if (found) setJob(found)
-        }
+        if (d.success) setJob(d.data)
       })
       .catch(() => console.error('Failed to load job', id))
       .finally(() => setLoading(false))
@@ -32,11 +29,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   if (!loading && !job) notFound()
   if (loading || !job) return <div className="max-w-4xl mx-auto px-4 py-10"><div className="animate-pulse h-40 bg-gray-100 rounded-2xl" /></div>
 
-  function handleApply(e: React.FormEvent) {
-    e.preventDefault()
-    setApplyOpen(false)
-    toast.success('Application submitted! The client will review and get back to you.')
-  }
+  const postedDate = new Date(job.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  const deadlineDate = job.closingDate
+    ? new Date(job.closingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'Open until filled'
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -110,6 +106,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 { label: 'Timeline',   value: job.timeline.replace('_', ' ') },
                 { label: 'Applicants', value: String(job.applicationCount) },
                 { label: 'Posted by',  value: job.posterName },
+                { label: 'Posted', value: postedDate },
+                { label: 'Deadline', value: deadlineDate },
               ].map((r) => (
                 <div key={r.label} className="flex justify-between">
                   <span className="text-slate-500">{r.label}</span>
@@ -128,7 +126,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           </div>
 
           <div className="card">
-            <h3 className="font-medium text-sm mb-3">About the Client</h3>
+            <h3 className="font-medium text-sm mb-3">About the Recruiter</h3>
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                 {job.posterName[0]}
@@ -138,51 +136,20 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 <p className="text-xs text-slate-500">{job.city}</p>
               </div>
             </div>
-            <div className="text-xs text-slate-500 space-y-1.5">
-              <p>⭐ Verified client</p>
-              <p>12 jobs posted</p>
-              <p>✅ 10 jobs completed</p>
-            </div>
+            <p className="text-xs text-slate-500">Applications are delivered directly to this recruiter.</p>
           </div>
         </div>
       </div>
 
-      <Modal open={applyOpen} onClose={() => setApplyOpen(false)} title="Apply for this job">
-        <form onSubmit={handleApply}>
-          <div className="form-group">
-            <label className="label">Cover Letter *</label>
-            <textarea
-              className="input-field resize-y"
-              rows={5}
-              required
-              placeholder="Introduce yourself and explain why you're the right fit. Mention relevant experience..."
-            />
-          </div>
-          <div className="form-group">
-            <label className="label">Your Proposed Rate (₦) *</label>
-            <input
-              type="number"
-              inputMode="numeric"
-              className="input-field"
-              required
-              min={1000}
-              placeholder={String(Math.round(job.budget * 0.9))}
-            />
-            <p className="text-xs text-slate-500 mt-1.5">Client budget: {formatCurrency(job.budget)}</p>
-          </div>
-          <div className="form-group">
-            <label className="label">Availability</label>
-            <select className="input-field appearance-none">
-              <option value="immediately">Available immediately</option>
-              <option value="within_3_days">Within 3 days</option>
-              <option value="within_a_week">Within a week</option>
-            </select>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 justify-end mt-6">
-            <button type="button" onClick={() => setApplyOpen(false)} className="btn-ghost w-full sm:w-auto px-6 justify-center">Cancel</button>
-            <button type="submit" className="btn-primary w-full sm:w-auto px-8 justify-center">Submit Application</button>
-          </div>
-        </form>
+      <Modal open={applyOpen} onClose={() => setApplyOpen(false)} title="Apply for this job" size="lg">
+        <JobApplicationForm
+          jobId={job.id}
+          onCancel={() => setApplyOpen(false)}
+          onSubmitted={() => {
+            setSubmitted(true)
+            setApplyOpen(false)
+          }}
+        />
       </Modal>
     </div>
   )

@@ -110,17 +110,26 @@ CREATE TABLE IF NOT EXISTS companies (
 CREATE TABLE IF NOT EXISTS vacancies (
   vacancy_id          INT AUTO_INCREMENT PRIMARY KEY,
   company_id          INT NOT NULL,
+  posted_by_uid       VARCHAR(128) DEFAULT NULL,
+  company_name        VARCHAR(180) NOT NULL DEFAULT '',
+  company_address     VARCHAR(500) NOT NULL DEFAULT '',
   vacancy_title       VARCHAR(255) NOT NULL,
+  category            VARCHAR(160) NOT NULL DEFAULT '',
+  budget              DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  timeline            VARCHAR(30) NOT NULL DEFAULT 'flexible',
   vacancy_location    VARCHAR(255) NOT NULL DEFAULT '',
   job_type            VARCHAR(50) NOT NULL DEFAULT '',
   work_type           VARCHAR(50) NOT NULL DEFAULT '',
   years_of_experience INT DEFAULT NULL,
   required_skills     TEXT,
+  short_description   VARCHAR(320) NOT NULL DEFAULT '',
   job_description     TEXT,
   closing_date        DATETIME DEFAULT NULL,
   date_created        DATETIME DEFAULT CURRENT_TIMESTAMP,
   closed              TINYINT(1) NOT NULL DEFAULT 0,
   INDEX idx_vacancies_company_id (company_id),
+  INDEX idx_vacancies_posted_by (posted_by_uid, date_created DESC),
+  INDEX idx_vacancies_deadline (closed, closing_date, date_created DESC),
   INDEX idx_vacancies_location_type (vacancy_location, job_type, closed, date_created DESC)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -128,11 +137,20 @@ CREATE TABLE IF NOT EXISTS vacancy_applications (
   application_id INT AUTO_INCREMENT PRIMARY KEY,
   vacancy_id     INT NOT NULL,
   uid            VARCHAR(128) NOT NULL,
+  first_name     VARCHAR(80) NOT NULL DEFAULT '',
+  last_name      VARCHAR(80) NOT NULL DEFAULT '',
   cv             TEXT DEFAULT NULL,
+  cv_original_name VARCHAR(255) DEFAULT NULL,
+  cv_mime_type   VARCHAR(120) DEFAULT NULL,
   cover_letter   TEXT DEFAULT NULL,
+  education      JSON DEFAULT NULL,
+  work_experience JSON DEFAULT NULL,
+  status         ENUM('pending','reviewing','shortlisted','rejected','hired') NOT NULL DEFAULT 'pending',
   applied_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_vacancy_applicant (vacancy_id, uid),
   INDEX idx_vacancy_applications_vacancy_id (vacancy_id),
-  INDEX idx_vacancy_applications_uid (uid)
+  INDEX idx_vacancy_applications_uid (uid),
+  INDEX idx_applications_status_date (status, applied_date DESC)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS bookings (

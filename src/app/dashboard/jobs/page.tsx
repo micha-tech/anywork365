@@ -1,11 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getCompaniesByUid } from '@/lib/queries'
-import { query } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getVacanciesByRecruiter } from '@/lib/queries'
+import { getVerifiedSession } from '@/lib/auth'
+import { vacancyRowToJob } from '@/lib/jobs'
 import { JobCard } from '@/components/forms/JobCard'
-import type { Job } from '@/types'
-import type { RowDataPacket } from 'mysql2'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,78 +15,13 @@ export default async function MyJobsPage({
 }: {
   searchParams: Promise<{ tab?: string }>
 }) {
-  const session = await getSession()
-  if (!session || session.role !== 'artisan') redirect('/dashboard')
+  const session = await getVerifiedSession()
+  if (!session || session.role !== 'recruiter') redirect('/jobs')
 
   const { tab: rawTab } = await searchParams
   const currentTab: Tab = TABS.includes(rawTab as Tab) ? (rawTab as Tab) : 'active'
 
-  const companies = await getCompaniesByUid(session.id)
-  const companyIds = companies.map((c) => c.company_id)
-
-  let allVacancies: any[] = []
-  if (companyIds.length > 0) {
-    interface VacancyRow extends RowDataPacket {
-      vacancy_id: number
-      company_id: number
-      vacancy_title: string
-      vacancy_location: string
-      job_type: string
-      work_type: string
-      years_of_experience: number | null
-      required_skills: string
-      job_description: string
-      closing_date: string | null
-      date_created: string
-      closed: number
-    }
-    const placeholders = companyIds.map(() => '?').join(',')
-    allVacancies = await query<VacancyRow[]>(
-      `SELECT * FROM vacancies WHERE company_id IN (${placeholders}) ORDER BY date_created DESC LIMIT 200`,
-      companyIds
-    )
-  }
-
-  const vacancies = allVacancies
-
-  const ids = vacancies.map((v) => v.company_id).filter(Boolean)
-  const companyMap: Record<number, { name: string; address: string }> = {}
-  if (ids.length > 0) {
-    interface CompanyRow extends RowDataPacket {
-      company_id: number
-      company_name: string
-      company_address: string | null
-    }
-    const companyRows = await query<CompanyRow[]>(
-      `SELECT company_id, company_name, company_address FROM companies WHERE company_id IN (${ids.map(() => '?').join(',')})`,
-      ids
-    )
-    for (const c of companyRows) {
-      companyMap[c.company_id] = { name: c.company_name, address: c.company_address || '' }
-    }
-  }
-
-  const jobs: Job[] = vacancies.map((v) => {
-    const company = companyMap[v.company_id]
-    return {
-      id: String(v.vacancy_id),
-      title: v.vacancy_title,
-      description: v.job_description,
-      category: (v.work_type === 'Remote' ? 'Website & App Development' : 'General Services') as Job['category'],
-      budget: 0,
-      city: v.vacancy_location,
-      status: v.closed ? ('completed' as Job['status']) : ('open' as Job['status']),
-      timeline: 'flexible',
-      posterId: '',
-      posterName: '',
-      businessName: company?.name || '',
-      businessAddress: company?.address || '',
-      jobType: v.work_type === 'Remote' ? 'contract' : 'full-time',
-      closingDate: v.closing_date || '',
-      applicationCount: 0,
-      createdAt: v.date_created,
-    }
-  })
+  const jobs = (await getVacanciesByRecruiter(session.id)).map(vacancyRowToJob)
 
   const filtered = currentTab === 'active'
     ? jobs.filter((j) => j.status === 'open')
@@ -149,7 +82,14 @@ export default async function MyJobsPage({
             )}
           </div>
         ) : filtered.map((job) => (
-          <JobCard key={job.id} job={job} showApply={false} />
+          <div key={job.id}>
+            <JobCard job={job} showApply={false} />
+            <div className="-mt-2 flex justify-end rounded-b-xl border border-t-0 border-slate-200 bg-white px-4 pb-3">
+              <Link href={`/dashboard/applications?job=${job.id}`} className="text-sm font-semibold text-brand-600">
+                View applications ({job.applicationCount})
+              </Link>
+            </div>
+          </div>
         ))}
       </div>
     </>

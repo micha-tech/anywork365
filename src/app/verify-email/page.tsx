@@ -61,6 +61,14 @@ export default function VerifyEmailPage() {
   const [initialEmailError, setInitialEmailError] = useState<string | null>(null)
   const appliedCodeRef = useRef<string | null>(null)
 
+  const destination = user?.role === 'artisan'
+    ? '/dashboard'
+    : user?.role === 'professional'
+      ? '/professionals'
+      : user?.role === 'recruiter'
+        ? '/dashboard/jobs'
+        : '/artisans'
+
   const refreshSession = useCallback(async () => {
     const fbAuth = getFirebaseAuth()
     if (!fbAuth) return false
@@ -85,8 +93,8 @@ export default function VerifyEmailPage() {
     } catch {
       // Session refresh is best-effort; protected pages will redirect back if it fails.
     }
-    router.push(user?.role === 'artisan' ? '/dashboard' : '/artisans')
-  }, [refreshSession, router, user?.role])
+    router.push(destination)
+  }, [destination, refreshSession, router])
 
   useEffect(() => {
     const code = getEmailVerificationCode()
@@ -135,12 +143,12 @@ export default function VerifyEmailPage() {
       toast.success('Email verified successfully')
 
       if (sessionRefreshed) {
-        router.push(user?.role === 'artisan' ? '/dashboard' : '/artisans')
+        router.push(destination)
       }
     }
 
     void applyVerificationCode()
-  }, [verificationCode, refreshSession, router, user?.role])
+  }, [destination, verificationCode, refreshSession, router])
 
   useEffect(() => {
     if (!loading && !user && !verificationCode && linkState !== 'applying' && linkState !== 'verified') {

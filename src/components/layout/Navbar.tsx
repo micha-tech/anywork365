@@ -11,21 +11,34 @@ import { useAppPushNotifications } from '@/hooks/useAppPushNotifications'
 import { logoutCurrentUser } from '@/lib/clientLogout'
 
 const PUBLIC_NAV = [
-  { href: '/artisans', label: 'Find Artisans' },
-  { href: '/jobs',          label: 'Browse Jobs' },
+  { href: '/artisans', label: 'Artisans' },
+  { href: '/jobs', label: 'Jobs' },
+  { href: '/professionals', label: 'Professionals' },
 ]
 
 const AUTH_NAV = [
   { href: '/artisans', label: 'Artisans' },
   { href: '/jobs', label: 'Jobs' },
+  { href: '/professionals', label: 'Professionals' },
   { href: '/bookings', label: 'Bookings' },
   { href: '/messages', label: 'Messages' },
 ]
 
 const VENDOR_AUTH_NAV = [
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/artisans', label: 'Artisans' },
+  { href: '/jobs', label: 'Jobs' },
+  { href: '/professionals', label: 'Professionals' },
   { href: '/dashboard/bookings', label: 'Bookings' },
   { href: '/messages', label: 'Messages' },
+]
+
+const RECRUITER_AUTH_NAV = [
+  { href: '/artisans', label: 'Artisans' },
+  { href: '/jobs', label: 'Jobs' },
+  { href: '/professionals', label: 'Professionals' },
+  { href: '/dashboard/post-job', label: 'Post Job' },
+  { href: '/dashboard/applications', label: 'Applications' },
 ]
 
 const ADMIN_NAV = [
@@ -64,7 +77,8 @@ export function Navbar() {
   const isLoggedIn = !loading && !!user
   const isAdmin    = user?.role === 'admin'
   const isVendor   = user?.role === 'artisan'
-  const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? (user?.role === 'artisan' ? VENDOR_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
+  const isRecruiter = user?.role === 'recruiter'
+  const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? (isVendor ? VENDOR_AUTH_NAV : isRecruiter ? RECRUITER_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
   const initials   = getInitialsFromUser(user)
 
   const handleConversationOpen = useCallback((conversationId: string) => {
@@ -160,12 +174,24 @@ export function Navbar() {
                         { href: '/admin', label: 'Admin Panel' },
                       ] : isVendor ? [
                         { href: '/dashboard', label: 'Dashboard' },
+                        { href: '/artisans', label: 'Artisans' },
+                        { href: '/jobs', label: 'Jobs' },
+                        { href: '/professionals', label: 'Professionals' },
                         { href: '/messages', label: 'Messages' },
                         { href: '/dashboard/wallet', label: 'Wallet' },
                         { href: '/dashboard/profile', label: 'My Profile' },
+                      ] : isRecruiter ? [
+                        { href: '/artisans', label: 'Artisans' },
+                        { href: '/jobs', label: 'Jobs' },
+                        { href: '/professionals', label: 'Professionals' },
+                        { href: '/dashboard/post-job', label: 'Post Job' },
+                        { href: '/dashboard/jobs', label: 'Posted Jobs' },
+                        { href: '/dashboard/applications', label: 'Applications' },
+                        { href: '/profile', label: 'My Profile' },
                       ] : [
                         { href: '/artisans', label: 'Artisans' },
                         { href: '/jobs', label: 'Jobs' },
+                        { href: '/professionals', label: 'Professionals' },
                         { href: '/bookings', label: 'Bookings' },
                         { href: '/messages', label: 'Messages' },
                         { href: '/wallet', label: 'Wallet' },

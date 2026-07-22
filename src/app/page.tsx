@@ -9,6 +9,7 @@ import { CategoryIcon } from '@/components/ui/CategoryIcon'
 import { VerifiedBusinessBadge } from '@/components/ui'
 import { AppFooter } from '@/components/layout/AppFooter'
 import { SkeletonProCard, SkeletonJobCard } from '@/components/ui/Skeleton'
+import { JobCard } from '@/components/forms/JobCard'
 import type { User, Job, AuthUser } from '@/types'
 
 function CheckIcon({ className = '' }: { className?: string }) {
@@ -206,7 +207,7 @@ export default function HomePage() {
   const [jobsLoading, setJobsLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/professionals?limit=8')
+    fetch('/api/artisans?limit=8')
       .then(r => r.json())
       .then(d => { if (d.success) setVendors(d.data) })
       .catch(() => console.error('Failed to load vendors'))
@@ -272,7 +273,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Top Rated</p>
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Featured Professionals</h2>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Featured Artisans</h2>
             </div>
             <Link href="/artisans" className="text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors">
               View all
@@ -408,30 +409,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {jobsLoading ? (
                 Array.from({ length: 3 }).map((_, i) => <SkeletonJobCard key={i} />)
-              ) : latestJobs.map((job) => (
-                <Link
-                  key={job.id}
-                  href={`/jobs/${job.id}`}
-                  className="card hover:border-brand-300 hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${job.jobType === 'full-time' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'}`}>
-                      {job.jobType === 'full-time' ? 'Full-time' : 'Contract'}
-                    </span>
-                    {job.closingDate && (
-                      <span className="text-xs text-slate-400 whitespace-nowrap">
-                        Closes {new Date(job.closingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="font-display font-semibold text-slate-900 line-clamp-1 mb-1">{job.title}</h3>
-                  <p className="text-sm text-slate-500 line-clamp-1 mb-3">{job.businessName}</p>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <LocationIcon className="w-3.5 h-3.5" />
-                    <span className="line-clamp-1">{job.businessAddress}</span>
-                  </div>
-                </Link>
-              ))}
+              ) : latestJobs.map((job) => <JobCard key={job.id} job={job} />)}
             </div>
           </div>
         </section>
@@ -452,7 +430,7 @@ export default function HomePage() {
                 Create Free Account
               </Link>
               <Link href="/artisans" className="h-[52px] px-8 rounded-lg border border-white/30 text-white font-semibold text-sm flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
-                Browse Professionals
+                Browse Artisans
               </Link>
             </div>
           </div>
