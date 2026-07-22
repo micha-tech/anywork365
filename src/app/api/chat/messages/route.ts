@@ -7,7 +7,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { 
   getConversation, 
   sendMessage, 
@@ -59,7 +59,7 @@ async function enrichConversation(conv: ChatConversation, currentUserId: string)
 }
 
 export async function GET(req: NextRequest) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },
@@ -103,7 +103,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },

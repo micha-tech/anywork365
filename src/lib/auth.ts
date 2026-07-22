@@ -84,6 +84,16 @@ export async function getSession(): Promise<AuthUser | null> {
   }
 }
 
+/**
+ * Use this for protected pages and API operations. Signup intentionally creates
+ * a pending user before email verification, but pending users must not be able
+ * to use authenticated application features.
+ */
+export async function getVerifiedSession(): Promise<AuthUser | null> {
+  const session = await getSession()
+  return session?.emailVerified ? session : null
+}
+
 export async function clearSession(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { getBusinessByUid, submitVerification, getLatestVerification } from '@/lib/queries'
 import { optionalNinSchema } from '@/lib/validators/auth'
 import { isAllowedVerificationDocUrl } from '@/lib/verification-docs'
@@ -8,7 +8,7 @@ import type { ApiResponse } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },

@@ -5,7 +5,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { getOrCreateWallet, requestWithdrawal, rollbackWithdrawal } from '@/lib/wallet'
 import { initiateTransfer } from '@/lib/paystack'
 import { checkRateLimit } from '@/lib/wallet'
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   let withdrawalId: string | null = null
 
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },

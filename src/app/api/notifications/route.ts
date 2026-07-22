@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { getUserNotifications, getUnreadNotificationCount, markNotificationAsRead, markAllNotificationsAsRead } from '@/lib/queries'
 import { savePushSubscription } from '@/lib/chat'
 import type { ApiResponse } from '@/types'
@@ -15,7 +15,7 @@ function serializeNotifications(notifications: Awaited<ReturnType<typeof getUser
 
 export async function GET() {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },
@@ -41,7 +41,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },

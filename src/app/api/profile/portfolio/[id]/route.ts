@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStorage } from 'firebase-admin/storage'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { firebaseAdminApp } from '@/lib/firebase/admin'
 import { deletePortfolioItem } from '@/lib/queries'
 import type { ApiResponse } from '@/types'
@@ -9,7 +9,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },

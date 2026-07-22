@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { initializePayment, generateReference } from '@/lib/paystack'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
@@ -18,7 +18,7 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },

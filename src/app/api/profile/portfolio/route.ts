@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getStorage } from 'firebase-admin/storage'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { firebaseAdminApp } from '@/lib/firebase/admin'
 import { checkRateLimit } from '@/lib/wallet'
 import { createPortfolioItem, getPortfolioByUid } from '@/lib/queries'
@@ -29,7 +29,7 @@ function hasValidSignature(buffer: Buffer, type: string): boolean {
 }
 
 export async function GET() {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },
@@ -42,7 +42,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },

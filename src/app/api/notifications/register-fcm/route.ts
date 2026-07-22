@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { saveFcmToken } from '@/lib/queries'
 import type { ApiResponse } from '@/types'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },

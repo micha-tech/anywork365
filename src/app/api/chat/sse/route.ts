@@ -3,7 +3,7 @@
  * Server-Sent Events for real-time chat updates
  */
 import { NextRequest } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { getUserConversations, getUserNotifications } from '@/lib/chat'
 
 export const dynamic = 'force-dynamic'
@@ -12,7 +12,7 @@ const activeConnections = new Map<string, number>()
 const MAX_CONNECTIONS_PER_USER = 3
 
 export async function GET(req: NextRequest) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return new Response('Unauthorized', { status: 401 })
   }

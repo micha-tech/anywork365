@@ -7,7 +7,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { resolveAccountNumber, createTransferRecipient } from '@/lib/paystack'
 import { saveBankAccount, deleteBankAccount } from '@/lib/wallet'
 import { checkRateLimit } from '@/lib/wallet'
@@ -22,7 +22,7 @@ const schema = z.object({
 const previewSchema = schema.pick({ accountNumber: true, bankCode: true })
 
 export async function GET(req: NextRequest) {
-  const session = await getSession()
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE() {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },

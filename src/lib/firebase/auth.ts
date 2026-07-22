@@ -46,10 +46,10 @@ function normalizeEmail(email: string): string {
 function getEmailVerificationActionSettings(): ActionCodeSettings | undefined {
   if (typeof window === 'undefined') return undefined
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
-
   return {
-    url: `${appUrl || window.location.origin}/verify-email`,
+    // Use the domain that is actually serving the signup page. This prevents a
+    // stale deployment variable from producing an unauthorized continue URL.
+    url: `${window.location.origin}/verify-email`,
     handleCodeInApp: false,
   }
 }
@@ -64,7 +64,7 @@ function isUnauthorizedActionDomainError(code?: string, message?: string): boole
 
 function getVerificationEmailErrorMessage(code?: string, message?: string): string {
   if (isUnauthorizedActionDomainError(code, message)) {
-    return 'We could not send the verification email right now. Please try again later.'
+    return 'We could not send the verification email. Please try again or contact support.'
   }
 
   if (code === 'auth/too-many-requests') {

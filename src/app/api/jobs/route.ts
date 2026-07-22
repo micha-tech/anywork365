@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listVacancies, createVacancy, getCompanyByUid } from '@/lib/queries'
-import { getSession } from '@/lib/auth'
+import { getVerifiedSession } from '@/lib/auth'
 import { query } from '@/lib/db'
 import { jobPostSchema } from '@/lib/validators/job'
 import { checkRateLimit } from '@/lib/wallet'
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getVerifiedSession()
     if (!session) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Authentication required' },
