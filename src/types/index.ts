@@ -189,7 +189,8 @@ export const JOB_CATEGORIES = BUSINESS_CATEGORY_GROUPS.flatMap((group) => group.
 export type JobStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'
 
 export type JobTimeline = 'urgent' | 'this_week' | 'this_month' | 'flexible'
-export type JobType = 'full-time' | 'contract'
+export type JobType = 'full-time' | 'part-time' | 'contract' | 'temporary' | 'internship'
+export type WorkArrangement = 'on-site' | 'remote' | 'hybrid'
 
 export interface Job {
   id: string
@@ -206,6 +207,7 @@ export interface Job {
   businessName: string
   businessAddress: string
   jobType: JobType
+  workArrangement: WorkArrangement
   closingDate: string
   applicationCount: number
   createdAt: string
@@ -222,6 +224,7 @@ export interface JobPostPayload {
   businessName: string
   businessAddress: string
   jobType: JobType
+  workArrangement: WorkArrangement
   closingDate: string
 }
 

@@ -29,7 +29,7 @@ export default function PostJobPage() {
     formState: { errors, isSubmitting },
   } = useForm<JobPostInput>({
     resolver: zodResolver(jobPostSchema),
-    defaultValues: { jobType: 'full-time', timeline: 'flexible' },
+    defaultValues: { jobType: 'full-time', workArrangement: 'on-site', timeline: 'flexible' },
   })
   const shortDescriptionLength = watch('shortDescription', '').length
   const detailedDescriptionLength = watch('description', '').length
@@ -107,7 +107,7 @@ export default function PostJobPage() {
               {errors.businessAddress && <p className="mt-1.5 text-xs text-amber-600">{errors.businessAddress.message}</p>}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             <div className="form-group">
               <label className="label">Job Type *</label>
               <select
@@ -115,9 +115,24 @@ export default function PostJobPage() {
                 className={`input-field appearance-none ${errors.jobType ? 'border-amber-300' : ''}`}
               >
                 <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
                 <option value="contract">Contract</option>
+                <option value="temporary">Temporary</option>
+                <option value="internship">Internship</option>
               </select>
               {errors.jobType && <p className="mt-1.5 text-xs text-amber-600">{errors.jobType.message}</p>}
+            </div>
+            <div className="form-group">
+              <label className="label">Work Arrangement *</label>
+              <select
+                {...register('workArrangement')}
+                className={`input-field appearance-none ${errors.workArrangement ? 'border-amber-300' : ''}`}
+              >
+                <option value="on-site">On-site</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+              {errors.workArrangement && <p className="mt-1.5 text-xs text-amber-600">{errors.workArrangement.message}</p>}
             </div>
             <div className="form-group">
               <label className="label">Closing Date *</label>

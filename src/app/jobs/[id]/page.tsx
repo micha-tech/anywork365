@@ -102,6 +102,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             </p>
             <div className="space-y-2 text-sm mb-5">
               {[
+                { label: 'Employment type', value: job.jobType.replace('-', ' ') },
+                { label: 'Work arrangement', value: job.workArrangement.replace('-', ' ') },
                 { label: 'Location',    value: job.city },
                 { label: 'Timeline',   value: job.timeline.replace('_', ' ') },
                 { label: 'Applicants', value: String(job.applicationCount) },
