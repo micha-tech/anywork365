@@ -22,5 +22,13 @@ export default async function HomeRedirectPage() {
     redirect('/dashboard')
   }
 
+  if (session.role === 'professional') {
+    redirect('/professionals')
+  }
+
+  if (session.role === 'recruiter') {
+    redirect('/dashboard/jobs')
+  }
+
   redirect('/artisans')
 }

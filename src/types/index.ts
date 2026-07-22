@@ -194,8 +194,9 @@ export type JobType = 'full-time' | 'contract'
 export interface Job {
   id: string
   title: string
+  shortDescription: string
   description: string
-  category: JobCategory
+  category: string
   budget: number
   city: string
   status: JobStatus
@@ -212,8 +213,9 @@ export interface Job {
 
 export interface JobPostPayload {
   title: string
+  shortDescription: string
   description: string
-  category: JobCategory
+  category: string
   budget: number
   city: string
   timeline: JobTimeline
@@ -263,7 +265,16 @@ export interface Booking {
 
 // ─── Applications ─────────────────────────────────────────────────────────────
 
-export type ApplicationStatus = 'pending' | 'accepted' | 'rejected'
+export type ApplicationStatus = 'pending' | 'reviewing' | 'shortlisted' | 'rejected' | 'hired'
+
+export interface WorkExperience {
+  jobTitle: string
+  employer: string
+  startDate: string
+  endDate?: string
+  current: boolean
+  description?: string
+}
 
 export interface Application {
   id: string
@@ -271,9 +282,12 @@ export interface Application {
   jobTitle: string
   applicantId: string
   applicantName: string
+  firstName: string
+  lastName: string
   coverLetter: string
-  proposedRate: number
-  availability: string
+  education: string
+  workExperience: WorkExperience[]
+  cvOriginalName: string
   status: ApplicationStatus
   createdAt: string
 }

@@ -22,6 +22,14 @@ function getSessionPayload(cookie: string | undefined): { valid: boolean; role?:
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Professional directory profiles currently live on the listing page. Keep
+  // legacy artisan-detail URLs from appearing under the Professionals name.
+  if (pathname.startsWith('/professionals/')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/professionals'
+    return NextResponse.redirect(url)
+  }
+
   const protectedPaths = [
     '/admin',
     '/dashboard',

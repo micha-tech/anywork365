@@ -22,8 +22,6 @@ const VENDOR_NAV = [
     links: [
       { href: '/dashboard/my-business', label: 'Business Profile', icon: StoreIcon },
       { href: '/dashboard/verify-business', label: 'Verification', icon: VerifyIcon },
-      { href: '/dashboard/jobs', label: 'Posted Jobs', icon: BriefcaseIcon },
-      { href: '/dashboard/post-job', label: 'Post Hiring Job', icon: PlusIcon },
     ],
   },
   {
@@ -32,6 +30,26 @@ const VENDOR_NAV = [
       { href: '/dashboard/wallet', label: 'Wallet', icon: WalletIcon },
       { href: '/dashboard/notifications', label: 'Notifications', icon: BellIcon },
       { href: '/dashboard/profile', label: 'My Profile', icon: UserIcon },
+    ],
+  },
+]
+
+const RECRUITER_NAV = [
+  {
+    label: 'Recruitment',
+    links: [
+      { href: '/dashboard/jobs', label: 'Posted Jobs', icon: BriefcaseIcon },
+      { href: '/dashboard/post-job', label: 'Post Job', icon: PlusIcon },
+      { href: '/dashboard/applications', label: 'Applications', icon: UserIcon },
+      { href: '/messages', label: 'Messages', icon: ChatIcon },
+    ],
+  },
+  {
+    label: 'Discover',
+    links: [
+      { href: '/artisans', label: 'Artisans', icon: StoreIcon },
+      { href: '/jobs', label: 'Jobs', icon: BriefcaseIcon },
+      { href: '/professionals', label: 'Professionals', icon: UserIcon },
     ],
   },
 ]
@@ -45,8 +63,9 @@ export function DashboardSidebar() {
   const fullName = user ? `${user.firstName} ${user.lastName}` : '...'
   const role = user ? (user.role === 'artisan' ? 'Artisan' : user.role === 'professional' ? 'Professional' : user.role === 'recruiter' ? 'Recruiter' : user.role === 'admin' ? 'Admin' : 'Client') : ''
   const isVendor = user?.role === 'artisan'
+  const isRecruiter = user?.role === 'recruiter'
   const isAdmin = user?.role === 'admin'
-  const nav = isVendor ? VENDOR_NAV : []
+  const nav = isVendor ? VENDOR_NAV : isRecruiter ? RECRUITER_NAV : []
 
   async function handleLogout() {
     await logoutCurrentUser()
@@ -256,15 +275,6 @@ function HomeIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  )
-}
-
-function SearchIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
   )
 }

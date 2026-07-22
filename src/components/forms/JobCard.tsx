@@ -9,9 +9,16 @@ interface JobCardProps {
 }
 
 export function JobCard({ job, showApply = true }: JobCardProps) {
+  const postedDate = new Date(job.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  const deadlineDate = job.closingDate
+    ? new Date(job.closingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'Open until filled'
+
   return (
-    <div className="card min-w-0 p-4 transition-all duration-200 hover:border-brand-300 hover:shadow-card-md sm:p-5">
-      <div className="flex items-start justify-end gap-2 mb-2">
+    <div className={`card min-w-0 p-4 transition-all duration-200 hover:border-brand-300 hover:shadow-card-md sm:p-5 ${
+      job.timeline === 'urgent' ? 'border-l-4 border-l-red-500' : ''
+    }`}>
+      <div className="mb-3 flex items-start justify-between gap-2">
         <span className={`flex-shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold border ${
           job.jobType === 'full-time' 
             ? 'bg-blue-50 text-blue-700 border-blue-100'
@@ -19,6 +26,7 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
         }`}>
           {job.jobType === 'full-time' ? 'Full-time' : 'Contract'}
         </span>
+        {job.timeline === 'urgent' && <Badge variant="red">Urgent hiring</Badge>}
       </div>
 
       <div className="flex items-start justify-between gap-3 mb-2">
@@ -29,7 +37,11 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
         </Link>
       </div>
 
-      <p className="text-sm text-slate-500 line-clamp-1 mb-2">{job.businessName}</p>
+      <p className="mb-2 text-sm font-medium text-slate-600">
+        <span className="font-normal text-slate-400">Company:</span> {job.businessName}
+      </p>
+
+      <p className="mb-3 line-clamp-3 text-sm leading-5 text-slate-600">{job.shortDescription}</p>
       
       <div className="mb-3 flex min-w-0 items-center gap-1 text-xs text-slate-500">
         <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,20 +53,17 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
 
       <div className="flex min-w-0 flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
         <Badge variant="green">Open</Badge>
-        {job.timeline === 'urgent' && <Badge variant="red">Urgent</Badge>}
         <span className="text-xs text-slate-500">
           {job.applicationCount} applicants
         </span>
-        <span className="min-w-0 text-xs text-slate-500 sm:ml-auto">
-          Closes: {new Date(job.closingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-        </span>
+        <span className="text-xs text-slate-500 sm:ml-auto">Deadline: {deadlineDate}</span>
       </div>
+
+      <p className="mt-2 text-xs text-slate-500">Posted: {postedDate} ({timeAgo(job.createdAt)})</p>
 
       {showApply && (
         <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-slate-100 pt-3">
-          <span className="text-xs text-slate-500 truncate">
-            {timeAgo(job.createdAt)}
-          </span>
+          <span className="text-xs text-slate-500 truncate">Applications close {deadlineDate}</span>
           <Link
             href={`/jobs/${job.id}`}
             className="btn-primary min-h-[36px] flex-shrink-0 px-4 py-2 text-xs"

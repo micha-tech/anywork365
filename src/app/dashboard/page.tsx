@@ -42,7 +42,6 @@ interface ClientSummary {
 }
 
 interface VendorSummary {
-  postedJobs: number
   bookingRequests: number
   confirmedBookings: number
   completedJobs: number
@@ -107,11 +106,10 @@ export default function DashboardPage() {
       const res = await fetch('/api/dashboard')
       const json = await res.json()
       if (!json.success) return
-      const { stats, activity: acts, changeMap } = json.data
+      const { stats, activity: acts } = json.data
       if (isVendor) {
         setClientSummary(null)
         setVendorSummary({
-          postedJobs: stats.activeJobs,
           bookingRequests: stats.applications,
           confirmedBookings: stats.hiredPros,
           completedJobs: stats.jobsCompleted,
@@ -120,7 +118,6 @@ export default function DashboardPage() {
           { label: 'Booking Requests', value: String(stats.applications), change: stats.applications > 0 ? `${stats.applications} total requests` : 'No client requests yet', icon: BookingsIcon, tone: 'brand' },
           { label: 'Confirmed', value: String(stats.hiredPros), change: stats.hiredPros > 0 ? `${stats.hiredPros} active jobs` : 'No confirmed bookings', icon: ClockIcon, tone: 'amber' },
           { label: 'Completed', value: String(stats.jobsCompleted), change: stats.jobsCompleted > 0 ? `${stats.jobsCompleted} jobs closed` : 'No completed jobs yet', icon: CheckCircleIcon, tone: 'green' },
-          { label: 'Posted Jobs', value: String(stats.activeJobs), change: changeMap.activeJobs, icon: BriefcaseIcon, tone: 'slate' },
         ])
       } else {
         setVendorSummary(null)
@@ -158,7 +155,7 @@ export default function DashboardPage() {
         ...(discoverState ? { state: discoverState } : {}),
         ...(discoverCategory ? { category: discoverCategory } : {}),
       })
-      const response = await fetch(`/api/professionals?${params.toString()}`)
+      const response = await fetch(`/api/artisans?${params.toString()}`)
       const json = await response.json()
       if (json.success) {
         setVendors((current) => append ? [...current, ...(json.data ?? [])] : (json.data ?? []))
@@ -632,14 +629,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </PullToRefresh>
-  )
-}
-
-function PostJobIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
   )
 }
 

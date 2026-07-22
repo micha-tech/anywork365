@@ -52,19 +52,28 @@ interface BusinessRow extends RowDataPacket {
   deleted: number
 }
 
-interface VacancyRow extends RowDataPacket {
+export interface VacancyRow extends RowDataPacket {
   vacancy_id: number
   company_id: number
+  posted_by_uid: string | null
+  company_name: string
+  company_address: string
   vacancy_title: string
+  category: string
+  budget: number
+  timeline: string
   vacancy_location: string
   job_type: string
   work_type: string
   years_of_experience: number | null
   required_skills: string
+  short_description: string
   job_description: string
   closing_date: string | null
   date_created: string
   closed: number
+  poster_name: string
+  application_count: number
 }
 
 interface BookingRow extends RowDataPacket {
@@ -117,13 +126,49 @@ interface WalletEscrowRow extends RowDataPacket {
   released_at: string | null
 }
 
-interface VacancyApplicationRow extends RowDataPacket {
+export interface VacancyApplicationRow extends RowDataPacket {
   application_id: number
   vacancy_id: number
   uid: string
+  first_name: string
+  last_name: string
   cv: string | null
+  cv_original_name: string | null
+  cv_mime_type: string | null
   cover_letter: string | null
+  education: string | null
+  work_experience: string | null
+  status: 'pending' | 'reviewing' | 'shortlisted' | 'rejected' | 'hired'
   applied_date: string
+  vacancy_title?: string
+  posted_by_uid?: string | null
+  applicant_email?: string
+  applicant_phone?: string
+}
+
+export interface ProfessionalDirectoryRow extends RowDataPacket {
+  uid: string
+  full_name: string
+  profile_image: string
+  state: string
+  lga: string | null
+  bio: string | null
+  industry_category: string
+  professional_service_category: string
+  job_title: string
+  qualification: string
+  years_experience: number
+  linkedin_or_portfolio_url: string | null
+}
+
+export interface RecruiterProfileRow extends RowDataPacket {
+  uid: string
+  company_name: string
+  company_size: string
+  industry_category: string
+  recruitment_function: string
+  position: string
+  company_website: string | null
 }
 
 interface CountRow extends RowDataPacket {
@@ -625,8 +670,18 @@ function businessRowToUser(b: BusinessRow, user?: UserRow): User {
 
 // ─── Vacancies (Jobs) ─────────────────────────────────────────────────────
 
+const VACANCY_SELECT = `SELECT v.*,
+  COALESCE(NULLIF(v.company_name, ''), rp.company_name, c.company_name, '') AS company_name,
+  COALESCE(NULLIF(v.company_address, ''), c.company_address, '') AS company_address,
+  COALESCE(u.fullName, '') AS poster_name,
+  (SELECT COUNT(*) FROM vacancy_applications va WHERE va.vacancy_id = v.vacancy_id) AS application_count
+ FROM vacancies v
+ LEFT JOIN recruiter_profiles rp ON rp.uid = v.posted_by_uid
+ LEFT JOIN companies c ON c.company_id = v.company_id
+ LEFT JOIN users u ON u.uid = v.posted_by_uid`
+
 export async function getVacancyById(id: number): Promise<VacancyRow | null> {
-  return queryOne<VacancyRow[]>('SELECT * FROM vacancies WHERE vacancy_id = ?', [id])
+  return queryOne<VacancyRow[]>(`${VACANCY_SELECT} WHERE v.vacancy_id = ?`, [id])
 }
 
 export async function listVacancies(filters?: {
@@ -635,12 +690,12 @@ export async function listVacancies(filters?: {
   job_type?: string
   limit?: number
 }): Promise<VacancyRow[]> {
-  let sql = 'SELECT * FROM vacancies WHERE closed = 0'
+  let sql = `${VACANCY_SELECT} WHERE v.closed = 0 AND (v.closing_date IS NULL OR v.closing_date >= CURDATE())`
   const params: SqlValue[] = []
-  if (filters?.search) { sql += ' AND (vacancy_title LIKE ? OR job_description LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`) }
-  if (filters?.location) { sql += ' AND vacancy_location = ?'; params.push(filters.location) }
-  if (filters?.job_type) { sql += ' AND job_type = ?'; params.push(filters.job_type) }
-  sql += ' ORDER BY date_created DESC'
+  if (filters?.search) { sql += ' AND (v.vacancy_title LIKE ? OR v.short_description LIKE ? OR v.job_description LIKE ? OR v.company_name LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`) }
+  if (filters?.location) { sql += ' AND v.vacancy_location = ?'; params.push(filters.location) }
+  if (filters?.job_type) { sql += ' AND v.category = ?'; params.push(filters.job_type) }
+  sql += ' ORDER BY v.date_created DESC'
   const limit = filters?.limit && filters.limit > 0 ? filters.limit : 100
   sql += ` LIMIT ${limit}`
   return query<VacancyRow[]>(sql, params)
@@ -648,21 +703,36 @@ export async function listVacancies(filters?: {
 
 export async function createVacancy(data: {
   company_id: number
+  posted_by_uid: string
+  company_name: string
+  company_address: string
   vacancy_title: string
+  category: string
+  budget: number
+  timeline: string
   vacancy_location: string
   job_type: string
   work_type: string
   years_of_experience?: number
   required_skills: string
+  short_description: string
   job_description: string
   closing_date?: string
 }): Promise<number> {
   const result = await execute(
-    `INSERT INTO vacancies (company_id, vacancy_title, vacancy_location, job_type, work_type, years_of_experience, required_skills, job_description, closing_date, date_created)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-    [data.company_id, data.vacancy_title, data.vacancy_location, data.job_type, data.work_type, data.years_of_experience || null, data.required_skills, data.job_description, data.closing_date || null]
+    `INSERT INTO vacancies
+      (company_id, posted_by_uid, company_name, company_address, vacancy_title, category, budget, timeline,
+       vacancy_location, job_type, work_type, years_of_experience, required_skills, short_description, job_description, closing_date, date_created)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+    [data.company_id, data.posted_by_uid, data.company_name, data.company_address, data.vacancy_title,
+      data.category, data.budget, data.timeline, data.vacancy_location, data.job_type, data.work_type,
+      data.years_of_experience || null, data.required_skills, data.short_description, data.job_description, data.closing_date || null]
   )
   return result.insertId
+}
+
+export async function getVacanciesByRecruiter(uid: string): Promise<VacancyRow[]> {
+  return query<VacancyRow[]>(`${VACANCY_SELECT} WHERE v.posted_by_uid = ? ORDER BY v.date_created DESC LIMIT 200`, [uid])
 }
 
 // ─── Bookings ─────────────────────────────────────────────────────────────
@@ -708,15 +778,58 @@ export async function getApplicationsByUser(uid: string): Promise<VacancyApplica
 export async function createApplication(data: {
   vacancy_id: number
   uid: string
-  cv?: string
-  cover_letter?: string
+  first_name: string
+  last_name: string
+  cv: string
+  cv_original_name: string
+  cv_mime_type: string
+  cover_letter: string
+  education: string
+  work_experience: unknown[]
 }): Promise<number> {
   const result = await execute(
-    `INSERT INTO vacancy_applications (vacancy_id, uid, cv, cover_letter, applied_date)
-     VALUES (?, ?, ?, ?, NOW())`,
-    [data.vacancy_id, data.uid, data.cv || null, data.cover_letter || null]
+    `INSERT INTO vacancy_applications
+      (vacancy_id, uid, first_name, last_name, cv, cv_original_name, cv_mime_type,
+       cover_letter, education, work_experience, status, applied_date)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
+    [data.vacancy_id, data.uid, data.first_name, data.last_name, data.cv, data.cv_original_name,
+      data.cv_mime_type, data.cover_letter, JSON.stringify(data.education), JSON.stringify(data.work_experience)]
   )
   return result.insertId
+}
+
+export async function hasUserApplied(vacancyId: number, uid: string): Promise<boolean> {
+  const row = await queryOne<CountRow[]>(
+    'SELECT COUNT(*) AS c FROM vacancy_applications WHERE vacancy_id = ? AND uid = ?',
+    [vacancyId, uid]
+  )
+  return (row?.c ?? 0) > 0
+}
+
+export async function getApplicationForFile(id: number): Promise<VacancyApplicationRow | null> {
+  return queryOne<VacancyApplicationRow[]>(
+    `SELECT va.*, v.posted_by_uid, v.vacancy_title
+     FROM vacancy_applications va
+     JOIN vacancies v ON v.vacancy_id = va.vacancy_id
+     WHERE va.application_id = ?`,
+    [id]
+  )
+}
+
+export async function getApplicationsForRecruiter(uid: string, vacancyId?: number): Promise<VacancyApplicationRow[]> {
+  let sql = `SELECT va.*, v.vacancy_title, v.posted_by_uid,
+    u.email AS applicant_email, u.phoneNumber AS applicant_phone
+    FROM vacancy_applications va
+    JOIN vacancies v ON v.vacancy_id = va.vacancy_id
+    LEFT JOIN users u ON u.uid = va.uid
+    WHERE v.posted_by_uid = ?`
+  const params: SqlValue[] = [uid]
+  if (vacancyId) {
+    sql += ' AND v.vacancy_id = ?'
+    params.push(vacancyId)
+  }
+  sql += ' ORDER BY va.applied_date DESC LIMIT 300'
+  return query<VacancyApplicationRow[]>(sql, params)
 }
 
 // ─── Wallet ───────────────────────────────────────────────────────────────
@@ -1017,6 +1130,47 @@ export async function createProfessionalProfile(data: {
   return result.insertId
 }
 
+export async function listProfessionalProfiles(filters?: {
+  search?: string
+  industry?: string
+  location?: string
+}): Promise<ProfessionalDirectoryRow[]> {
+  let sql = `SELECT u.uid, u.fullName AS full_name, u.profileImage AS profile_image,
+    u.state, u.lga, u.bio, pp.industry_category, pp.professional_service_category,
+    pp.job_title, pp.qualification, pp.years_experience, pp.linkedin_or_portfolio_url
+    FROM professional_profiles pp
+    JOIN users u ON u.uid = pp.uid
+    WHERE u.role = 'professional' AND u.deleted = 0 AND u.suspended = 0`
+  const params: SqlValue[] = []
+  if (filters?.search) {
+    sql += ` AND (u.fullName LIKE ? OR pp.job_title LIKE ? OR pp.professional_service_category LIKE ? OR pp.industry_category LIKE ?)`
+    const term = `%${filters.search}%`
+    params.push(term, term, term, term)
+  }
+  if (filters?.industry) {
+    sql += ' AND pp.industry_category = ?'
+    params.push(filters.industry)
+  }
+  if (filters?.location) {
+    sql += ' AND u.state = ?'
+    params.push(filters.location)
+  }
+  sql += ' ORDER BY pp.updated_at DESC LIMIT 200'
+  return query<ProfessionalDirectoryRow[]>(sql, params)
+}
+
+export async function getProfessionalProfileByUid(uid: string): Promise<ProfessionalDirectoryRow | null> {
+  return queryOne<ProfessionalDirectoryRow[]>(
+    `SELECT u.uid, u.fullName AS full_name, u.profileImage AS profile_image,
+      u.state, u.lga, u.bio, pp.industry_category, pp.professional_service_category,
+      pp.job_title, pp.qualification, pp.years_experience, pp.linkedin_or_portfolio_url
+     FROM professional_profiles pp
+     JOIN users u ON u.uid = pp.uid
+     WHERE pp.uid = ? AND u.role = 'professional' AND u.deleted = 0 AND u.suspended = 0`,
+    [uid]
+  )
+}
+
 export async function createRecruiterProfile(data: {
   uid: string
   companyName: string
@@ -1042,6 +1196,10 @@ export async function createRecruiterProfile(data: {
     ]
   )
   return result.insertId
+}
+
+export async function getRecruiterProfileByUid(uid: string): Promise<RecruiterProfileRow | null> {
+  return queryOne<RecruiterProfileRow[]>('SELECT * FROM recruiter_profiles WHERE uid = ?', [uid])
 }
 
 // ─── FCM Tokens ──────────────────────────────────────────────────────────

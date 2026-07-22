@@ -61,12 +61,12 @@ export function MobileBottomNav() {
           ),
         },
         {
-          href: '/dashboard/bookings',
-          label: 'Bookings',
+          href: '/artisans',
+          label: 'Artisans',
           icon: (active: boolean) => (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round">
-              <rect x="3" y="4" width="18" height="17" rx="2"/>
-              <path d="M8 2v4M16 2v4M3 10h18"/>
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
             </svg>
           ),
         },
@@ -82,23 +82,22 @@ export function MobileBottomNav() {
           ),
         },
         {
-          href: '/dashboard/wallet',
-          label: 'Wallet',
-          icon: (_active: boolean) => (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={_active ? 2.5 : 2} strokeLinecap="round">
-              <rect x="2" y="5" width="20" height="14" rx="2"/>
-              <path d="M16 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-              <path d="M2 10h20"/>
+          href: '/jobs',
+          label: 'Jobs',
+          icon: (active: boolean) => (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
             </svg>
           ),
         },
         {
-          href: '/dashboard/my-business',
-          label: 'Business',
+          href: '/professionals',
+          label: 'Professionals',
           icon: (active: boolean) => (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round">
-              <path d="M4 10h16l-1 10H5L4 10Z"/>
-              <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+              <circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/>
+              <path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14c3 0 5 2 5 5"/>
             </svg>
           ),
         },
@@ -106,7 +105,7 @@ export function MobileBottomNav() {
     : [
         { href: '/artisans', label: 'Artisans', icon: (active: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
         { href: '/jobs', label: 'Jobs', icon: (active: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg> },
-        { href: '/bookings', label: 'Bookings', icon: (active: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg> },
+        { href: '/professionals', label: 'Professionals', icon: (active: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14c3 0 5 2 5 5"/></svg> },
         { href: '/messages', label: 'Messages', icon: (_active: boolean) => <div className="w-11 h-11 rounded-full bg-brand-500 flex items-center justify-center shadow-md -mt-5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div> },
         { href: '/profile', label: 'Profile', icon: (active: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
       ]

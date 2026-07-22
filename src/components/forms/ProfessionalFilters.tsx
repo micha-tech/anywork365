@@ -36,7 +36,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
           defaultValue={search}
           className="input-field pl-10"
           placeholder="Search service or artisan"
-          aria-label="Search professionals"
+          aria-label="Search artisans"
         />
       </div>
       <select name="category" defaultValue={category || ''} className="input-field appearance-none truncate">

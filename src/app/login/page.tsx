@@ -54,7 +54,11 @@ export default function LoginPage() {
         ? '/admin'
         : body.data?.role === 'artisan'
           ? '/dashboard'
-          : '/artisans'
+          : body.data?.role === 'professional'
+            ? '/professionals'
+            : body.data?.role === 'recruiter'
+              ? '/dashboard/jobs'
+              : '/artisans'
     } catch (err: unknown) {
       toast.error(toErrorMessage(err))
     }

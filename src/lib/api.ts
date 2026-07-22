@@ -53,9 +53,6 @@ export const jobsApi = {
 
   create: (payload: object) =>
     request('/api/jobs', { method: 'POST', body: JSON.stringify(payload) }),
-
-  apply: (jobId: string, payload: object) =>
-    request(`/api/jobs/${jobId}/apply`, { method: 'POST', body: JSON.stringify(payload) }),
 }
 
 // ─── Users API ────────────────────────────────────────────────────────────────

@@ -31,7 +31,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
   const [showContactOptions, setShowContactOptions] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/professionals/${id}`)
+    fetch(`/api/artisans/${id}`)
       .then(r => r.json())
       .then(d => {
         if (d.success) {

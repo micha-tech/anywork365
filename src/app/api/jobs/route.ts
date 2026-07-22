@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { listVacancies, createVacancy, getCompanyByUid } from '@/lib/queries'
+import { listVacancies, createVacancy } from '@/lib/queries'
 import { getVerifiedSession } from '@/lib/auth'
-import { query } from '@/lib/db'
+import { vacancyRowToJob } from '@/lib/jobs'
 import { jobPostSchema } from '@/lib/validators/job'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse, Job } from '@/types'
-import type { RowDataPacket } from 'mysql2'
 
 export const runtime = 'nodejs'
 
@@ -21,45 +20,7 @@ export async function GET(req: NextRequest) {
   const rows = await listVacancies({ search: search || undefined, location: location || undefined, job_type: job_type || undefined })
   const start = (page - 1) * pageSize
   const sliced = rows.slice(start, start + pageSize)
-  const ids = sliced.map((r) => r.company_id).filter(Boolean)
-
-  const companyMap: Record<number, { name: string; address: string }> = {}
-  if (ids.length > 0) {
-    interface CompanyRow extends RowDataPacket {
-      company_id: number
-      company_name: string
-      company_address: string | null
-    }
-    const companies = await query<CompanyRow[]>(
-      `SELECT company_id, company_name, company_address FROM companies WHERE company_id IN (${ids.map(() => '?').join(',')})`,
-      ids
-    )
-    for (const c of companies) {
-      companyMap[c.company_id] = { name: c.company_name, address: c.company_address || '' }
-    }
-  }
-
-  const jobs: Job[] = sliced.map((r) => {
-    const company = companyMap[r.company_id]
-    return {
-      id: String(r.vacancy_id),
-      title: r.vacancy_title,
-      description: r.job_description,
-      category: (r.work_type === 'Remote' ? 'Website & App Development' : 'General Services') as Job['category'],
-      budget: 0,
-      city: r.vacancy_location,
-      status: r.closed ? 'completed' as Job['status'] : 'open' as Job['status'],
-      timeline: 'flexible',
-      posterId: '',
-      posterName: '',
-      businessName: company?.name || '',
-      businessAddress: company?.address || '',
-      jobType: r.work_type === 'Remote' ? 'contract' : 'full-time',
-      closingDate: r.closing_date || '',
-      applicationCount: 0,
-      createdAt: r.date_created,
-    }
-  })
+  const jobs: Job[] = sliced.map(vacancyRowToJob)
 
   return NextResponse.json<ApiResponse<Job[]> & { meta: { page: number; pageSize: number; total: number; hasMore: boolean } }>(
     {
@@ -86,9 +47,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (session.role !== 'artisan') {
+    if (session.role !== 'recruiter') {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only artisans can post jobs' },
+        { success: false, error: 'Only recruiters can post jobs' },
         { status: 403 }
       )
     }
@@ -110,16 +71,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const companies = await getCompanyByUid(session.id)
-    const companyId = companies.length > 0 ? companies[0].company_id : 0
-
     const insertId = await createVacancy({
-      company_id: companyId,
+      company_id: 0,
+      posted_by_uid: session.id,
+      company_name: parsed.data.businessName,
+      company_address: parsed.data.businessAddress,
       vacancy_title: parsed.data.title,
+      category: parsed.data.category,
+      budget: parsed.data.budget,
+      timeline: parsed.data.timeline,
       vacancy_location: parsed.data.city,
       job_type: parsed.data.jobType || 'Full-Time',
       work_type: 'On-Site',
       required_skills: parsed.data.description || '',
+      short_description: parsed.data.shortDescription,
       job_description: parsed.data.description,
       closing_date: parsed.data.closingDate || undefined,
     })
@@ -127,6 +92,7 @@ export async function POST(req: NextRequest) {
     const newJob: Job = {
       id: String(insertId),
       title: parsed.data.title,
+      shortDescription: parsed.data.shortDescription,
       description: parsed.data.description,
       category: parsed.data.category as Job['category'],
       budget: parsed.data.budget,
