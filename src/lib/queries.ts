@@ -159,6 +159,7 @@ export interface ProfessionalDirectoryRow extends RowDataPacket {
   qualification: string
   years_experience: number
   linkedin_or_portfolio_url: string | null
+  cover_image_url: string | null
 }
 
 export interface RecruiterProfileRow extends RowDataPacket {
@@ -228,7 +229,8 @@ interface PortfolioRow extends RowDataPacket {
   uid: string
   title: string
   description: string | null
-  imageUrl: string
+  imageUrl: string | null
+  projectUrl: string | null
   createdAt: string
 }
 
@@ -377,7 +379,8 @@ export async function getPortfolioByUid(uid: string): Promise<PortfolioItem[]> {
     id: String(row.id),
     title: row.title,
     description: row.description || undefined,
-    imageUrl: row.imageUrl,
+    imageUrl: row.imageUrl || undefined,
+    projectUrl: row.projectUrl || undefined,
     createdAt: row.createdAt,
   }))
 }
@@ -386,30 +389,32 @@ export async function createPortfolioItem(data: {
   uid: string
   title: string
   description?: string
-  imageUrl: string
+  imageUrl?: string
+  projectUrl?: string
 }): Promise<PortfolioItem> {
   const result = await execute(
-    `INSERT INTO user_portfolio (uid, title, description, imageUrl, createdAt)
-     VALUES (?, ?, ?, ?, NOW())`,
-    [data.uid, data.title, data.description || null, data.imageUrl]
+    `INSERT INTO user_portfolio (uid, title, description, imageUrl, projectUrl, createdAt)
+     VALUES (?, ?, ?, ?, ?, NOW())`,
+    [data.uid, data.title, data.description || null, data.imageUrl || null, data.projectUrl || null]
   )
   return {
     id: String(result.insertId),
     title: data.title,
     description: data.description,
     imageUrl: data.imageUrl,
+    projectUrl: data.projectUrl,
     createdAt: new Date().toISOString(),
   }
 }
 
-export async function deletePortfolioItem(id: number, uid: string): Promise<string | null> {
+export async function deletePortfolioItem(id: number, uid: string): Promise<{ imageUrl: string | null } | null> {
   const row = await queryOne<PortfolioRow[]>(
     'SELECT * FROM user_portfolio WHERE id = ? AND uid = ?',
     [id, uid]
   )
   if (!row) return null
   await execute('DELETE FROM user_portfolio WHERE id = ? AND uid = ?', [id, uid])
-  return row.imageUrl
+  return { imageUrl: row.imageUrl }
 }
 
 // ─── Businesses (Vendors) ─────────────────────────────────────────────────
@@ -1137,7 +1142,7 @@ export async function listProfessionalProfiles(filters?: {
 }): Promise<ProfessionalDirectoryRow[]> {
   let sql = `SELECT u.uid, u.fullName AS full_name, u.profileImage AS profile_image,
     u.state, u.lga, u.bio, pp.industry_category, pp.professional_service_category,
-    pp.job_title, pp.qualification, pp.years_experience, pp.linkedin_or_portfolio_url
+    pp.job_title, pp.qualification, pp.years_experience, pp.linkedin_or_portfolio_url, pp.cover_image_url
     FROM professional_profiles pp
     JOIN users u ON u.uid = pp.uid
     WHERE u.role = 'professional' AND u.deleted = 0 AND u.suspended = 0`
@@ -1163,11 +1168,18 @@ export async function getProfessionalProfileByUid(uid: string): Promise<Professi
   return queryOne<ProfessionalDirectoryRow[]>(
     `SELECT u.uid, u.fullName AS full_name, u.profileImage AS profile_image,
       u.state, u.lga, u.bio, pp.industry_category, pp.professional_service_category,
-      pp.job_title, pp.qualification, pp.years_experience, pp.linkedin_or_portfolio_url
+      pp.job_title, pp.qualification, pp.years_experience, pp.linkedin_or_portfolio_url, pp.cover_image_url
      FROM professional_profiles pp
      JOIN users u ON u.uid = pp.uid
      WHERE pp.uid = ? AND u.role = 'professional' AND u.deleted = 0 AND u.suspended = 0`,
     [uid]
+  )
+}
+
+export async function updateProfessionalCoverImage(uid: string, coverImageUrl: string | null): Promise<void> {
+  await execute(
+    'UPDATE professional_profiles SET cover_image_url = ?, updated_at = NOW() WHERE uid = ?',
+    [coverImageUrl, uid]
   )
 }
 

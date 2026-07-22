@@ -15,6 +15,9 @@ export async function GET(req: NextRequest) {
       new URL('/login', req.url)
     )
   }
+  if (session.role !== 'client' && session.role !== 'artisan') {
+    return NextResponse.redirect(new URL('/home', req.url))
+  }
 
   const ref = req.nextUrl.searchParams.get('ref')
   const walletPath = session.role === 'artisan' ? '/dashboard/wallet' : '/wallet'

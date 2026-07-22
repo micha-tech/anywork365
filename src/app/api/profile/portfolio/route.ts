@@ -49,9 +49,9 @@ export async function POST(req: NextRequest) {
       { status: 401 }
     )
   }
-  if (session.role !== 'artisan') {
+  if (session.role !== 'artisan' && session.role !== 'professional') {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Portfolio items are available to artisans' },
+      { success: false, error: 'Portfolio items are available to artisans and professionals' },
       { status: 403 }
     )
   }
@@ -66,67 +66,86 @@ export async function POST(req: NextRequest) {
 
   try {
     const form = await req.formData()
-    const file = form.get('image') as File | null
+    const fileValue = form.get('image')
+    const file = fileValue && typeof fileValue !== 'string' && fileValue.size > 0 ? fileValue : null
     const title = String(form.get('title') || '').trim()
     const description = String(form.get('description') || '').trim()
+    const projectUrlRaw = String(form.get('projectUrl') || '').trim()
+    let projectUrl: string | undefined
 
-    if (!title || title.length > 120) {
+    if (title.length < 3 || title.length > 120) {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Enter a portfolio title under 120 characters' },
+        { success: false, error: 'Portfolio title must be between 3 and 120 characters' },
         { status: 400 }
       )
     }
-    if (description.length > 500) {
+    if (description.length < 20 || description.length > 1000) {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Portfolio description must be under 500 characters' },
+        { success: false, error: 'Portfolio description must be between 20 and 1,000 characters' },
         { status: 400 }
       )
     }
-    if (!file || !EXTENSIONS[file.type]) {
+    if (projectUrlRaw) {
+      try {
+        const url = new URL(projectUrlRaw)
+        if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('Unsupported protocol')
+        projectUrl = url.toString().slice(0, 1000)
+      } catch {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Enter a valid portfolio link beginning with https:// or http://' },
+          { status: 400 }
+        )
+      }
+    }
+    if (file && !EXTENSIONS[file.type]) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Choose a JPEG, PNG, or WebP image' },
         { status: 400 }
       )
     }
-    if (file.size > MAX_FILE_SIZE) {
+    if (file && file.size > MAX_FILE_SIZE) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Portfolio image must be smaller than 5MB' },
         { status: 400 }
       )
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer())
-    if (!hasValidSignature(buffer, file.type)) {
-      return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Image content does not match its file type' },
-        { status: 400 }
-      )
-    }
+    let imageUrl: string | undefined
+    if (file) {
+      const buffer = Buffer.from(await file.arrayBuffer())
+      if (!hasValidSignature(buffer, file.type)) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Image content does not match its file type' },
+          { status: 400 }
+        )
+      }
 
-    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    if (!bucketName) throw new Error('Firebase Storage bucket is not configured')
+      const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+      if (!bucketName) throw new Error('Firebase Storage bucket is not configured')
 
-    const objectPath = `portfolio/${session.id}/${randomUUID()}.${EXTENSIONS[file.type]}`
-    const downloadToken = randomUUID()
-    const bucket = getStorage(firebaseAdminApp).bucket(bucketName)
-    await bucket.file(objectPath).save(buffer, {
-      resumable: false,
-      contentType: file.type,
-      metadata: {
-        cacheControl: 'public, max-age=31536000, immutable',
+      const objectPath = `portfolio/${session.id}/${randomUUID()}.${EXTENSIONS[file.type]}`
+      const downloadToken = randomUUID()
+      const bucket = getStorage(firebaseAdminApp).bucket(bucketName)
+      await bucket.file(objectPath).save(buffer, {
+        resumable: false,
+        contentType: file.type,
         metadata: {
-          firebaseStorageDownloadTokens: downloadToken,
+          cacheControl: 'public, max-age=31536000, immutable',
+          metadata: {
+            firebaseStorageDownloadTokens: downloadToken,
+          },
         },
-      },
-    })
+      })
 
-    const encodedPath = encodeURIComponent(objectPath)
-    const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucketName)}/o/${encodedPath}?alt=media&token=${downloadToken}`
+      const encodedPath = encodeURIComponent(objectPath)
+      imageUrl = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucketName)}/o/${encodedPath}?alt=media&token=${downloadToken}`
+    }
     const item = await createPortfolioItem({
       uid: session.id,
       title,
-      description: description || undefined,
+      description,
       imageUrl,
+      projectUrl,
     })
 
     return NextResponse.json<ApiResponse<PortfolioItem>>(

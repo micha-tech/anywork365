@@ -20,6 +20,12 @@ export async function GET() {
       { status: 401 }
     )
   }
+  if (session.role !== 'client' && session.role !== 'artisan') {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Wallets are only available to clients and artisans' },
+      { status: 403 }
+    )
+  }
 
   const user = await getUserRowByUid(session.id)
   if (!user) {

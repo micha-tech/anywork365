@@ -25,6 +25,12 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       )
     }
+    if (session.role !== 'client' && session.role !== 'artisan') {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Wallets are only available to clients and artisans' },
+        { status: 403 }
+      )
+    }
 
     const rateLimit = checkRateLimit(`fund:${session.id}`, 3, 60 * 1000)
     if (!rateLimit.allowed) {

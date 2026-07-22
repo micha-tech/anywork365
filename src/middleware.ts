@@ -22,14 +22,6 @@ function getSessionPayload(cookie: string | undefined): { valid: boolean; role?:
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Professional directory profiles currently live on the listing page. Keep
-  // legacy artisan-detail URLs from appearing under the Professionals name.
-  if (pathname.startsWith('/professionals/')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/professionals'
-    return NextResponse.redirect(url)
-  }
-
   const protectedPaths = [
     '/admin',
     '/dashboard',
@@ -51,6 +43,18 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(url)
+  }
+
+  if (sessionOk && pathname.startsWith('/dashboard/wallet') && session.role !== 'artisan') {
+    const url = request.nextUrl.clone()
+    url.pathname = session.role === 'client' ? '/wallet' : '/home'
+    return NextResponse.redirect(url)
+  }
+
+  if (sessionOk && pathname.startsWith('/wallet') && session.role !== 'client' && session.role !== 'artisan') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/home'
     return NextResponse.redirect(url)
   }
 

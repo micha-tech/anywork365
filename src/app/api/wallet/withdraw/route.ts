@@ -1,6 +1,6 @@
 /**
  * POST /api/wallet/withdraw
- * Professional requests a withdrawal to their verified bank account
+ * Artisan requests a withdrawal to their verified bank account
  * Security checks: balance, minimum amount, verified bank account, rate limiting
  */
 import { NextRequest, NextResponse } from 'next/server'
