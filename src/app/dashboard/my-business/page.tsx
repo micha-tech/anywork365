@@ -15,7 +15,6 @@ interface BusinessData {
   state: string
   lga: string
   yearsOfExperience: number
-  feePerHour: number
   verified: number
 }
 
@@ -33,7 +32,6 @@ export default function MyBusinessPage() {
     state: '',
     lga: '',
     yearsOfExperience: 0,
-    feePerHour: 0,
     verified: 0,
   })
 
@@ -56,7 +54,6 @@ export default function MyBusinessPage() {
             state: res.data.state || '',
             lga: res.data.lga || '',
             yearsOfExperience: res.data.yearsOfExperience || 0,
-            feePerHour: res.data.feePerHour || 0,
             verified: res.data.verified || 0,
           })
         }
@@ -84,7 +81,6 @@ export default function MyBusinessPage() {
           state: form.state,
           lga: form.lga,
           yearsOfExperience: form.yearsOfExperience,
-          feePerHour: form.feePerHour,
         }),
       })
       const data = await res.json()
@@ -259,19 +255,6 @@ export default function MyBusinessPage() {
               value={form.yearsOfExperience}
               onChange={(e) => update('yearsOfExperience', parseInt(e.target.value) || 0)}
               placeholder="5"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="label">Fee per Hour (₦)</label>
-            <input
-              className="input-field"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              value={form.feePerHour}
-              onChange={(e) => update('feePerHour', parseInt(e.target.value) || 0)}
-              placeholder="5000"
             />
           </div>
 

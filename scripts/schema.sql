@@ -49,7 +49,6 @@ CREATE TABLE IF NOT EXISTS businesses (
   state             VARCHAR(100) NOT NULL DEFAULT '',
   lga               VARCHAR(100) DEFAULT NULL,
   yearsOfExperience INT DEFAULT NULL,
-  feePerHour        DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   businessLogo      VARCHAR(500) NOT NULL DEFAULT '',
   reviews           INT NOT NULL DEFAULT 0,
   rating            DECIMAL(3,2) NOT NULL DEFAULT 0.00,

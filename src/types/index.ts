@@ -18,7 +18,6 @@ export interface User {
   businessName?: string
   businessContact?: string
   yearsOfExperience?: number
-  feePerHour?: number
   skills?: string[]
   avatarUrl?: string
   rating?: number
