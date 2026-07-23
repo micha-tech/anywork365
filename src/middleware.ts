@@ -7,13 +7,13 @@ import type { NextRequest } from 'next/server'
  * the `exp` claim without needing Firebase Admin SDK (Edge-unsafe).
  * Full cryptographic verification happens in the API routes via getSession().
  */
-function getSessionPayload(cookie: string | undefined): { valid: boolean; role?: string } {
+function getSessionPayload(cookie: string | undefined): { valid: boolean } {
   if (!cookie) return { valid: false }
   try {
     const parts = cookie.split('.')
     if (parts.length !== 3) return { valid: false }
     const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'))
-    return { valid: payload.exp > Math.floor(Date.now() / 1000), role: payload.role }
+    return { valid: payload.exp > Math.floor(Date.now() / 1000) }
   } catch {
     return { valid: false }
   }
@@ -43,18 +43,6 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(url)
-  }
-
-  if (sessionOk && pathname.startsWith('/dashboard/wallet') && session.role !== 'artisan') {
-    const url = request.nextUrl.clone()
-    url.pathname = session.role === 'client' ? '/wallet' : '/home'
-    return NextResponse.redirect(url)
-  }
-
-  if (sessionOk && pathname.startsWith('/wallet') && session.role !== 'client' && session.role !== 'artisan') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/home'
     return NextResponse.redirect(url)
   }
 
