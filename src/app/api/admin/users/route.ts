@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { query, execute, type SqlValue } from '@/lib/db'
+import { query, execute } from '@/lib/db'
 import type { RowDataPacket } from 'mysql2/promise'
 import { requireAdminApi, unauthorized, logAdminAction } from '@/lib/admin'
 import { hardDeleteAccount } from '@/lib/account-delete'
+import { buildAdminUserFilter } from '@/lib/admin-user-filters'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,28 +15,7 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get('role') || ''
     const offset = (page - 1) * limit
 
-    let where = 'WHERE u.deleted = 0'
-    const params: SqlValue[] = []
-
-    if (search) {
-      where += ' AND (u.fullName LIKE ? OR u.email LIKE ? OR u.uid LIKE ?)'
-      const q = `%${search}%`
-      params.push(q, q, q)
-    }
-    if (['admin', 'artisan', 'professional', 'recruiter', 'client'].includes(role)) {
-      if (role === 'admin') {
-        where += " AND u.role = 'admin'"
-      } else if (role === 'artisan') {
-        where += ' AND (u.role = ? OR (u.role IS NULL AND u.hasBusinessAccount = 1))'
-        params.push('artisan')
-      } else if (role === 'client') {
-        where += ' AND (u.role = ? OR (u.role IS NULL AND u.hasBusinessAccount = 0))'
-        params.push('client')
-      } else {
-        where += ' AND u.role = ?'
-        params.push(role)
-      }
-    }
+    const { where, params } = buildAdminUserFilter(search, role)
 
     const countRows = await query<(RowDataPacket & { total: number })[]>(
       `SELECT COUNT(*) AS total FROM users u ${where}`, params

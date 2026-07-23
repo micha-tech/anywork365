@@ -22,6 +22,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
   const limit = 20
 
   const fetchUsers = useCallback(async () => {
@@ -63,9 +64,55 @@ export default function AdminUsersPage() {
 
   const totalPages = Math.ceil(total / limit)
 
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const params = new URLSearchParams()
+      if (search) params.set('search', search)
+      if (roleFilter) params.set('role', roleFilter)
+
+      const response = await fetch(`/api/admin/users/export?${params}`)
+      if (!response.ok) {
+        const body = await response.json().catch(() => null)
+        throw new Error(body?.error || 'Could not export users')
+      }
+
+      const blob = await response.blob()
+      const disposition = response.headers.get('Content-Disposition') || ''
+      const filename = disposition.match(/filename="?([^"]+)"?/i)?.[1]
+        || `anywork365-users-${new Date().toISOString().slice(0, 10)}.csv`
+      const downloadUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(downloadUrl)
+      toast.success(`Exported ${total.toLocaleString()} user${total === 1 ? '' : 's'}`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not export users')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-slate-900">Users ({total})</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Users ({total})</h1>
+          <p className="mt-1 text-xs text-slate-500">Export includes all users matching the current filters.</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleExport}
+          disabled={exporting || loading || total === 0}
+          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {exporting ? 'Preparing CSV...' : 'Export users CSV'}
+        </button>
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <input
