@@ -8,12 +8,16 @@ import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginInput } from '@/lib/validators/auth'
-import { signIn } from '@/lib/firebase/auth'
+import { linkPendingGoogleCredential, signIn, signInWithGoogle } from '@/lib/firebase/auth'
+import { exchangeGoogleUser } from '@/lib/google-auth'
+import { getPostLoginPath } from '@/lib/auth-routing'
 import { toErrorMessage } from '@/lib/utils'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
+import { AuthDivider, GoogleAuthButton } from '@/components/auth/GoogleAuthButton'
 
 export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
+  const [googleSubmitting, setGoogleSubmitting] = useState(false)
 
   const {
     register,
@@ -30,7 +34,10 @@ export default function LoginPage() {
         return
       }
 
-      const idToken = await result.user.getIdToken()
+      const googleLink = await linkPendingGoogleCredential(result.user)
+      if (googleLink.error) toast.error(googleLink.error)
+
+      const idToken = await result.user.getIdToken(true)
 
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -50,17 +57,36 @@ export default function LoginPage() {
         return
       }
 
-      window.location.href = body.data?.role === 'admin'
-        ? '/admin'
-        : body.data?.role === 'artisan'
-          ? '/dashboard'
-          : body.data?.role === 'professional'
-            ? '/professionals'
-            : body.data?.role === 'recruiter'
-              ? '/dashboard/jobs'
-              : '/artisans'
+      window.location.href = getPostLoginPath(body.data?.role)
     } catch (err: unknown) {
       toast.error(toErrorMessage(err))
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleSubmitting(true)
+    try {
+      const { user, error } = await signInWithGoogle()
+      if (error || !user) {
+        if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') {
+          toast.error(error?.message || 'We couldn’t sign you in with Google.')
+        }
+        return
+      }
+
+      const result = await exchangeGoogleUser(user)
+      if (result.needsProfile) {
+        sessionStorage.setItem('anywork365_google_signup', '1')
+        toast.success('Google connected. Choose your account type to finish signing up.')
+        window.location.href = '/signup'
+        return
+      }
+
+      window.location.href = getPostLoginPath(result.user?.role)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'We couldn’t sign you in with Google.')
+    } finally {
+      setGoogleSubmitting(false)
     }
   }
 
@@ -74,6 +100,9 @@ export default function LoginPage() {
         <div className="card p-5 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Welcome back</h1>
           <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to discover artisans, jobs, and your bookings.</p>
+
+          <GoogleAuthButton onClick={handleGoogleSignIn} loading={googleSubmitting} />
+          <AuthDivider />
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="form-group">

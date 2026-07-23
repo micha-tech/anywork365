@@ -1,5 +1,13 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
+import { toast } from 'sonner'
+import { GoogleAuthButton, AuthDivider } from '@/components/auth/GoogleAuthButton'
+import { isGoogleUser, onAuthChange, signInWithGoogle, signOut as signOutFirebase } from '@/lib/firebase/auth'
+import { exchangeGoogleUser, getGoogleProfile } from '@/lib/google-auth'
+import { getPostLoginPath } from '@/lib/auth-routing'
 
 const accountTypes = [
   {
@@ -33,6 +41,58 @@ const accountTypes = [
 ] as const
 
 export default function SignupPage() {
+  const [googleSubmitting, setGoogleSubmitting] = useState(false)
+  const [googleEmail, setGoogleEmail] = useState('')
+
+  useEffect(() => {
+    try {
+      return onAuthChange((user) => {
+        if (
+          sessionStorage.getItem('anywork365_google_signup') === '1' &&
+          isGoogleUser(user) &&
+          user
+        ) {
+          setGoogleEmail(getGoogleProfile(user).email)
+        }
+      })
+    } catch {
+      return undefined
+    }
+  }, [])
+
+  async function handleGoogleSignUp() {
+    setGoogleSubmitting(true)
+    try {
+      const { user, error } = await signInWithGoogle()
+      if (error || !user) {
+        if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') {
+          toast.error(error?.message || 'We couldn’t continue with Google.')
+        }
+        return
+      }
+
+      const result = await exchangeGoogleUser(user)
+      if (!result.needsProfile) {
+        window.location.href = getPostLoginPath(result.user?.role)
+        return
+      }
+
+      sessionStorage.setItem('anywork365_google_signup', '1')
+      setGoogleEmail(result.email)
+      toast.success('Google connected. Choose your account type to continue.')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'We couldn’t continue with Google.')
+    } finally {
+      setGoogleSubmitting(false)
+    }
+  }
+
+  async function switchToEmailSignup() {
+    await signOutFirebase().catch(() => undefined)
+    sessionStorage.removeItem('anywork365_google_signup')
+    setGoogleEmail('')
+  }
+
   return (
     <div className="min-h-dvh bg-white px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
       <main className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-4xl items-center justify-center sm:min-h-[calc(100dvh-5rem)]">
@@ -51,7 +111,27 @@ export default function SignupPage() {
                 </p>
               </div>
 
-              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+              <div className="mt-7">
+                {googleEmail ? (
+                  <div className="rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-center">
+                    <p className="text-sm font-semibold text-brand-800">Google account connected</p>
+                    <p className="mt-0.5 truncate text-xs text-brand-700">{googleEmail}</p>
+                    <p className="mt-1 text-xs text-slate-500">Choose an account type below to finish setting up your profile.</p>
+                    <button
+                      type="button"
+                      onClick={switchToEmailSignup}
+                      className="mt-2 text-xs font-semibold text-brand-700 underline decoration-brand-300 underline-offset-4"
+                    >
+                      Use email instead
+                    </button>
+                  </div>
+                ) : (
+                  <GoogleAuthButton onClick={handleGoogleSignUp} loading={googleSubmitting} />
+                )}
+                <AuthDivider label={googleEmail ? 'choose your account type' : 'or choose an account type and use email'} />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
                 {accountTypes.map(({ href, title, description, icon: Icon, accent }) => (
                   <Link
                     key={href}

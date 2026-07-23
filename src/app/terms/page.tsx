@@ -74,7 +74,7 @@ The platform is provided "as is" without warranties of merchantability or fitnes
   },
   {
     title: 'Termination',
-    content: `We reserve the right to suspend or terminate accounts that violate these terms, engage in fraudulent activity, or pose a risk to other users. You may terminate your account at any time by contacting support@anywork365.ng. Upon termination, you remain liable for any outstanding obligations.`,
+    content: `We reserve the right to suspend or terminate accounts that violate these terms, engage in fraudulent activity, or pose a risk to other users. You may permanently delete your account from the Account Info section of your profile, or contact support@anywork365.ng if you cannot access your account. Upon termination, you remain liable for any outstanding obligations.`,
   },
   {
     title: 'Governing Law',

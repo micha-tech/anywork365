@@ -10,6 +10,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'storage.googleapis.com' },
       { protocol: 'https', hostname: 'storage.googleapis.com' },
       { protocol: 'https', hostname: 'anywork365-uploads.s3.amazonaws.com' },
+      { protocol: 'https', hostname: 'developers.google.com' },
     ],
   },
   async headers() {

@@ -146,7 +146,7 @@ export async function DELETE() {
   } catch (error) {
     console.error('[ACCOUNT DELETE]', error)
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Could not delete account. Please try again.' },
+      { success: false, error: 'We couldn’t delete your account. Please try again or contact support.' },
       { status: 500 }
     )
   }

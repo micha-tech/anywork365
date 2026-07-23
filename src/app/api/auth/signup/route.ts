@@ -44,6 +44,22 @@ export async function POST(req: NextRequest) {
 
     const decoded = await adminAuth.verifyIdToken(idToken)
     const uid = decoded.uid
+    const isGoogleSignup = decoded.firebase?.sign_in_provider === 'google.com'
+    const tokenEmail = decoded.email?.trim().toLowerCase() || ''
+
+    if (!tokenEmail || tokenEmail !== String(profileData.email || '').trim().toLowerCase()) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'The signup email does not match the authenticated account.' },
+        { status: 400 }
+      )
+    }
+
+    if (isGoogleSignup && decoded.email_verified !== true) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'We couldn’t verify this Google account.' },
+        { status: 401 }
+      )
+    }
 
     const existing = await getUserByUid(uid)
     if (existing) {
@@ -55,7 +71,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const parsed = signupSchema.safeParse(profileData)
+    const parsed = signupSchema.safeParse(isGoogleSignup
+      ? {
+          ...profileData,
+          password: 'GoogleOAuth1',
+          confirmPassword: 'GoogleOAuth1',
+        }
+      : profileData)
     if (!parsed.success) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: parsed.error.errors[0].message },
@@ -91,6 +113,15 @@ export async function POST(req: NextRequest) {
         'SELECT uid FROM users WHERE LOWER(email) = LOWER(?) AND uid <> ?',
         [email, uid]
       )
+      if (isGoogleSignup && staleRows.length > 0) {
+        return NextResponse.json<ApiResponse<null>>(
+          {
+            success: false,
+            error: 'An account already exists with this email. Log in with your password first to connect Google.',
+          },
+          { status: 409 }
+        )
+      }
       for (const row of staleRows) {
         await hardDeleteAccount(row.uid)
       }
@@ -104,6 +135,7 @@ export async function POST(req: NextRequest) {
       role,
       state,
       nin,
+      loginProvider: isGoogleSignup ? 'Google' : 'EmailAndPassword',
     })
     createdProfileUid = uid
 
