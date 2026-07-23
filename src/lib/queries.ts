@@ -40,7 +40,6 @@ interface BusinessRow extends RowDataPacket {
   state: string
   lga: string | null
   yearsOfExperience: number | null
-  feePerHour: number
   businessLogo: string
   reviews: number
   rating: number
@@ -464,7 +463,6 @@ interface VendorJoinRow extends RowDataPacket {
   state: string
   lga: string | null
   yearsOfExperience: number | null
-  feePerHour: number
   businessLogo: string
   reviews: number
   rating: number
@@ -637,7 +635,6 @@ export async function listVendors(filters?: {
       businessName: r.businessName,
       businessContact: r.businessContact || undefined,
       yearsOfExperience: r.yearsOfExperience ?? undefined,
-      feePerHour: Number(r.feePerHour) || undefined,
       avatarUrl: getAvatarUrl(r.user_profileImage || r.businessLogo),
       skills: splitBusinessCategories(r.category),
       rating: r.rating,
@@ -673,7 +670,6 @@ function businessRowToUser(b: BusinessRow, user?: UserRow): User {
     businessName: b.businessName,
     businessContact: b.businessContact || undefined,
     yearsOfExperience: b.yearsOfExperience ?? undefined,
-    feePerHour: Number(b.feePerHour) || undefined,
     avatarUrl: getAvatarUrl(user?.profileImage || b.businessLogo),
     skills: splitBusinessCategories(b.category),
     rating: b.rating,
@@ -1084,7 +1080,6 @@ export async function updateBusiness(uid: string, data: {
   state?: string
   lga?: string
   yearsOfExperience?: number
-  feePerHour?: number
 }): Promise<void> {
   const sets: string[] = []
   const params: SqlValue[] = []
@@ -1096,7 +1091,6 @@ export async function updateBusiness(uid: string, data: {
   if (data.state !== undefined) { sets.push('state = ?'); params.push(data.state) }
   if (data.lga !== undefined) { sets.push('lga = ?'); params.push(data.lga) }
   if (data.yearsOfExperience !== undefined) { sets.push('yearsOfExperience = ?'); params.push(data.yearsOfExperience) }
-  if (data.feePerHour !== undefined) { sets.push('feePerHour = ?'); params.push(data.feePerHour) }
   if (sets.length === 0) return
   params.push(uid)
   await execute(`UPDATE businesses SET ${sets.join(', ')} WHERE uid = ? AND deleted = 0`, params)

@@ -44,7 +44,6 @@ export async function GET() {
         state: business.state,
         lga: business.lga,
         yearsOfExperience: business.yearsOfExperience,
-        feePerHour: business.feePerHour,
         businessLogo: business.businessLogo,
         verified: business.verified,
       },
@@ -67,7 +66,6 @@ const updateSchema = z.object({
   state: z.string().optional(),
   lga: z.string().optional(),
   yearsOfExperience: z.number().min(0).optional(),
-  feePerHour: z.number().min(0).optional(),
 })
 
 export async function PUT(req: NextRequest) {

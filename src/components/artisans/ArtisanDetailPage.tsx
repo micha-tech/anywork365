@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation'
 import { toast } from 'sonner'
 import { Avatar, Badge, Stars, VerifiedBusinessBadge } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
-import { formatCurrency, getInitials } from '@/lib/utils'
+import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 
 export default function ArtisanDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -302,9 +302,6 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
                 { label: 'Location', value: [pro.lga, pro.city].filter(Boolean).join(', ') },
                 ...(pro.yearsOfExperience !== undefined
                   ? [{ label: 'Experience', value: `${pro.yearsOfExperience} year${pro.yearsOfExperience === 1 ? '' : 's'}` }]
-                  : []),
-                ...(pro.feePerHour
-                  ? [{ label: 'Hourly rate', value: `${formatCurrency(pro.feePerHour)} / hour` }]
                   : []),
                 { label: 'Rating', value: pro.rating !== undefined ? `${pro.rating.toFixed(1)} / 5.0` : 'Not rated' },
                 { label: 'Reviews', value: String(pro.reviewCount ?? 0) },
