@@ -33,14 +33,31 @@ NEXT_PUBLIC_FIREBASE_APP_ID=...
 2. Enter package name (e.g., com.anywork365.app)
 3. Download google-services.json
 
-## 3. Enable Cloud Messaging
+## 3. Enable Authentication
+
+1. Open **Firebase Console** -> **Authentication** -> **Sign-in method**.
+2. Enable **Email/Password**.
+3. Select **Google**, enable it, choose the project support email, and save.
+4. Under **Authentication** -> **Settings** -> **Authorized domains**, confirm:
+   - `localhost`
+   - `anywork365.ng`
+   - `www.anywork365.ng` if the `www` hostname is used
+5. Keep the OAuth consent screen application name and support details current
+   in Google Cloud Console so users see the Anywork365 identity.
+
+New Google users choose an Anywork365 account type and complete the
+role-specific profile before their server session is created. When an existing
+email/password user selects the same Google email, they are asked to sign in
+with their password once so both providers can be linked to the same account.
+
+## 4. Enable Cloud Messaging
 
 1. Go to **Build** → **Messaging** in sidebar
 2. Click **Get started**
 3. Accept terms → Continue
 4. Your project is now ready for FCM
 
-## 4. Get VAPID Key (Web Push)
+## 5. Get VAPID Key (Web Push)
 
 1. In Firebase Console → **Project Settings** → **Cloud Messaging**
 2. Scroll to **Web configuration**
@@ -50,7 +67,7 @@ NEXT_PUBLIC_FIREBASE_APP_ID=...
 NEXT_PUBLIC_FIREBASE_VAPID_KEY=B8... (long string)
 ```
 
-## 5. Get Firebase Service Account (for Admin SDK)
+## 6. Get Firebase Service Account (for Admin SDK)
 
 1. Go to **Project Settings** → **Service accounts**
 2. Click **Generate new private key**
@@ -64,7 +81,7 @@ Or use Vercel Environment Variables:
 - Add entire JSON as one line
 - Key: `FIREBASE_SERVICE_ACCOUNT`
 
-## 6. Configure firebase-messaging-sw.js (Optional)
+## 7. Configure firebase-messaging-sw.js (Optional)
 
 For background notifications, create `public/firebase-messaging-sw.js`:
 
@@ -96,7 +113,7 @@ messaging.onBackgroundMessage((payload) => {
 });
 ```
 
-## 7. Test Notifications
+## 8. Test Notifications
 
 ```typescript
 import { sendPushNotification } from '@/lib/firebase/admin'
@@ -137,7 +154,7 @@ await sendPushNotification(
 - Verify VAPID key is correct
 
 ### Token not saving to database?
-- Check Supabase RLS policies for `user_fcm_tokens` table
+- Check that the MySQL `user_fcm_tokens` table is available
 - Verify user is authenticated before saving token
 
 ## Environment Variables Summary

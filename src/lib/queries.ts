@@ -339,11 +339,21 @@ export async function createUser(data: {
   role?: UserRole
   state?: string
   nin?: string
+  loginProvider?: 'EmailAndPassword' | 'Google'
 }): Promise<void> {
   await execute(
     `INSERT INTO users (uid, email, fullName, phoneNumber, role, state, nin, loginProvider, dateJoined)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'EmailAndPassword', NOW())`,
-    [data.uid, data.email.trim().toLowerCase(), data.fullName, data.phoneNumber, data.role || 'client', data.state || '', data.nin || null]
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+    [
+      data.uid,
+      data.email.trim().toLowerCase(),
+      data.fullName,
+      data.phoneNumber,
+      data.role || 'client',
+      data.state || '',
+      data.nin || null,
+      data.loginProvider || 'EmailAndPassword',
+    ]
   )
 }
 

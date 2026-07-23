@@ -30,7 +30,7 @@ We also collect data automatically: device information, IP address, browser type
     title: 'Data Storage & Security',
     content: `Your data is stored securely on cloud infrastructure provided by Aiven (MySQL) and Google Cloud Platform (Firebase). We implement industry-standard security measures including encryption in transit (TLS) and at rest, rate limiting on sensitive endpoints, and regular security audits.
 
-We retain your data for as long as your account is active or as needed to provide our services. You may request deletion of your account and associated data by contacting support@anywork365.ng.`,
+We retain your data for as long as your account is active or as needed to provide our services. You can permanently delete your account and associated data from the Account Info section of your profile. Contact support@anywork365.ng if you cannot access your account.`,
   },
   {
     title: 'Third-Party Services',
@@ -51,7 +51,7 @@ Each service provider has its own privacy policy governing the handling of your 
 • Withdraw consent for data processing where applicable
 • Lodge a complaint with the Nigeria Data Protection Commission
 
-To exercise these rights, contact us at support@anywork365.ng.`,
+You can delete your account directly from your profile. To exercise another right, or if you cannot access your account, contact us at support@anywork365.ng.`,
   },
   {
     title: 'Cookies',

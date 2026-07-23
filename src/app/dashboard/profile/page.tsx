@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/ui'
+import { Modal } from '@/components/ui/Modal'
 import { NIGERIAN_STATE_NAMES, type NigerianState, type PortfolioItem } from '@/types'
 import { useCurrentUser, getInitialsFromUser, notifyCurrentUserChanged } from '@/hooks/useCurrentUser'
 import { getLocalGovernments } from '@/lib/nigeria-locations'
@@ -136,6 +137,8 @@ export default function ProfilePage() {
   // Form state
   const [saving, setSaving] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [profileForm, setProfileForm] = useState<ProfileForm>({
     firstName: '',
     lastName: '',
@@ -314,22 +317,27 @@ export default function ProfilePage() {
   }
 
   async function handleDeleteAccount() {
-    const confirmation = window.prompt('This permanently deletes your account and all account records. Type DELETE to continue.')
-    if (confirmation !== 'DELETE') return
+    if (deleteConfirmation.trim() !== 'DELETE') return
 
     setDeletingAccount(true)
     try {
       const response = await fetch('/api/auth/me', { method: 'DELETE' })
       const data = await response.json()
       if (!response.ok || !data.success) {
-        toast.error(data.error || 'Could not delete account')
+        if (response.status === 401) {
+          toast.error('Your session has expired. Please sign in again before deleting your account.')
+        } else {
+          toast.error(data.error || 'We couldn’t delete your account. Please try again or contact support.')
+        }
         return
       }
 
+      setDeleteDialogOpen(false)
+      setDeleteConfirmation('')
       toast.success('Account deleted')
       window.location.href = '/'
     } catch {
-      toast.error('Network error. Please try again.')
+      toast.error('We couldn’t connect to the server. Check your connection and try again.')
     } finally {
       setDeletingAccount(false)
     }
@@ -784,21 +792,24 @@ export default function ProfilePage() {
             </div>
 
             <details className="group mt-5 border-t border-slate-100 pt-3">
-              <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-1 py-2 text-xs font-medium text-slate-400 transition-colors hover:text-red-600">
-                <span>Account deletion</span>
+              <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-1 py-2 text-xs font-medium text-slate-500 transition-colors hover:text-slate-700">
+                <span>Delete account</span>
                 <svg className="h-4 w-4 transition-transform group-open:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </summary>
-              <div className="mt-2 rounded-lg border border-red-100 bg-red-50/40 p-3">
-                <p className="text-xs leading-relaxed text-red-700">
-                  Permanently removes your account from Anywork365 and Firebase. You will still need to type DELETE to confirm.
+              <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+                <p className="text-xs leading-relaxed text-slate-600">
+                  Delete your Anywork365 account and associated data. This action cannot be undone.
                 </p>
                 <button
                   type="button"
-                  onClick={handleDeleteAccount}
+                  onClick={() => {
+                    setDeleteConfirmation('')
+                    setDeleteDialogOpen(true)
+                  }}
                   disabled={deletingAccount}
-                  className="mt-3 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:border-red-300 hover:bg-red-50 disabled:opacity-50"
+                  className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
                 >
                   {deletingAccount ? 'Deleting...' : 'Delete account'}
                 </button>
@@ -935,6 +946,67 @@ export default function ProfilePage() {
           </div>
         </section>
       )}
+
+      <Modal
+        open={deleteDialogOpen}
+        onClose={() => {
+          if (deletingAccount) return
+          setDeleteDialogOpen(false)
+          setDeleteConfirmation('')
+        }}
+        title="Delete your account?"
+        size="sm"
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            void handleDeleteAccount()
+          }}
+          className="space-y-5"
+        >
+          <p className="text-sm leading-relaxed text-slate-600">
+            Your profile and account data will be permanently deleted. This action cannot be undone.
+          </p>
+
+          <div>
+            <label htmlFor="delete-account-confirmation" className="mb-2 block text-sm font-medium text-slate-800">
+              Type <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-slate-700">DELETE</span> to confirm
+            </label>
+            <input
+              id="delete-account-confirmation"
+              type="text"
+              value={deleteConfirmation}
+              onChange={(event) => setDeleteConfirmation(event.target.value)}
+              disabled={deletingAccount}
+              autoComplete="off"
+              className="input-field"
+              placeholder="DELETE"
+              autoFocus
+            />
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteDialogOpen(false)
+                setDeleteConfirmation('')
+              }}
+              disabled={deletingAccount}
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+            >
+              Keep my account
+            </button>
+            <button
+              type="submit"
+              disabled={deleteConfirmation.trim() !== 'DELETE' || deletingAccount}
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white"
+            >
+              {deletingAccount ? 'Deleting...' : 'Delete account'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   )
 }

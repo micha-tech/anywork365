@@ -138,12 +138,6 @@ export async function hardDeleteAccount(uid: string): Promise<void> {
     ]),
   ].filter((value): value is string => !!value)
 
-  try {
-    await adminAuth.deleteUser(uid)
-  } catch (error) {
-    if ((error as { code?: string }).code !== 'auth/user-not-found') throw error
-  }
-
   const conn = await getConnection()
   try {
     await conn.beginTransaction()
@@ -212,6 +206,17 @@ export async function hardDeleteAccount(uid: string): Promise<void> {
     conn.release()
   }
 
+  // The application data is the source of truth for account access and privacy.
+  // Remove it transactionally first, then clean up external services without
+  // turning an already-completed deletion into a user-facing failure.
+  try {
+    await adminAuth.deleteUser(uid)
+  } catch (error) {
+    if ((error as { code?: string }).code !== 'auth/user-not-found') {
+      console.warn('[ACCOUNT DELETE FIREBASE WARN]', error)
+    }
+  }
+
   await deleteFiles(fileUrls)
   const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
   if (bucketName) {
@@ -221,5 +226,7 @@ export async function hardDeleteAccount(uid: string): Promise<void> {
       force: true,
     }).catch((error) => console.warn('[ACCOUNT DELETE VERIFICATION FILE WARN]', error))
   }
-  await purgeChatUserData(uid)
+  await purgeChatUserData(uid).catch((error) => {
+    console.warn('[ACCOUNT DELETE CHAT WARN]', error)
+  })
 }

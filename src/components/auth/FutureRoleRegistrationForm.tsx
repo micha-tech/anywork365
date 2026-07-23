@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import type { User } from 'firebase/auth'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,58 +13,134 @@ import {
   PROFESSIONAL_SERVICE_CATEGORIES,
   RECRUITMENT_FUNCTIONS,
 } from '@/lib/registration-options'
-import { sendVerificationEmail, signUp } from '@/lib/firebase/auth'
+import {
+  isGoogleUser,
+  onAuthChange,
+  sendVerificationEmail,
+  signIn,
+  signInWithGoogle,
+  signOut as signOutFirebase,
+  signUp,
+} from '@/lib/firebase/auth'
+import { exchangeGoogleUser, getGoogleProfile } from '@/lib/google-auth'
+import { getPostLoginPath } from '@/lib/auth-routing'
 import { toErrorMessage } from '@/lib/utils'
 import { NIGERIAN_STATE_NAMES } from '@/types'
+import { AuthDivider, GoogleAuthButton } from './GoogleAuthButton'
 import { RegistrationFormHeader, RegistrationLegalCopy } from './RegistrationShell'
 
 type FutureRole = 'professional' | 'recruiter'
 
 export function FutureRoleRegistrationForm({ accountType }: { accountType: FutureRole }) {
   const [showPassword, setShowPassword] = useState(false)
+  const [googleUser, setGoogleUser] = useState<User | null>(null)
+  const [googleSubmitting, setGoogleSubmitting] = useState(false)
   const isProfessional = accountType === 'professional'
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
     defaultValues: { role: accountType, countryCode: '+234' },
   })
 
+  const applyGoogleUser = useCallback((user: User) => {
+    const profile = getGoogleProfile(user)
+    setGoogleUser(user)
+    setValue('email', profile.email, { shouldValidate: true })
+    if (profile.firstName) setValue('firstName', profile.firstName, { shouldValidate: true })
+    if (profile.lastName) setValue('lastName', profile.lastName, { shouldValidate: true })
+    setValue('password', 'GoogleOAuth1', { shouldValidate: true })
+    setValue('confirmPassword', 'GoogleOAuth1', { shouldValidate: true })
+  }, [setValue])
+
+  useEffect(() => {
+    try {
+      return onAuthChange((user) => {
+        if (
+          sessionStorage.getItem('anywork365_google_signup') === '1' &&
+          user &&
+          isGoogleUser(user)
+        ) {
+          applyGoogleUser(user)
+        }
+      })
+    } catch {
+      return undefined
+    }
+  }, [applyGoogleUser])
+
+  async function handleGoogleSignUp() {
+    setGoogleSubmitting(true)
+    try {
+      const { user, error } = await signInWithGoogle()
+      if (error || !user) {
+        if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') {
+          toast.error(error?.message || 'We couldn’t continue with Google.')
+        }
+        return
+      }
+
+      const result = await exchangeGoogleUser(user)
+      if (!result.needsProfile) {
+        window.location.href = getPostLoginPath(result.user?.role)
+        return
+      }
+
+      applyGoogleUser(user)
+      sessionStorage.setItem('anywork365_google_signup', '1')
+      toast.success('Google connected. Complete the remaining details to finish signing up.')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'We couldn’t continue with Google.')
+    } finally {
+      setGoogleSubmitting(false)
+    }
+  }
+
+  async function switchToEmailSignup() {
+    await signOutFirebase().catch(() => undefined)
+    sessionStorage.removeItem('anywork365_google_signup')
+    setGoogleUser(null)
+    setValue('email', '')
+    setValue('password', '')
+    setValue('confirmPassword', '')
+  }
+
   async function onSubmit(data: SignupInput) {
     try {
       const email = data.email.trim().toLowerCase()
       const payload = { ...data, email, role: accountType }
-      const submitToFirebase = () => signUp({
-        email,
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        countryCode: data.countryCode,
-        role: accountType,
-      })
+      let firebaseUser = googleUser
 
-      let { data: result, user: firebaseUser, error } = await submitToFirebase()
-
-      if (error?.code === 'auth/email-already-in-use') {
-        const cleanup = await fetch('/api/auth/cleanup-stale', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
+      if (!firebaseUser) {
+        const submitToFirebase = () => signUp({
+          email,
+          password: data.password,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          countryCode: data.countryCode,
+          role: accountType,
         })
-        const cleanupBody = await cleanup.json()
-        if (!cleanup.ok || !cleanupBody.success) {
-          toast.error(cleanupBody.error || 'An account with this email already exists. Please log in.')
-          return
-        }
-        ;({ data: result, user: firebaseUser, error } = await submitToFirebase())
-      }
 
-      if (error || !result || !firebaseUser) {
-        toast.error(toErrorMessage(error))
-        return
+        const signupResult = await submitToFirebase()
+
+        if (signupResult.error?.code === 'auth/email-already-in-use') {
+          const existingSignIn = await signIn({ email, password: data.password })
+          if (existingSignIn.error || !existingSignIn.data?.user) {
+            toast.error('An account with this email already exists. Log in or continue with Google.')
+            return
+          }
+          firebaseUser = existingSignIn.data.user
+        } else {
+          if (signupResult.error || !signupResult.data || !signupResult.user) {
+            toast.error(toErrorMessage(signupResult.error))
+            return
+          }
+          firebaseUser = signupResult.user
+        }
       }
 
       const idToken = await firebaseUser.getIdToken()
@@ -75,6 +152,17 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
       const body = await response.json()
       if (!response.ok) {
         toast.error(body.error ?? 'Failed to complete signup')
+        return
+      }
+
+      if (googleUser) {
+        sessionStorage.removeItem('anywork365_google_signup')
+        window.location.href = getPostLoginPath(body.data?.role)
+        return
+      }
+
+      if (firebaseUser.emailVerified) {
+        window.location.href = getPostLoginPath(body.data?.role)
         return
       }
 
@@ -100,6 +188,25 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
           : 'Tell us about your company and recruitment focus so you can connect with the right talent.'}
       />
 
+      {googleUser ? (
+        <div className="mb-5 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3">
+          <p className="text-sm font-semibold text-brand-800">Continue with Google</p>
+          <p className="mt-0.5 truncate text-xs text-brand-700">{googleUser.email}</p>
+          <button
+            type="button"
+            onClick={switchToEmailSignup}
+            className="mt-2 text-xs font-semibold text-brand-700 underline decoration-brand-300 underline-offset-4"
+          >
+            Use email instead
+          </button>
+        </div>
+      ) : (
+        <>
+          <GoogleAuthButton onClick={handleGoogleSignUp} loading={googleSubmitting} />
+          <AuthDivider />
+        </>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <input type="hidden" {...register('role')} />
 
@@ -113,7 +220,15 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
         </div>
 
         <Field label={isProfessional ? 'Email address' : 'Work email address'} error={errors.email?.message}>
-          <input {...register('email')} type="email" inputMode="email" autoComplete="email" className={`input-field ${errorClass(!!errors.email)}`} placeholder={isProfessional ? 'you@example.com' : 'you@company.com'} />
+          <input
+            {...register('email')}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            readOnly={!!googleUser}
+            className={`input-field ${googleUser ? 'bg-slate-50 text-slate-600' : ''} ${errorClass(!!errors.email)}`}
+            placeholder={isProfessional ? 'you@example.com' : 'you@company.com'}
+          />
         </Field>
 
         <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] gap-2.5 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-3">
@@ -203,22 +318,24 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
           </select>
         </Field>
 
-        <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-          <Field label="Password" error={errors.password?.message}>
-            <div className="relative">
-              <input {...register('password')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" className={`input-field pr-16 ${errorClass(!!errors.password)}`} placeholder="Min. 8 characters" />
-              <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-2 top-1/2 flex min-h-[40px] -translate-y-1/2 items-center px-2 text-xs font-bold text-brand-600">
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </Field>
-          <Field label="Confirm password" error={errors.confirmPassword?.message}>
-            <input {...register('confirmPassword')} type="password" autoComplete="new-password" className={`input-field ${errorClass(!!errors.confirmPassword)}`} placeholder="Repeat password" />
-          </Field>
-        </div>
+        {!googleUser && (
+          <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+            <Field label="Password" error={errors.password?.message}>
+              <div className="relative">
+                <input {...register('password')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" className={`input-field pr-16 ${errorClass(!!errors.password)}`} placeholder="Min. 8 characters" />
+                <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-2 top-1/2 flex min-h-[40px] -translate-y-1/2 items-center px-2 text-xs font-bold text-brand-600">
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </Field>
+            <Field label="Confirm password" error={errors.confirmPassword?.message}>
+              <input {...register('confirmPassword')} type="password" autoComplete="new-password" className={`input-field ${errorClass(!!errors.confirmPassword)}`} placeholder="Repeat password" />
+            </Field>
+          </div>
+        )}
 
         <button type="submit" disabled={isSubmitting} className="btn-primary mt-2 w-full py-3.5 text-base">
-          {isSubmitting ? 'Creating account...' : `Create ${accountType} account`}
+          {isSubmitting ? 'Creating account...' : googleUser ? 'Complete signup' : `Create ${accountType} account`}
         </button>
       </form>
 
