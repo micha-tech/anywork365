@@ -7,6 +7,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyPayment } from '@/lib/paystack'
 import { creditWallet, hasSuccessfulTransactionReference } from '@/lib/wallet'
 import { getVerifiedSession } from '@/lib/auth'
+import { isMoneyV2Enabled, koboToNaira, settleFunding } from '@/lib/money'
+import {
+  confirmExternalPayment,
+  isMarketplaceFinanceEnabled,
+} from '@/lib/financial/marketplace-service'
 
 export async function GET(req: NextRequest) {
   const session = await getVerifiedSession()
@@ -29,6 +34,19 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    if (isMarketplaceFinanceEnabled()) {
+      const confirmation = await confirmExternalPayment(ref, {
+        type: 'user',
+        id: session.id,
+      })
+      return NextResponse.redirect(
+        new URL(
+          `/dashboard/bookings?status=payment_success&bookingId=${confirmation.bookingId}`,
+          req.url
+        )
+      )
+    }
+
     const result = await verifyPayment(ref)
 
     if (result.data.status !== 'success') {
@@ -39,7 +57,7 @@ export async function GET(req: NextRequest) {
 
     const { metadata, amount } = result.data
     const userId     = metadata?.userId
-    const amountNGN  = Math.floor(amount / 100) // kobo → NGN
+    const amountNGN  = koboToNaira(amount)
 
     if (!userId || userId !== session.id) {
       return NextResponse.redirect(
@@ -47,8 +65,20 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Credit only once even if the redirect endpoint is refreshed or the webhook also fires.
-    if (!(await hasSuccessfulTransactionReference(ref))) {
+    if (isMoneyV2Enabled()) {
+      await settleFunding({
+        reference: ref,
+        amountKobo: amount,
+        currency: result.data.currency,
+        domain: result.data.domain,
+        customerEmail: result.data.customer.email,
+        userIdFromMetadata: userId,
+        transactionId: result.data.id,
+        channel: result.data.channel,
+        paidAt: result.data.paid_at,
+      })
+    } else if (!(await hasSuccessfulTransactionReference(ref))) {
+      // Legacy credit path. The v2 path posts a balanced journal transaction.
       await creditWallet(userId, amountNGN, ref)
     }
 

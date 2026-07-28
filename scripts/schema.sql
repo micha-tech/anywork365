@@ -283,6 +283,9 @@ CREATE TABLE IF NOT EXISTS withdrawal_accounts (
   bank_code      VARCHAR(20) NOT NULL DEFAULT '',
   account_number VARCHAR(20) NOT NULL DEFAULT '',
   account_name   VARCHAR(255) NOT NULL DEFAULT '',
+  recipient_code VARCHAR(255) DEFAULT NULL,
+  created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_withdrawal_accounts_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

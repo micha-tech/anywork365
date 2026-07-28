@@ -3,6 +3,8 @@ import type { RowDataPacket } from 'mysql2/promise'
 import { requireSupportApi, unauthorized } from '@/lib/admin'
 import { buildAdminUserFilter } from '@/lib/admin-user-filters'
 import { query } from '@/lib/db'
+import { isMoneyV2Enabled } from '@/lib/money'
+import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
 
 type SupportUserRow = RowDataPacket & {
   uid: string
@@ -39,7 +41,7 @@ type SupportUserRow = RowDataPacket & {
   profileCompletion: number
 }
 
-const JOINS = `
+const PROFILE_JOINS = `
   LEFT JOIN businesses b
     ON b.businessId = (
       SELECT MAX(b2.businessId)
@@ -53,14 +55,9 @@ const JOINS = `
     FROM user_portfolio
     GROUP BY uid
   ) pf ON BINARY pf.uid = BINARY u.uid
-  LEFT JOIN (
-    SELECT w.user_id,
-           SUM(CASE WHEN wl.direction = 'credit' THEN wl.amount ELSE -wl.amount END) AS walletBalance,
-           MAX(wl.created_at) AS lastWalletActivity
-    FROM wallets w
-    LEFT JOIN wallet_ledger wl ON wl.wallet_id = w.id
-    GROUP BY w.user_id
-  ) wa ON wa.user_id = u.userId
+`
+
+const BOOKING_JOINS = `
   LEFT JOIN (
     SELECT clientUID AS uid, COUNT(*) AS bookingCount, MAX(dateBooked) AS lastBooking
     FROM bookings
@@ -73,6 +70,52 @@ const JOINS = `
     GROUP BY bu.uid
   ) vb ON BINARY vb.uid = BINARY u.uid
 `
+
+const LEGACY_WALLET_JOIN = `
+  LEFT JOIN (
+    SELECT w.user_id,
+           SUM(CASE WHEN wl.direction = 'credit' THEN wl.amount ELSE -wl.amount END) AS walletBalance,
+           MAX(wl.created_at) AS lastWalletActivity
+    FROM wallets w
+    LEFT JOIN wallet_ledger wl ON wl.wallet_id = w.id
+    GROUP BY w.user_id
+  ) wa ON wa.user_id = u.userId
+`
+
+const MONEY_V2_WALLET_JOIN = `
+  LEFT JOIN (
+    SELECT ma.owner_id AS uid,
+           MAX(CASE WHEN ma.purpose = 'available' THEN ma.balance_kobo ELSE 0 END) / 100 AS walletBalance,
+           MAX(me.created_at) AS lastWalletActivity
+    FROM money_accounts ma
+    LEFT JOIN money_entries me ON me.account_id = ma.id
+    WHERE ma.owner_type = 'user' AND ma.currency = 'NGN'
+    GROUP BY ma.owner_id
+  ) wa ON BINARY wa.uid = BINARY u.uid
+`
+
+const MARKETPLACE_WALLET_JOIN = `
+  LEFT JOIN (
+    SELECT ma.owner_id AS uid,
+           SUM(CASE
+             WHEN ma.purpose IN ('artisan_available_earnings','client_available','client_refundable')
+             THEN ma.balance_kobo ELSE 0 END) / 100 AS walletBalance,
+           MAX(me.created_at) AS lastWalletActivity
+    FROM money_accounts ma
+    LEFT JOIN money_entries me ON me.account_id = ma.id
+    WHERE ma.owner_type IN ('client','artisan') AND ma.currency = 'NGN'
+    GROUP BY ma.owner_id
+  ) wa ON BINARY wa.uid = BINARY u.uid
+`
+
+function supportJoins(): string {
+  const walletJoin = isMarketplaceFinanceEnabled()
+    ? MARKETPLACE_WALLET_JOIN
+    : isMoneyV2Enabled()
+      ? MONEY_V2_WALLET_JOIN
+      : LEGACY_WALLET_JOIN
+  return `${PROFILE_JOINS}${walletJoin}${BOOKING_JOINS}`
+}
 
 const ROLE_EXPRESSION = `COALESCE(
   u.role,
@@ -172,6 +215,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, Math.max(1, Number.parseInt(searchParams.get('limit') || '20', 10)))
     const category = (searchParams.get('category') || '').trim().slice(0, 160)
     const progress = searchParams.get('progress') || ''
+    const joins = supportJoins()
     const { where: initialWhere, params } = buildAdminUserFilter(
       searchParams.get('search') || '',
       searchParams.get('role') || ''
@@ -217,7 +261,7 @@ export async function GET(request: NextRequest) {
         ) AS lastActivityAt,
         ${PROFILE_COMPLETION} AS profileCompletion
       FROM users u
-      ${JOINS}
+      ${joins}
       ${where}
     `
 
@@ -259,7 +303,7 @@ export async function GET(request: NextRequest) {
            'General'
          ) AS category
          FROM users u
-         ${JOINS}
+         ${joins}
          WHERE u.deleted = 0 AND (u.role IS NULL OR u.role NOT IN ('admin', 'support'))
          ORDER BY category`,
         []

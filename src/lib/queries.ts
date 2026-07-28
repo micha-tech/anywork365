@@ -241,6 +241,8 @@ interface WithdrawalAccountRow extends RowDataPacket {
   account_number: string
   account_name: string
   recipient_code: string
+  created_at: string
+  updated_at: string
 }
 
 interface WithdrawalRow extends RowDataPacket {
@@ -1025,7 +1027,10 @@ export async function createDbNotification(uid: string, body: string): Promise<v
 // ─── Withdrawal Accounts ──────────────────────────────────────────────────
 
 export async function getWithdrawalAccounts(userId: number): Promise<WithdrawalAccountRow[]> {
-  return query<WithdrawalAccountRow[]>('SELECT * FROM withdrawal_accounts WHERE user_id = ?', [userId])
+  return query<WithdrawalAccountRow[]>(
+    'SELECT * FROM withdrawal_accounts WHERE user_id = ? ORDER BY id ASC',
+    [userId]
+  )
 }
 
 export async function saveWithdrawalAccount(data: {

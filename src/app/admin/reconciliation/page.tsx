@@ -43,7 +43,7 @@ export default function AdminReconciliationPage() {
         {(['transactions', 'escrows', 'withdrawals'] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3 py-1.5 rounded-lg capitalize transition-colors ${tab === t ? 'bg-white text-slate-900 font-medium shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-            {t}
+            {t === 'escrows' ? 'locked job funds' : t}
           </button>
         ))}
       </div>
@@ -129,7 +129,7 @@ function EscrowsTab() {
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
-      <div className="p-3 border-b border-slate-100 text-sm text-slate-500">{total} escrows</div>
+      <div className="p-3 border-b border-slate-100 text-sm text-slate-500">{total} locked job-fund records</div>
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 text-left text-xs text-slate-500 uppercase">
@@ -141,7 +141,7 @@ function EscrowsTab() {
         </thead>
         <tbody>
           {loading ? <tr><td colSpan={4} className="p-6 text-center text-slate-400">Loading...</td></tr> :
-            rows.length === 0 ? <tr><td colSpan={4} className="p-6 text-center text-slate-400">No escrows</td></tr> :
+            rows.length === 0 ? <tr><td colSpan={4} className="p-6 text-center text-slate-400">No locked job funds</td></tr> :
             rows.map((r, i) => (
               <tr key={r.id || i} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="p-3 text-slate-900">{r.bookingTitle || `#${r.booking_id}`}</td>

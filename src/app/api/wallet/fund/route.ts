@@ -7,7 +7,15 @@ import { z } from 'zod'
 import { getVerifiedSession } from '@/lib/auth'
 import { initializePayment, generateReference } from '@/lib/paystack'
 import { checkRateLimit } from '@/lib/wallet'
+import {
+  createFundingIntent,
+  checkDurableMoneyRateLimit,
+  isMoneyV2Enabled,
+  markFundingInitializationFailed,
+  nairaToKobo,
+} from '@/lib/money'
 import type { ApiResponse } from '@/types'
+import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
 
 const schema = z.object({
   amountNGN: z
@@ -17,6 +25,7 @@ const schema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  let v2Reference: string | null = null
   try {
     const session = await getVerifiedSession()
     if (!session) {
@@ -32,7 +41,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const rateLimit = checkRateLimit(`fund:${session.id}`, 3, 60 * 1000)
+    if (isMarketplaceFinanceEnabled()) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error: 'General wallet funding is disabled. Payments must be tied to a booking.',
+        },
+        { status: 410 }
+      )
+    }
+
+    const rateLimit = isMoneyV2Enabled()
+      ? await checkDurableMoneyRateLimit(`fund:${session.id}`, 3, 60 * 1000)
+      : checkRateLimit(`fund:${session.id}`, 3, 60 * 1000)
     if (!rateLimit.allowed) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: `Too many requests. Please wait ${rateLimit.retryAfter} seconds.` },
@@ -50,19 +71,29 @@ export async function POST(req: NextRequest) {
     }
 
     const { amountNGN } = parsed.data
-    const reference     = generateReference('FUND')
+    const amountKobo = nairaToKobo(amountNGN)
+    if (isMoneyV2Enabled()) {
+      const intent = await createFundingIntent({
+        userUid: session.id,
+        customerEmail: session.email,
+        amountKobo,
+      })
+      v2Reference = intent.reference
+    }
+    const reference = v2Reference || generateReference('FUND')
     const origin        = req.nextUrl.origin
     const callbackUrl   = `${origin}/api/wallet/verify?ref=${reference}`
 
     const result = await initializePayment({
       email: session.email,
-      amountNGN,
+      amountKobo,
       reference,
       callbackUrl,
       metadata: {
         userId:    session.id,
         type:      'wallet_fund',
         amountNGN: String(amountNGN),
+        amountKobo: String(amountKobo),
       },
     })
 
@@ -71,6 +102,12 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     )
   } catch (err) {
+    if (v2Reference) {
+      await markFundingInitializationFailed(
+        v2Reference,
+        err instanceof Error ? err.message : 'Paystack initialization failed'
+      ).catch(() => undefined)
+    }
     console.error('[WALLET FUND]', err)
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Failed to initialize payment' },

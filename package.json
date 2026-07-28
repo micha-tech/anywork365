@@ -8,7 +8,15 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "backup": "node scripts/backup.mjs ./backups"
+    "backup": "node scripts/backup.mjs ./backups",
+    "money:preflight": "node scripts/preflight-money-v2.mjs",
+    "money:import:dry": "node scripts/migrate-money-v2.mjs",
+    "money:import": "node scripts/migrate-money-v2.mjs --apply",
+    "money:reconcile": "node scripts/reconcile-money-v2.mjs"
+    ,"finance:v3:migrate:dry": "node scripts/migrate-marketplace-finance-v3.mjs"
+    ,"finance:v3:migrate": "node scripts/migrate-marketplace-finance-v3.mjs --apply"
+    ,"finance:v3:reconcile": "node scripts/reconcile-marketplace-finance-v3.mjs"
+    ,"test:financial": "tsc -p tests/financial/tsconfig.json && node --test \".test-build/tests/financial/*.test.js\""
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

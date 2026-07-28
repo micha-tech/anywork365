@@ -78,6 +78,12 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
         return
       }
 
+      if (data.data?.authorizationUrl) {
+        toast.success('Booking saved. Redirecting to secure payment…')
+        window.location.assign(data.data.authorizationUrl)
+        return
+      }
+
       setBookOpen(false)
       setBooked(true)
       toast.success('Booking request sent!')

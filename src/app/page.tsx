@@ -126,7 +126,7 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
               {[
                 { text: 'Verified Professionals' },
                 { text: '4.9 Average Rating' },
-                { text: 'Secure Escrow Payments' },
+                { text: 'Protected Marketplace Payments' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-slate-500">
                   <div className="w-5 h-5 rounded-full bg-brand-50 flex items-center justify-center">
@@ -363,7 +363,7 @@ export default function HomePage() {
               {
                 step: '02',
                 title: 'Book & Pay Securely',
-                desc: 'Select your preferred professional, agree on terms, and pay through our secure escrow system.',
+                desc: 'Select your preferred professional, agree on terms, and pay for that booking through our protected marketplace flow.',
                 icon: (
                   <svg className="w-6 h-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />

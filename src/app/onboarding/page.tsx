@@ -33,7 +33,7 @@ const slides = [
     eyebrow: 'Secure flow',
     title: 'Stay in control from booking to completion',
     description:
-      'Use chat, job updates, and escrow-supported payments to keep every booking transparent until the work is done.',
+      'Use chat, job updates, and booking-linked payments to keep every engagement transparent until the work is done.',
     proof: 'Chat. Track. Pay with confidence.',
     align: 'object-[48%_center]',
   },

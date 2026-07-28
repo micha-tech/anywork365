@@ -3,9 +3,6 @@ import {
   getWalletByUserId,
   getOrCreateWallet as getOrCreateWalletDb,
   getWalletBalance,
-  addLedgerEntry,
-  createWalletTransaction,
-  createWithdrawal,
   saveWithdrawalAccount,
   getWithdrawalAccounts,
   getUserWithdrawals,
@@ -210,8 +207,37 @@ export async function hasSuccessfulTransactionReference(
 export async function deleteBankAccount(userId: string): Promise<void> {
   const userRow = await getUserRowByUid(userId)
   if (!userRow) throw new Error('User not found')
-  const { execute } = await import('@/lib/db')
-  await execute('DELETE FROM withdrawal_accounts WHERE user_id = ?', [userRow.userId])
+  const conn = await getConnection()
+  try {
+    await conn.beginTransaction()
+    const [legacyPending] = await conn.execute(
+      `SELECT id FROM withdrawals
+       WHERE user_id = ? AND status IN ('pending', 'processing')
+       LIMIT 1 FOR UPDATE`,
+      [userRow.userId]
+    )
+    if (Array.isArray(legacyPending) && legacyPending.length > 0) {
+      throw new Error('Bank details cannot be removed while a withdrawal is pending')
+    }
+    if (process.env.MONEY_V2_ENABLED === 'true') {
+      const [v2Pending] = await conn.execute(
+        `SELECT id FROM withdrawal_requests_v2
+         WHERE user_uid = ? AND status IN ('reserved', 'submitted', 'processing', 'manual_review')
+         LIMIT 1 FOR UPDATE`,
+        [userId]
+      )
+      if (Array.isArray(v2Pending) && v2Pending.length > 0) {
+        throw new Error('Bank details cannot be removed while a withdrawal is pending')
+      }
+    }
+    await conn.execute('DELETE FROM withdrawal_accounts WHERE user_id = ?', [userRow.userId])
+    await conn.commit()
+  } catch (error) {
+    await conn.rollback().catch(() => undefined)
+    throw error
+  } finally {
+    conn.release()
+  }
 }
 
 // ─── Save bank account ──────────────────────────────────────────────────
@@ -233,7 +259,7 @@ export async function saveBankAccount(
     user_id: userRow.userId,
     bank_name: bankDetails.bankName,
     bank_code: bankDetails.bankCode,
-    account_number: bankDetails.accountNumber,
+    account_number: bankDetails.accountNumber.slice(-4),
     account_name: bankDetails.accountName,
     recipient_code: bankDetails.recipientCode,
   })
@@ -304,7 +330,7 @@ export async function requestWithdrawal(
 
     const [withdrawalResult] = await conn.execute(
       'INSERT INTO withdrawals (wallet_id, user_id, amount, account_id, status, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-      [walletId, user.userId, amountNGN, accounts[0].id, 'pending']
+      [walletId, user.userId, amountNGN, accounts[accounts.length - 1].id, 'pending']
     ) as any
     const withdrawalId = withdrawalResult.insertId as number
 

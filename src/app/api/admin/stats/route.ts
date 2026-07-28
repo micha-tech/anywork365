@@ -3,6 +3,7 @@ import { query } from '@/lib/db'
 import type { RowDataPacket } from 'mysql2/promise'
 import { requireAdminApi, unauthorized } from '@/lib/admin'
 import { cachedQuery, CACHE_TAGS } from '@/lib/cache'
+import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
 
 type CountRow = RowDataPacket & { count: number }
 type TotalRow = RowDataPacket & { total: number }
@@ -20,6 +21,7 @@ type StatsData = {
 }
 
 async function computeStats(): Promise<StatsData> {
+  const marketplaceFinance = isMarketplaceFinanceEnabled()
   const [
     totalUsers, totalArtisans, totalProfessionals, totalRecruiters, totalClients, totalAdmins,
     totalBookings, pendingBookings, completedBookings,
@@ -41,13 +43,29 @@ async function computeStats(): Promise<StatsData> {
     query<CountRow[]>("SELECT COUNT(*) AS count FROM bookings WHERE bookingStatus = 'Confirmed'"),
     query<CountRow[]>('SELECT COUNT(*) AS count FROM vacancies'),
     query<CountRow[]>('SELECT COUNT(*) AS count FROM vacancies WHERE closed = 0'),
-    query<TotalRow[]>("SELECT COALESCE(SUM(amount), 0) AS total FROM wallet_ledger WHERE direction = 'credit'"),
-    query<TotalRow[]>("SELECT COALESCE(SUM(amount), 0) AS total FROM wallet_ledger WHERE direction = 'debit'"),
+    marketplaceFinance
+      ? query<TotalRow[]>(`SELECT COALESCE(SUM(balance_kobo), 0) / 100 AS total
+          FROM money_accounts WHERE purpose IN (
+            'platform_commission_revenue','platform_transaction_fee_revenue'
+          )`)
+      : query<TotalRow[]>("SELECT COALESCE(SUM(amount), 0) AS total FROM wallet_ledger WHERE direction = 'credit'"),
+    marketplaceFinance
+      ? query<TotalRow[]>(`SELECT COALESCE(SUM(amount_kobo), 0) / 100 AS total
+          FROM marketplace_withdrawal_requests WHERE status = 'success'`)
+      : query<TotalRow[]>("SELECT COALESCE(SUM(amount), 0) AS total FROM wallet_ledger WHERE direction = 'debit'"),
     query<CountRow[]>("SELECT COUNT(*) AS count FROM business_verifications WHERE status = 'pending'"),
-    query<CountRow[]>("SELECT COUNT(*) AS count FROM disputes WHERE status IN ('open', 'investigating')"),
-    query<CountRow[]>('SELECT COUNT(*) AS count FROM wallet_transactions WHERE DATE(created_at) = CURDATE()'),
+    marketplaceFinance
+      ? query<CountRow[]>("SELECT COUNT(*) AS count FROM financial_disputes WHERE status IN ('open', 'under_review')")
+      : query<CountRow[]>("SELECT COUNT(*) AS count FROM disputes WHERE status IN ('open', 'investigating')"),
+    marketplaceFinance
+      ? query<CountRow[]>('SELECT COUNT(*) AS count FROM money_transactions WHERE DATE(created_at) = CURDATE()')
+      : query<CountRow[]>('SELECT COUNT(*) AS count FROM wallet_transactions WHERE DATE(created_at) = CURDATE()'),
     query<CountRow[]>('SELECT COUNT(*) AS count FROM users WHERE DATE(dateJoined) = CURDATE() AND deleted = 0'),
-    query<CountTotalRow[]>("SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total FROM wallet_escrow WHERE status = 'held'"),
+    marketplaceFinance
+      ? query<CountTotalRow[]>(`SELECT COUNT(*) AS count,
+          COALESCE(SUM(locked_amount_kobo), 0) / 100 AS total
+          FROM job_funds WHERE status = 'locked'`)
+      : query<CountTotalRow[]>("SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total FROM wallet_escrow WHERE status = 'held'"),
   ])
 
   return {

@@ -11,6 +11,11 @@ import {
   getWithdrawalAccounts,
 } from '@/lib/queries'
 import type { ApiResponse } from '@/types'
+import { getMoneyWalletSnapshot, isMoneyV2Enabled } from '@/lib/money'
+import {
+  getMarketplaceWalletSnapshot,
+  isMarketplaceFinanceEnabled,
+} from '@/lib/financial/marketplace-service'
 
 export async function GET() {
   const session = await getVerifiedSession()
@@ -24,6 +29,25 @@ export async function GET() {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Wallets are only available to clients and artisans' },
       { status: 403 }
+    )
+  }
+
+  if (isMarketplaceFinanceEnabled()) {
+    const data = await getMarketplaceWalletSnapshot(
+      session.id,
+      session.role as 'client' | 'artisan'
+    )
+    return NextResponse.json(
+      { success: true, data },
+      { headers: { 'Cache-Control': 'private, no-store' } }
+    )
+  }
+
+  if (isMoneyV2Enabled()) {
+    const data = await getMoneyWalletSnapshot(session.id)
+    return NextResponse.json(
+      { success: true, data },
+      { headers: { 'Cache-Control': 'private, no-cache' } }
     )
   }
 

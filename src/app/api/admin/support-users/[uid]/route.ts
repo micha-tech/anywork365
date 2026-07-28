@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { RowDataPacket } from 'mysql2/promise'
 import { requireSupportApi, unauthorized } from '@/lib/admin'
 import { query, queryOne } from '@/lib/db'
+import { isMoneyV2Enabled } from '@/lib/money'
+import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
 
 type AnyRow = RowDataPacket & Record<string, unknown>
 
@@ -43,22 +45,99 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
 
-    const wallet = await queryOne<AnyRow[]>(
-      `SELECT w.id AS walletId, w.email AS walletEmail, w.currency,
-              w.status AS walletStatus,
-              COALESCE(SUM(CASE WHEN wl.direction = 'credit' THEN wl.amount ELSE -wl.amount END), 0) AS balance,
-              COUNT(wl.id) AS transactionCount
-       FROM wallets w
-       LEFT JOIN wallet_ledger wl ON wl.wallet_id = w.id
-       WHERE w.user_id = (SELECT userId FROM users WHERE uid = ?)
-       GROUP BY w.id
-       ORDER BY w.id DESC
-       LIMIT 1`,
-      [uid]
-    )
+    const useMarketplaceFinance = isMarketplaceFinanceEnabled()
+    const useMoneyV2 = !useMarketplaceFinance && isMoneyV2Enabled()
+    const wallet = useMarketplaceFinance
+      ? await queryOne<AnyRow[]>(
+        `SELECT MIN(ma.id) AS walletId, ? AS walletEmail, ma.currency,
+                'active' AS walletStatus,
+                SUM(CASE WHEN ma.purpose IN (
+                  'artisan_available_earnings','client_available','client_refundable'
+                ) THEN ma.balance_kobo ELSE 0 END) / 100 AS balance,
+                COUNT(DISTINCT me.transaction_id) AS transactionCount
+         FROM money_accounts ma
+         LEFT JOIN money_entries me ON me.account_id = ma.id
+         WHERE ma.owner_type IN ('client','artisan') AND BINARY ma.owner_id = BINARY ?
+           AND ma.currency = 'NGN'
+         GROUP BY ma.owner_id, ma.currency
+         LIMIT 1`,
+        [user.email as string, uid]
+      )
+      : useMoneyV2
+      ? await queryOne<AnyRow[]>(
+        `SELECT ma.id AS walletId, ? AS walletEmail, ma.currency,
+                ma.status AS walletStatus, ma.balance_kobo / 100 AS balance,
+                COUNT(DISTINCT me.transaction_id) AS transactionCount
+         FROM money_accounts ma
+         LEFT JOIN money_entries me ON me.account_id = ma.id
+         WHERE ma.owner_type = 'user' AND BINARY ma.owner_id = BINARY ?
+           AND ma.purpose = 'available' AND ma.currency = 'NGN'
+         GROUP BY ma.id
+         LIMIT 1`,
+        [user.email as string, uid]
+      )
+      : await queryOne<AnyRow[]>(
+        `SELECT w.id AS walletId, w.email AS walletEmail, w.currency,
+                w.status AS walletStatus,
+                COALESCE(SUM(CASE WHEN wl.direction = 'credit' THEN wl.amount ELSE -wl.amount END), 0) AS balance,
+                COUNT(wl.id) AS transactionCount
+         FROM wallets w
+         LEFT JOIN wallet_ledger wl ON wl.wallet_id = w.id
+         WHERE w.user_id = (SELECT userId FROM users WHERE uid = ?)
+         GROUP BY w.id
+         ORDER BY w.id DESC
+         LIMIT 1`,
+        [uid]
+      )
 
-    const [transactions, bookings] = await Promise.all([
-      query<AnyRow[]>(
+    const transactionsPromise = useMarketplaceFinance
+      ? query<AnyRow[]>(
+        `SELECT mt.id, mt.amount_kobo / 100 AS amount,
+                CASE
+                  WHEN mt.transaction_type IN ('job_funding_confirmed','withdrawal_returned')
+                    THEN 'credit'
+                  ELSE 'debit'
+                END AS direction,
+                NULL AS balanceAfter,
+                COALESCE(JSON_UNQUOTE(JSON_EXTRACT(mt.metadata, '$.description')),
+                         REPLACE(mt.transaction_type, '_', ' ')) AS description,
+                mt.created_at AS createdAt, mt.reference,
+                mt.transaction_type AS type, mt.status
+         FROM money_transactions mt
+         WHERE BINARY mt.user_uid = BINARY ?
+         ORDER BY mt.created_at DESC
+         LIMIT 30`,
+        [uid]
+      )
+      : useMoneyV2
+      ? query<AnyRow[]>(
+        `SELECT mt.id, ABS(me.delta_kobo) / 100 AS amount,
+                CASE WHEN me.delta_kobo >= 0 THEN 'credit' ELSE 'debit' END AS direction,
+                NULL AS balanceAfter,
+                CASE mt.transaction_type
+                  WHEN 'wallet_funding' THEN 'Wallet funded via Paystack'
+                  WHEN 'booking_escrow_hold' THEN 'Payment held for booking'
+                  WHEN 'booking_escrow_release' THEN 'Booking earnings received'
+                  WHEN 'booking_escrow_refund' THEN 'Booking payment refunded'
+                  WHEN 'withdrawal_reserve' THEN 'Withdrawal requested'
+                  WHEN 'withdrawal_failed' THEN 'Withdrawal returned'
+                  WHEN 'withdrawal_reversed' THEN 'Withdrawal reversed'
+                  WHEN 'legacy_balance_import' THEN 'Opening wallet balance'
+                  ELSE REPLACE(mt.transaction_type, '_', ' ')
+                END AS description,
+                mt.created_at AS createdAt, mt.reference,
+                mt.transaction_type AS type, COALESCE(wr.status, mt.status) AS status
+         FROM money_entries me
+         JOIN money_accounts ma ON ma.id = me.account_id
+         JOIN money_transactions mt ON mt.id = me.transaction_id
+         LEFT JOIN withdrawal_requests_v2 wr ON wr.reserve_transaction_id = mt.id
+         WHERE ma.owner_type = 'user' AND BINARY ma.owner_id = BINARY ?
+           AND ma.purpose = 'available'
+         ORDER BY mt.created_at DESC
+         LIMIT 30`,
+        [uid]
+      )
+      : query<AnyRow[]>(
         `SELECT wl.id, wl.amount, wl.direction, wl.balance_after AS balanceAfter,
                 wl.description, wl.created_at AS createdAt,
                 wt.reference, wt.type, wt.status
@@ -72,7 +151,10 @@ export async function GET(
          ORDER BY wl.created_at DESC
          LIMIT 30`,
         [uid]
-      ),
+      )
+
+    const [transactions, bookings] = await Promise.all([
+      transactionsPromise,
       query<AnyRow[]>(
         `SELECT DISTINCT
            bk.bookingId, bk.bookingCode, bk.bookingStatus, bk.amountAgreed,
