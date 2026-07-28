@@ -5,8 +5,13 @@ import { getConnection } from '@/lib/db'
 import { createDbNotification } from '@/lib/queries'
 import { sendPushNotification } from '@/lib/notifications'
 import type { ApiResponse } from '@/types'
-import type { RowDataPacket } from 'mysql2'
 import mysql from 'mysql2/promise'
+import { isMoneyV2Enabled, refundBookingFunds, releaseBookingFunds } from '@/lib/money'
+import {
+  cancelOrRefundJobInTransaction,
+  isMarketplaceFinanceEnabled,
+  releaseJobFundsToArtisanInTransaction,
+} from '@/lib/financial/marketplace-service'
 
 export const runtime = 'nodejs'
 
@@ -114,7 +119,10 @@ export async function PATCH(
       )
     }
 
-    if (action === 'cancel' && booking.bookingStatus !== 'Pending') {
+    if (
+      action === 'cancel' &&
+      !['Pending', 'Awaiting Payment'].includes(booking.bookingStatus)
+    ) {
       await conn.rollback()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Only pending bookings can be cancelled' },
@@ -122,7 +130,18 @@ export async function PATCH(
       )
     }
 
+    const useMarketplaceFinance = isMarketplaceFinanceEnabled()
+    const useMoneyV2 = !useMarketplaceFinance && isMoneyV2Enabled()
+
     if (action === 'complete') {
+      if (useMarketplaceFinance) {
+        await releaseJobFundsToArtisanInTransaction(conn, {
+          bookingId,
+          actor: { type: 'user', id: session.id },
+        })
+      } else if (useMoneyV2) {
+        await releaseBookingFunds(conn, bookingId)
+      } else {
       const [vendorRows] = await conn.query<mysql.RowDataPacket[]>('SELECT userId FROM users WHERE uid = ?', [booking.businessUid])
       const [clientRows] = await conn.query<mysql.RowDataPacket[]>('SELECT userId FROM users WHERE uid = ?', [session.id])
       if (clientRows.length === 0) {
@@ -166,9 +185,20 @@ export async function PATCH(
       }
 
       await conn.execute("UPDATE wallet_escrow SET status = 'released', released_at = NOW() WHERE booking_id = ?", [bookingId])
+      }
     }
 
     if (action === 'cancel') {
+      if (useMarketplaceFinance) {
+        await cancelOrRefundJobInTransaction(conn, {
+          bookingId,
+          requestedByUid: session.id,
+          reason: 'Booking cancelled before completion',
+          actor: { type: 'user', id: session.id },
+        })
+      } else if (useMoneyV2) {
+        await refundBookingFunds(conn, bookingId)
+      } else {
       const [clientRows] = await conn.query<mysql.RowDataPacket[]>('SELECT userId FROM users WHERE uid = ?', [booking.clientUID])
       if (clientRows.length > 0) {
         const [walletRows] = await conn.query<mysql.RowDataPacket[]>('SELECT id FROM wallets WHERE user_id = ?', [clientRows[0].userId])
@@ -176,9 +206,10 @@ export async function PATCH(
           const [balRows] = await conn.query<mysql.RowDataPacket[]>('SELECT balance_after FROM wallet_ledger WHERE wallet_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE', [walletRows[0].id])
           const balance = balRows.length > 0 ? balRows[0].balance_after : 0
           await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-            [walletRows[0].id, booking.amountAgreed, 'credit', balance + booking.amountAgreed, `Escrow refunded for cancelled booking #${bookingId}`])
+            [walletRows[0].id, booking.amountAgreed, 'credit', balance + booking.amountAgreed, `Booking payment refunded for cancelled booking #${bookingId}`])
           await conn.execute("UPDATE wallet_escrow SET status = 'refunded', released_at = NOW() WHERE booking_id = ?", [bookingId])
         }
+      }
       }
     }
 

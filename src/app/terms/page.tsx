@@ -33,14 +33,14 @@ Failure to meet these obligations may result in account suspension or permanent 
     title: 'Client Obligations',
     content: `Clients using Anywork365 agree to:
 • Provide accurate job descriptions and requirements
-• Pay agreed amounts through the platform's escrow system
+• Pay agreed amounts through the platform's locked job-funds system
 • Communicate respectfully with artisans
 • Release payments promptly upon satisfactory completion of work
 • Not attempt to circumvent the platform to engage artisans off-platform`,
   },
   {
     title: 'Payments & Fees',
-    content: `All payments are processed through Paystack. Funds are held in escrow until job completion is confirmed. Anywork365 charges a service fee on completed transactions, which is disclosed before payment. Withdrawals are processed within 1-2 business days to verified bank accounts.
+    content: `All payments are processed through Paystack. Funds are locked to the booked job until completion is confirmed. Anywork365 charges a service fee on completed transactions, which is disclosed before payment. Withdrawals are processed within 1-2 business days to verified bank accounts.
 
 We reserve the right to adjust fees with notice to users.`,
   },

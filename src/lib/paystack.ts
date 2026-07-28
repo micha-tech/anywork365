@@ -1,6 +1,6 @@
-import { createHmac } from 'crypto'
+import { createHmac, randomUUID, timingSafeEqual } from 'crypto'
 
-const PAYSTACK_BASE = 'https://api.paystack.co'
+const PAYSTACK_BASE = process.env.PAYSTACK_BASE_URL || 'https://api.paystack.co'
 
 function getPaystackSecret() {
   const secret = process.env.PAYSTACK_SECRET_KEY ?? ''
@@ -37,17 +37,20 @@ async function paystackRequest<T>(
 
 export async function initializePayment({
   email,
-  amountNGN,
+  amountKobo,
   reference,
   metadata,
   callbackUrl,
 }: {
   email: string
-  amountNGN: number
+  amountKobo: number
   reference: string
   metadata: Record<string, string>
   callbackUrl: string
 }) {
+  if (!Number.isSafeInteger(amountKobo) || amountKobo <= 0) {
+    throw new Error('Paystack amount must be a positive integer in kobo')
+  }
   return paystackRequest<{
     status: boolean
     data: { authorization_url: string; access_code: string; reference: string }
@@ -55,7 +58,8 @@ export async function initializePayment({
     method: 'POST',
     body: JSON.stringify({
       email,
-      amount: amountNGN * 100,
+      amount: amountKobo,
+      currency: 'NGN',
       reference,
       callback_url: callbackUrl,
       metadata,
@@ -68,6 +72,8 @@ export async function verifyPayment(reference: string) {
   return paystackRequest<{
     status: boolean
     data: {
+      id: number
+      domain: 'test' | 'live'
       status: 'success' | 'failed' | 'abandoned'
       reference: string
       amount: number
@@ -75,6 +81,7 @@ export async function verifyPayment(reference: string) {
       customer: { email: string; id: number }
       metadata: Record<string, string>
       paid_at: string
+      channel: string
     }
   }>(`/transaction/verify/${encodeURIComponent(reference)}`)
 }
@@ -104,16 +111,19 @@ export async function createTransferRecipient({
 }
 
 export async function initiateTransfer({
-  amountNGN,
+  amountKobo,
   recipientCode,
   reference,
   reason,
 }: {
-  amountNGN: number
+  amountKobo: number
   recipientCode: string
   reference: string
   reason: string
 }) {
+  if (!Number.isSafeInteger(amountKobo) || amountKobo <= 0) {
+    throw new Error('Paystack amount must be a positive integer in kobo')
+  }
   return paystackRequest<{
     status: boolean
     data: {
@@ -125,19 +135,52 @@ export async function initiateTransfer({
     method: 'POST',
     body: JSON.stringify({
       source: 'balance',
-      amount: amountNGN * 100,
+      amount: amountKobo,
       recipient: recipientCode,
       reference,
       reason,
+      currency: 'NGN',
     }),
   })
 }
 
-export async function verifyTransfer(transferCode: string) {
+export async function verifyTransfer(reference: string) {
   return paystackRequest<{
     status: boolean
-    data: { status: string; amount: number; transfer_code: string }
-  }>(`/transfer/${encodeURIComponent(transferCode)}`)
+    data: {
+      status: string
+      amount: number
+      currency: string
+      domain: 'test' | 'live'
+      reference: string
+      transfer_code: string
+    }
+  }>(`/transfer/verify/${encodeURIComponent(reference)}`)
+}
+
+export async function initiateRefund({
+  transactionReference,
+  amountKobo,
+  currency,
+}: {
+  transactionReference: string
+  amountKobo: number
+  currency: 'NGN'
+}) {
+  if (!Number.isSafeInteger(amountKobo) || amountKobo <= 0) {
+    throw new Error('Paystack refund amount must be a positive integer in kobo')
+  }
+  return paystackRequest<{
+    status: boolean
+    data: { id: number; status: string; transaction: number }
+  }>('/refund', {
+    method: 'POST',
+    body: JSON.stringify({
+      transaction: transactionReference,
+      amount: amountKobo,
+      currency,
+    }),
+  })
 }
 
 export async function resolveAccountNumber({
@@ -164,12 +207,10 @@ export function verifyWebhookSignature(payload: string, signature: string): bool
   const hash = createHmac('sha512', getPaystackSecret())
     .update(payload)
     .digest('hex')
-
-  return hash === signature
+  if (!/^[a-f0-9]{128}$/i.test(signature)) return false
+  return timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(signature, 'hex'))
 }
 
 export function generateReference(prefix = 'AW365'): string {
-  const timestamp = Date.now()
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-  return `${prefix}_${timestamp}_${random}`
+  return `${prefix.toLowerCase().replace(/[^a-z0-9.-]/g, '-')}-${randomUUID()}`.slice(0, 50)
 }

@@ -8,17 +8,34 @@ import { toast } from 'sonner'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import type { Wallet, WalletTransaction, NigerianBank } from '@/types'
 
+type FinanceWallet = Wallet & {
+  pendingBalance?: number
+  refundPendingBalance?: number
+  withdrawalPendingBalance?: number
+  totalWithdrawn?: number
+  platformFees?: number
+  totalFunded?: number
+  totalSpent?: number
+}
+
+type FinanceTransaction = WalletTransaction & {
+  reference?: string
+  bookingId?: number | null
+  platformFeeNGN?: number | null
+}
+
 interface WalletData {
-  wallet: Wallet
-  transactions: WalletTransaction[]
+  wallet: FinanceWallet
+  transactions: FinanceTransaction[]
 }
 
 const TX_META: Record<string, { label: string; color: string; sign: string }> = {
   credit: { label: 'Credit', color: 'text-green-600', sign: '+' },
   earning: { label: 'Earnings', color: 'text-green-600', sign: '+' },
   debit: { label: 'Withdrawal', color: 'text-amber-600', sign: '-' },
-  escrow_lock: { label: 'Escrow Lock', color: 'text-amber-600', sign: '-' },
-  escrow_release: { label: 'Escrow Released', color: 'text-green-600', sign: '+' },
+  job_payment: { label: 'Job Payment', color: 'text-blue-600', sign: '' },
+  escrow_lock: { label: 'Job Funds Locked', color: 'text-amber-600', sign: '-' },
+  escrow_release: { label: 'Job Funds Released', color: 'text-green-600', sign: '+' },
   refund: { label: 'Refund', color: 'text-blue-600', sign: '+' },
 }
 
@@ -30,9 +47,7 @@ function WalletPageContent() {
   const [walletError, setWalletError] = useState(false)
   const [banks, setBanks] = useState<NigerianBank[]>([])
   const [loadingData, setLoadingData] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'fund' | 'withdraw' | 'bank'>('overview')
-
-  const [fundAmount, setFundAmount] = useState('')
+  const [activeTab, setActiveTab] = useState<'overview' | 'withdraw' | 'bank'>('overview')
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [bankCode, setBankCode] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
@@ -129,34 +144,6 @@ function WalletPageContent() {
     }
   }, [accountNumber, bankCode])
 
-  async function handleFund(e: React.FormEvent) {
-    e.preventDefault()
-    const amount = Number(fundAmount)
-    if (!amount || amount < 100) {
-      toast.error('Minimum amount is NGN 100')
-      return
-    }
-
-    setSubmitting(true)
-    try {
-      const res = await fetch('/api/wallet/fund', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amountNGN: amount }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        window.location.href = data.data.authorizationUrl
-      } else {
-        toast.error('Couldn\u2019t start payment')
-      }
-    } catch {
-      toast.error('Network error')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   async function handleSaveBankAccount(e: React.FormEvent) {
     e.preventDefault()
     if (!accountNumber || !bankCode) {
@@ -201,10 +188,14 @@ function WalletPageContent() {
 
     setSubmitting(true)
     try {
+      const idempotencyKey = crypto.randomUUID()
       const res = await fetch('/api/wallet/withdraw', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amountNGN: amount }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey,
+        },
+        body: JSON.stringify({ amountNGN: amount, idempotencyKey }),
       })
       const data = await res.json()
       if (data.success) {
@@ -225,7 +216,6 @@ function WalletPageContent() {
   const isArtisan = user?.role === 'artisan'
   const wallet = walletData?.wallet
   const txHistory = walletData?.transactions ?? []
-  const quickAmounts = [5000, 10000, 25000, 50000]
 
   if (!loadingData && !userLoading && walletError) {
     return (
@@ -263,18 +253,26 @@ function WalletPageContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-brand-500 text-white rounded-2xl p-4 sm:p-5">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-white/70">Available Balance</p>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-white/70">
+              {isArtisan ? 'Available Earnings' : 'Refundable Funds'}
+            </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 break-words">
               {formatCurrency(wallet?.availableBalance ?? 0)}
             </p>
             <p className="text-xs text-white/60">Ready to withdraw</p>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">In Escrow</p>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+              {isArtisan ? 'Pending Earnings' : 'Locked Job Funds'}
+            </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-amber-600 break-words">
               {formatCurrency(wallet?.escrowBalance ?? 0)}
             </p>
-            <p className="text-xs text-slate-500">Client funds held; the 5% platform fee is deducted on release</p>
+            <p className="text-xs text-slate-500">
+              {isArtisan
+                ? 'Released after the marketplace safety hold'
+                : 'Payments currently tied to active bookings'}
+            </p>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">Total Earned</p>
@@ -283,6 +281,32 @@ function WalletPageContent() {
             </p>
             <p className="text-xs text-slate-500">All time</p>
           </div>
+        </div>
+      )}
+
+      {!loadingData && wallet && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {(isArtisan
+            ? [
+                ['Withdrawal Pending', wallet.withdrawalPendingBalance ?? 0],
+                ['Total Withdrawn', wallet.totalWithdrawn ?? 0],
+                ['Platform Fees', wallet.platformFees ?? 0],
+                ['Held Earnings', wallet.pendingBalance ?? 0],
+              ]
+            : [
+                ['Refund Pending', wallet.refundPendingBalance ?? 0],
+                ['Total Funded', wallet.totalFunded ?? 0],
+                ['Total Spent', wallet.totalSpent ?? 0],
+                ['Locked for Jobs', wallet.escrowBalance ?? 0],
+              ]
+          ).map(([label, value]) => (
+            <div key={String(label)} className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+              <p className="text-[11px] uppercase tracking-wide text-slate-500">{label}</p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">
+                {formatCurrency(Number(value))}
+              </p>
+            </div>
+          ))}
         </div>
       )}
 
@@ -332,7 +356,6 @@ function WalletPageContent() {
         <div className="flex min-w-max gap-1 sm:gap-0">
           {([
             { id: 'overview', label: 'Transactions' },
-            { id: 'fund', label: 'Add Money' },
             ...(isArtisan
               ? [
                   { id: 'withdraw', label: 'Withdraw' },
@@ -382,6 +405,17 @@ function WalletPageContent() {
                             <p className="text-xs text-slate-500 mt-0.5">
                               {meta.label} - {new Date(tx.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </p>
+                            {tx.reference && (
+                              <p className="text-[11px] text-slate-400 mt-0.5 break-all">
+                                Ref: {tx.reference}
+                                {tx.bookingId ? ` · Booking #${tx.bookingId}` : ''}
+                              </p>
+                            )}
+                            {tx.platformFeeNGN !== null && tx.platformFeeNGN !== undefined && (
+                              <p className="text-[11px] text-slate-500 mt-0.5">
+                                Platform fee: {formatCurrency(tx.platformFeeNGN)}
+                              </p>
+                            )}
                           </div>
                           <div className="sm:text-right">
                             <p className={`text-sm font-semibold ${meta.color}`}>
@@ -408,55 +442,6 @@ function WalletPageContent() {
               })}
             </div>
           )}
-        </div>
-      )}
-
-      {activeTab === 'fund' && (
-        <div className="card max-w-xl">
-          <h2 className="font-medium text-base mb-1">Add Money to Wallet</h2>
-          <p className="text-sm text-slate-500 mb-5">
-            Pay securely via card, bank transfer, or USSD. Powered by Paystack.
-          </p>
-          <form onSubmit={handleFund}>
-            <div className="form-group">
-              <label className="label">Amount (NGN)</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={fundAmount}
-                onChange={(e) => setFundAmount(e.target.value)}
-                className="input-field"
-                placeholder="e.g. 50000"
-                min="100"
-                required
-              />
-              <p className="text-xs text-slate-500 mt-1.5">Minimum: NGN 100 - Maximum: NGN 10,000,000</p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-5">
-              {quickAmounts.map((amt) => (
-                <button
-                  key={amt}
-                  type="button"
-                  onClick={() => setFundAmount(String(amt))}
-                  className={`px-3 py-2 rounded-xl text-sm border transition-colors ${
-                    fundAmount === String(amt)
-                      ? 'border-brand-500 bg-brand-50 text-brand-600'
-                      : 'border-slate-200 text-slate-500 hover:border-brand-500'
-                  }`}
-                >
-                  {formatCurrency(amt)}
-                </button>
-              ))}
-            </div>
-
-            <button type="submit" disabled={submitting} className="btn-primary w-full py-3 justify-center">
-              {submitting ? 'Redirecting to Paystack...' : 'Pay with Paystack'}
-            </button>
-            <p className="text-xs text-slate-500 text-center mt-3">
-              Secured by Paystack - Card, Bank Transfer, USSD supported
-            </p>
-          </form>
         </div>
       )}
 

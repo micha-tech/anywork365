@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getConnection } from '@/lib/db'
 import type { RowDataPacket } from 'mysql2/promise'
 import { requireAdminApi, unauthorized, logAdminAction } from '@/lib/admin'
+import { isMoneyV2Enabled } from '@/lib/money'
+import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
 
 export async function POST(request: NextRequest) {
   try {
     const session = await requireAdminApi()
+    if (isMarketplaceFinanceEnabled() || isMoneyV2Enabled()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Direct wallet adjustments are disabled for the production ledger.',
+        },
+        { status: 409 }
+      )
+    }
     const body = await request.json()
     const { uid, amount, description, type } = body
 

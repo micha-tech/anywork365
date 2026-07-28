@@ -23,6 +23,7 @@ build/
 
 # TypeScript
 *.tsbuildinfo
+.test-build/
 next-env.d.ts
 
 # OS

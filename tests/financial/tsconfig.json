@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "../../.test-build",
+    "rootDir": "../..",
+    "types": ["node"]
+  },
+  "include": [
+    "./*.test.ts",
+    "../../src/lib/financial/money-value.ts",
+    "../../src/lib/financial/ledger-invariants.ts",
+    "../../src/lib/financial/state-machines.ts",
+    "../../src/lib/financial/errors.ts"
+  ]
+}

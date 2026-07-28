@@ -43,7 +43,7 @@ export default function AdminOverviewPage() {
         <StatCard label="Total Bookings" value={stats?.bookings.total ?? 0} sub={`${stats?.bookings.pending ?? 0} pending`} />
         <StatCard label="Open Jobs" value={stats?.jobs.open ?? 0} sub={`${stats?.jobs.total ?? 0} total`} />
         <StatCard label="Revenue" value={formatNGN(stats?.revenue.total ?? 0)} sub={`${formatNGN(stats?.revenue.withdrawn ?? 0)} withdrawn`} />
-        <StatCard label="Active Escrows" value={formatNGN(stats?.activeEscrows.total ?? 0)} sub={`${stats?.activeEscrows.count ?? 0} escrows`} />
+        <StatCard label="Locked Job Funds" value={formatNGN(stats?.activeEscrows.total ?? 0)} sub={`${stats?.activeEscrows.count ?? 0} funded jobs`} />
         <StatCard label="Today's Transactions" value={stats?.transactionsToday ?? 0} sub="wallet transactions" />
         <StatCard label="Open Disputes" value={stats?.openDisputes ?? 0} sub="needs attention" variant={stats?.openDisputes ? 'warning' : 'default'} />
       </div>

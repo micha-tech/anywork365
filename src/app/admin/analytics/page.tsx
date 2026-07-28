@@ -60,7 +60,7 @@ export default function AdminAnalyticsPage() {
       <Section title="Financial">
         <Metric label="Total Revenue" value={formatNGN(stats.revenue.total)} />
         <Metric label="Withdrawn" value={formatNGN(stats.revenue.withdrawn)} />
-        <Metric label="Active Escrows" value={formatNGN(stats.activeEscrows.total)} sub={`${stats.activeEscrows.count} escrows`} />
+        <Metric label="Locked Job Funds" value={formatNGN(stats.activeEscrows.total)} sub={`${stats.activeEscrows.count} funded jobs`} />
         <Metric label="Today's Transactions" value={String(stats.transactionsToday)} />
       </Section>
 

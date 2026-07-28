@@ -16,6 +16,14 @@ import { getConnection } from '@/lib/db'
 import type { ApiResponse } from '@/types'
 import type mysql from 'mysql2'
 import type { RowDataPacket } from 'mysql2'
+import { holdBookingFunds, isMoneyV2Enabled, nairaToKobo } from '@/lib/money'
+import {
+  createJobFundingInTransaction,
+  initializeJobPayment,
+  isMarketplaceFinanceEnabled,
+  type JobFundingInitialization,
+} from '@/lib/financial/marketplace-service'
+import { majorToMinor } from '@/lib/financial/money-value'
 
 export const runtime = 'nodejs'
 
@@ -146,56 +154,64 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Ensure wallets exist BEFORE the transaction (these may INSERT)
-  const clientWallet = await getWalletByUserId(clientRow.userId) ?? await getOrCreateWalletDb(clientRow.userId, clientRow.email)
-
-  const vendorRow = await getUserRowByUid(vendorId)
+  const useMarketplaceFinance = isMarketplaceFinanceEnabled()
+  const useMoneyV2 = !useMarketplaceFinance && isMoneyV2Enabled()
+  let clientWallet = await getWalletByUserId(clientRow.userId)
   let vendorWalletId: number | null = null
-  if (vendorRow) {
-    let vw = await getWalletByUserId(vendorRow.userId)
-    if (!vw) {
-      vw = await getOrCreateWalletDb(vendorRow.userId, vendorRow.email)
+  if (!useMarketplaceFinance && !useMoneyV2) {
+    // Legacy wallets are only touched while the v2 ledger rollout flag is off.
+    clientWallet = clientWallet ?? await getOrCreateWalletDb(clientRow.userId, clientRow.email)
+    const vendorRow = await getUserRowByUid(vendorId)
+    if (vendorRow) {
+      let vw = await getWalletByUserId(vendorRow.userId)
+      if (!vw) {
+        vw = await getOrCreateWalletDb(vendorRow.userId, vendorRow.email)
+      }
+      vendorWalletId = vw.id
     }
-    vendorWalletId = vw.id
   }
 
-  // ── Transaction: atomic balance check + booking + escrow ──────────────
+  // Transaction: atomic booking and legacy locked-funds handling.
   const conn = await getConnection()
+  let fundingInitialization: JobFundingInitialization | null = null
   try {
     await conn.beginTransaction()
 
-    // Lock the client wallet row (prevents concurrent debits/credits)
-    const [walletRows] = await conn.execute<RowDataPacket[]>(
-      'SELECT id FROM wallets WHERE id = ? FOR UPDATE',
-      [clientWallet.id]
-    )
-    if (walletRows.length === 0) {
-      await conn.rollback()
-      return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Wallet not found' },
-        { status: 404 }
+    let currentBalance = 0
+    if (!useMarketplaceFinance && !useMoneyV2) {
+      if (!clientWallet) throw new Error('Client wallet not found')
+      // Lock the legacy wallet row while legacy mode remains active.
+      const [walletRows] = await conn.execute<RowDataPacket[]>(
+        'SELECT id FROM wallets WHERE id = ? FOR UPDATE',
+        [clientWallet.id]
       )
-    }
+      if (walletRows.length === 0) {
+        await conn.rollback()
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Wallet not found' },
+          { status: 404 }
+        )
+      }
 
-    // Read current balance inside the transaction (sees all prior committed txns)
-    const [balRows] = await conn.execute<RowDataPacket[]>(
-      `SELECT COALESCE(SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END), 0) AS balance
-       FROM wallet_ledger WHERE wallet_id = ?`,
-      [clientWallet.id]
-    )
-    const currentBalance = Number(balRows[0]?.balance ?? 0)
-    if (currentBalance < budget) {
-      await conn.rollback()
-      return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Insufficient balance. Please fund your wallet and try again.' },
-        { status: 400 }
+      const [balRows] = await conn.execute<RowDataPacket[]>(
+        `SELECT COALESCE(SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END), 0) AS balance
+         FROM wallet_ledger WHERE wallet_id = ?`,
+        [clientWallet.id]
       )
+      currentBalance = Number(balRows[0]?.balance ?? 0)
+      if (currentBalance < budget) {
+        await conn.rollback()
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Insufficient balance. Please fund your wallet and try again.' },
+          { status: 400 }
+        )
+      }
     }
 
     // INSERT booking
     const [bookingResult] = await conn.execute<mysql.ResultSetHeader>(
       `INSERT INTO bookings (businessId, clientUID, bookedDate, bookedTime, appointmentAddress, meetingPoint, additionalInfo, bookingStatus, amountAgreed, priceConfirmed, dateBooked)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', ?, 1, NOW())`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())`,
       [
         vendor.businessId,
         session.id,
@@ -204,21 +220,38 @@ export async function POST(req: NextRequest) {
         location || '',
         location || '',
         description,
+        useMarketplaceFinance ? 'Awaiting Payment' : 'Pending',
         budget,
       ]
     )
     const bookingId = bookingResult.insertId
 
-    // Debit client wallet (ledger entry)
-    const newBalance = currentBalance - budget
-    await conn.execute(
-      `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
-       VALUES (?, ?, 'debit', ?, ?, NOW())`,
-      [clientWallet.id, budget, newBalance, `Payment locked in escrow for booking #${bookingId}`]
-    )
+    if (useMarketplaceFinance) {
+      fundingInitialization = await createJobFundingInTransaction(conn, {
+        bookingId,
+        clientUid: session.id,
+        artisanUid: vendorId,
+        customerEmail: session.email,
+        amountMinor: majorToMinor(String(budget)),
+        actor: { type: 'user', id: session.id },
+      })
+    } else if (useMoneyV2) {
+      await holdBookingFunds(conn, {
+        bookingId,
+        clientUid: session.id,
+        artisanUid: vendorId,
+        amountKobo: nairaToKobo(budget),
+      })
+    } else {
+      if (!clientWallet) throw new Error('Client wallet not found')
+      const newBalance = currentBalance - budget
+      await conn.execute(
+        `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
+         VALUES (?, ?, 'debit', ?, ?, NOW())`,
+        [clientWallet.id, budget, newBalance, `Payment locked for booking #${bookingId}`]
+      )
 
-    // Create escrow record
-    if (vendorWalletId) {
+      if (!vendorWalletId) throw new Error('Artisan wallet not found')
       await conn.execute(
         `INSERT INTO wallet_escrow (booking_id, client_wallet_id, vendor_wallet_id, escrow_wallet_id, amount, status, created_at)
          VALUES (?, ?, ?, (SELECT id FROM wallets WHERE wallet_type = 'escrow' LIMIT 1), ?, 'held', NOW())`,
@@ -227,6 +260,47 @@ export async function POST(req: NextRequest) {
     }
 
     await conn.commit()
+
+    if (useMarketplaceFinance && fundingInitialization) {
+      try {
+        const payment = await initializeJobPayment({
+          ...fundingInitialization,
+          customerEmail: session.email,
+          clientUid: session.id,
+          bookingId,
+          callbackUrl: `${req.nextUrl.origin}/api/wallet/verify?ref=${fundingInitialization.reference}`,
+        })
+        return NextResponse.json<ApiResponse<any>>(
+          {
+            success: true,
+            data: {
+              id: bookingId,
+              vendorId,
+              description,
+              budget,
+              date,
+              location,
+              status: 'awaiting_payment',
+              paymentReference: payment.reference,
+              authorizationUrl: payment.authorizationUrl,
+              createdAt: new Date().toISOString(),
+            },
+            message: 'Booking created. Complete payment to send it to the artisan.',
+          },
+          { status: 201 }
+        )
+      } catch (error) {
+        console.error('[BOOKING PAYMENT INITIALIZATION]', error)
+        return NextResponse.json<ApiResponse<any>>(
+          {
+            success: false,
+            error: 'Booking was saved, but payment could not be started. Retry payment from the booking.',
+            data: { id: bookingId, paymentReference: fundingInitialization.reference },
+          },
+          { status: 502 }
+        )
+      }
+    }
 
     const clientName = clientRow.fullName || 'A client'
     const notificationBody = `${clientName} sent booking #${bookingId} for ₦${budget.toLocaleString()}.`

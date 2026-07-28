@@ -10,12 +10,29 @@ import { getOrCreateWallet, requestWithdrawal, rollbackWithdrawal } from '@/lib/
 import { initiateTransfer } from '@/lib/paystack'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
+import { getUserRowByUid, getWithdrawalAccounts } from '@/lib/queries'
+import {
+  checkDurableMoneyRateLimit,
+  isMoneyV2Enabled,
+  markWithdrawalManualReview,
+  markWithdrawalSubmitted,
+  nairaToKobo,
+  reserveWithdrawal,
+} from '@/lib/money'
+import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
+import { majorToMinor } from '@/lib/financial/money-value'
+import {
+  requestMarketplaceWithdrawal,
+  submitMarketplaceWithdrawal,
+} from '@/lib/financial/withdrawal-service'
+import { FinancialError } from '@/lib/financial/errors'
 
 const schema = z.object({
   amountNGN: z
     .number({ invalid_type_error: 'Amount must be a number' })
-    .min(500,       'Minimum withdrawal is ₦500')
+    .min(500, 'Minimum withdrawal is ₦500')
     .max(5_000_000, 'Maximum single withdrawal is ₦5,000,000'),
+  idempotencyKey: z.string().min(16).max(160).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -38,7 +55,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Rate limiting: max 2 withdrawals per minute
-    const rateLimit = checkRateLimit(`withdraw:${session.id}`, 2, 60 * 1000)
+    const rateLimit = isMarketplaceFinanceEnabled() || isMoneyV2Enabled()
+      ? await checkDurableMoneyRateLimit(`withdraw:${session.id}`, 2, 60 * 1000)
+      : checkRateLimit(`withdraw:${session.id}`, 2, 60 * 1000)
     if (!rateLimit.allowed) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: `Too many withdrawal requests. Please wait ${rateLimit.retryAfter} seconds.` },
@@ -56,6 +75,161 @@ export async function POST(req: NextRequest) {
     }
 
     const { amountNGN } = parsed.data
+
+    if (isMarketplaceFinanceEnabled()) {
+      const idempotencyKey = req.headers.get('idempotency-key') || parsed.data.idempotencyKey
+      if (!idempotencyKey) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'A unique idempotency key is required' },
+          { status: 400 }
+        )
+      }
+      const userRow = await getUserRowByUid(session.id)
+      if (!userRow?.verified || !userRow.nin) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Identity verification is required before withdrawing funds' },
+          { status: 403 }
+        )
+      }
+      const reserved = await requestMarketplaceWithdrawal({
+        artisanUid: session.id,
+        amountMinor: majorToMinor(String(amountNGN)),
+        idempotencyKey,
+        actor: { type: 'user', id: session.id },
+      })
+      const submitted = reserved.status === 'approved'
+        ? await submitMarketplaceWithdrawal(
+            reserved.reference,
+            { type: 'system', id: 'automatic-withdrawal-policy' }
+          )
+        : { status: reserved.status, transferCode: null }
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            reference: reserved.reference,
+            amountNGN,
+            status: submitted.status,
+            transferCode: submitted.transferCode,
+            bank: reserved.recipient.bankName,
+            account: `****${reserved.recipient.accountLastFour}`,
+          },
+          message: reserved.created
+            ? submitted.status === 'under_review'
+              ? 'Withdrawal is reserved and awaiting review. It will not be submitted twice.'
+              : 'Withdrawal reserved and submitted for provider processing.'
+            : 'This withdrawal request was already received.',
+        },
+        { status: 202 }
+      )
+    }
+
+    if (isMoneyV2Enabled()) {
+      const idempotencyKey = req.headers.get('idempotency-key') || parsed.data.idempotencyKey
+      if (!idempotencyKey) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'A unique idempotency key is required' },
+          { status: 400 }
+        )
+      }
+
+      const userRow = await getUserRowByUid(session.id)
+      if (!userRow) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'User not found' },
+          { status: 404 }
+        )
+      }
+      if (!userRow.verified || !userRow.nin) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Identity verification is required before withdrawing funds' },
+          { status: 403 }
+        )
+      }
+      const accounts = await getWithdrawalAccounts(userRow.userId)
+      const account = accounts.length ? accounts[accounts.length - 1] : null
+      if (!account?.recipient_code) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Please add and verify a bank account before withdrawing' },
+          { status: 400 }
+        )
+      }
+      const bankAccountAgeMs = Date.now() - new Date(account.created_at).getTime()
+      if (!Number.isFinite(bankAccountAgeMs) || bankAccountAgeMs < 24 * 60 * 60 * 1000) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Withdrawals are available 24 hours after changing bank details' },
+          { status: 403 }
+        )
+      }
+
+      const amountKobo = nairaToKobo(amountNGN)
+      const reserved = await reserveWithdrawal({
+        userUid: session.id,
+        amountKobo,
+        idempotencyKey: `withdrawal:${session.id}:${idempotencyKey}`,
+        bank: {
+          bankName: account.bank_name,
+          bankCode: account.bank_code,
+          accountNumber: account.account_number,
+          accountName: account.account_name,
+          recipientCode: account.recipient_code,
+        },
+      })
+
+      if (!reserved.created) {
+        return NextResponse.json(
+          {
+            success: true,
+            data: { reference: reserved.reference, amountNGN, status: reserved.status },
+            message: 'This withdrawal request was already received.',
+          },
+          { status: 200 }
+        )
+      }
+
+      try {
+        const transfer = await initiateTransfer({
+          amountKobo,
+          recipientCode: account.recipient_code,
+          reference: reserved.reference,
+          reason: `Anywork365 withdrawal - ${session.firstName} ${session.lastName}`,
+        })
+        await markWithdrawalSubmitted(
+          reserved.reference,
+          transfer.data.transfer_code,
+          transfer.data.status
+        )
+        return NextResponse.json(
+          {
+            success: true,
+            data: {
+              reference: reserved.reference,
+              transferCode: transfer.data.transfer_code,
+              amountNGN,
+              status: 'processing',
+              bank: account.bank_name,
+              account: `****${account.account_number.slice(-4)}`,
+            },
+            message: 'Withdrawal submitted. Final status will be confirmed by Paystack.',
+          },
+          { status: 202 }
+        )
+      } catch (paystackError) {
+        await markWithdrawalManualReview(
+          reserved.reference,
+          paystackError instanceof Error ? paystackError.message : 'Paystack response was inconclusive'
+        )
+        return NextResponse.json(
+          {
+            success: true,
+            data: { reference: reserved.reference, amountNGN, status: 'manual_review' },
+            message: 'Withdrawal is reserved and awaiting reconciliation. It has not been refunded or resubmitted.',
+          },
+          { status: 202 }
+        )
+      }
+    }
+
     const wallet        = await getOrCreateWallet(session.id)
 
     // Security: must have verified bank account
@@ -93,9 +267,9 @@ export async function POST(req: NextRequest) {
 
     // Initiate Paystack transfer
     const transfer = await initiateTransfer({
-      amountNGN,
+      amountKobo: nairaToKobo(amountNGN),
       recipientCode: wallet.paystackRecipientCode,
-      reference:     `WD_${withdrawalId}`,
+      reference:     `wd_${withdrawalId}_${Date.now()}`,
       reason:        `Anywork365 withdrawal — ${session.firstName} ${session.lastName}`,
     })
 
@@ -120,8 +294,11 @@ export async function POST(req: NextRequest) {
     }
     console.error('[WITHDRAWAL]', err)
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Withdrawal failed. Please try again.' },
-      { status: 500 }
+      {
+        success: false,
+        error: err instanceof FinancialError ? err.message : 'Withdrawal failed. Please try again.',
+      },
+      { status: err instanceof FinancialError ? err.httpStatus : 500 }
     )
   }
 }
