@@ -24,6 +24,7 @@ export async function middleware(request: NextRequest) {
 
   const protectedPaths = [
     '/admin',
+    '/support',
     '/dashboard',
     '/bookings',
     '/wallet',

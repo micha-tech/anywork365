@@ -10,26 +10,27 @@ export function MobileBottomNav() {
   const { user, loading } = useCurrentUser()
   const isVendor = user?.role === 'artisan'
   const isAdmin = user?.role === 'admin'
-  const hideOnPaths = pathname === '/login' || pathname.startsWith('/signup') || pathname === '/onboarding' || pathname === '/verify-email'
+  const isSupport = user?.role === 'support'
+  const hideOnPaths = pathname === '/login' || pathname.startsWith('/signup') || pathname === '/onboarding' || pathname === '/verify-email' || pathname.startsWith('/support')
 
   if (loading || !user || hideOnPaths) return null
 
-  if (isAdmin) {
+  if (isAdmin || isSupport) {
     return (
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe">
         <div className="flex items-center justify-center px-2 h-16">
           <Link
-            href="/admin"
+            href={isSupport ? '/support' : '/admin'}
             className={cn(
               'flex flex-col items-center justify-center gap-1 transition-colors',
-              pathname.startsWith('/admin') ? 'text-brand-500' : 'text-slate-500'
+              pathname.startsWith(isSupport ? '/support' : '/admin') ? 'text-brand-500' : 'text-slate-500'
             )}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={pathname.startsWith('/admin') ? 2.5 : 2} strokeLinecap="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            <span className="text-[10px] font-medium">Admin Panel</span>
-            {pathname.startsWith('/admin') && (
+            <span className="text-[10px] font-medium">{isSupport ? 'Support' : 'Admin Panel'}</span>
+            {pathname.startsWith(isSupport ? '/support' : '/admin') && (
               <span className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-brand-500" />
             )}
           </Link>

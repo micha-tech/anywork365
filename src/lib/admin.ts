@@ -18,6 +18,22 @@ export async function requireAdminApi(): Promise<{ id: string; email: string }> 
   return session
 }
 
+export async function requireSupport(): Promise<{ id: string; email: string; firstName: string; lastName: string }> {
+  const session = await getVerifiedSession()
+  if (!session || (session.role !== 'support' && session.role !== 'admin')) {
+    redirect('/dashboard')
+  }
+  return session
+}
+
+export async function requireSupportApi(): Promise<{ id: string; email: string }> {
+  const session = await getVerifiedSession()
+  if (!session || (session.role !== 'support' && session.role !== 'admin')) {
+    throw new Error('Unauthorized')
+  }
+  return session
+}
+
 export function unauthorized(): NextResponse {
   return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })
 }

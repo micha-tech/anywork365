@@ -1,6 +1,6 @@
 import type { SqlValue } from '@/lib/db'
 
-const ADMIN_USER_ROLES = ['admin', 'artisan', 'professional', 'recruiter', 'client'] as const
+const ADMIN_USER_ROLES = ['admin', 'support', 'artisan', 'professional', 'recruiter', 'client'] as const
 
 export function buildAdminUserFilter(searchInput: string, roleInput: string): {
   where: string

@@ -259,6 +259,7 @@ interface WithdrawalRow extends RowDataPacket {
 
 function resolveRole(row: UserRow): UserRole {
   if (row.role === 'admin') return 'admin'
+  if (row.role === 'support') return 'support'
   if (row.role === 'artisan' || row.role === 'vendor') return 'artisan'
   if (row.role === 'professional') return 'professional'
   if (row.role === 'recruiter') return 'recruiter'

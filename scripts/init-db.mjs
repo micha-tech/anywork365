@@ -55,7 +55,7 @@ async function main() {
   // 2. Ensure role column on existing users table (for upgrades)
   try {
     await conn.execute(
-      `ALTER TABLE users ADD COLUMN role ENUM('client','artisan','professional','recruiter','admin') DEFAULT NULL AFTER hasBusinessAccount`
+      `ALTER TABLE users ADD COLUMN role ENUM('client','artisan','professional','recruiter','support','admin') DEFAULT NULL AFTER hasBusinessAccount`
     )
     console.log('  Added role column to users')
   } catch {

@@ -16,6 +16,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (session?.role === 'admin') {
     redirect('/admin')
   }
+  if (session?.role === 'support') {
+    redirect('/support')
+  }
 
   return (
     <div className="flex min-h-[calc(100dvh-64px)]">

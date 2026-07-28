@@ -7,7 +7,7 @@ interface UserRow {
   uid: string
   email: string
   fullName: string
-  role: 'client' | 'artisan' | 'professional' | 'recruiter' | 'admin' | null
+  role: 'client' | 'artisan' | 'professional' | 'recruiter' | 'support' | 'admin' | null
   hasBusinessAccount: number
   verified: number
   suspended: number
@@ -132,6 +132,7 @@ export default function AdminUsersPage() {
           <option value="artisan">Artisans</option>
           <option value="professional">Professionals</option>
           <option value="recruiter">Recruiters</option>
+          <option value="support">Customer support</option>
           <option value="admin">Admins</option>
         </select>
       </div>
@@ -161,6 +162,7 @@ export default function AdminUsersPage() {
                 <td className="p-3">
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                     u.role === 'admin' ? 'bg-purple-100 text-purple-700' :
+                    u.role === 'support' ? 'bg-teal-100 text-teal-700' :
                     u.role === 'artisan' ? 'bg-blue-100 text-blue-700' :
                     u.role === 'professional' ? 'bg-emerald-100 text-emerald-700' :
                     u.role === 'recruiter' ? 'bg-amber-100 text-amber-700' :

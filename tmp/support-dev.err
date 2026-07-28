@@ -1,0 +1,125 @@
+support users GET error: Error: Illegal mix of collations (utf8mb4_0900_ai_ci,IMPLICIT) and (utf8mb4_general_ci,IMPLICIT) for operation '='
+    at query (src\lib\db.ts:46:29)
+    at GET (src\app\api\admin\support-users\route.ts:232:12)
+  44 | ): Promise<T> {
+  45 |   const start = Date.now()
+> 46 |   const [rows] = await pool.execute<T>(sql, params as mysql.ExecuteValues)
+     |                             ^
+  47 |   slowQueryLog(sql, Date.now() - start)
+  48 |   return rows
+  49 | } {
+  code: 'ER_CANT_AGGREGATE_2COLLATIONS',
+  errno: 1267,
+  sqlState: 'HY000',
+  sqlMessage: "Illegal mix of collations (utf8mb4_0900_ai_ci,IMPLICIT) and (utf8mb4_general_ci,IMPLICIT) for operation '='",
+  sql: 'SELECT COUNT(*) AS total FROM (\n' +
+    '      SELECT\n' +
+    '        u.uid, u.email, u.fullName, u.phoneNumber, u.state, u.lga, u.address, u.bio,\n' +
+    '        u.profileImage, COALESCE(\n' +
+    '  u.role,\n' +
+    "  CASE WHEN u.hasBusinessAccount = 1 THEN 'artisan' ELSE 'client' END\n" +
+    ') AS role, u.dateJoined,\n' +
+    '        COALESCE(\n' +
+    "          NULLIF(b.category, ''),\n" +
+    "          NULLIF(pp.professional_service_category, ''),\n" +
+    "          NULLIF(rp.industry_category, ''),\n" +
+    "          'General'\n" +
+    '        ) AS category,\n' +
+    '        b.businessName, b.businessContact, b.description AS businessDescription,\n' +
+    '        b.location AS businessLocation, b.businessLogo,\n' +
+    '        pp.industry_category AS industryCategory,\n' +
+    '        pp.professional_service_category AS professionalServiceCategory,\n' +
+    '        pp.job_title AS jobTitle, pp.qualification,\n' +
+    '        pp.years_experience AS yearsExperience, pp.cover_image_url AS coverImageUrl,\n' +
+    '        rp.company_name AS companyName, rp.company_size AS companySize,\n' +
+    '        rp.recruitment_function AS recruitmentFunction, rp.position,\n' +
+    '        COALESCE(pf.portfolioCount, 0) AS portfolioCount,\n' +
+    '        COALESCE(wa.walletBalance, 0) AS walletBalance,\n' +
+    '        COALESCE(cb.bookingCount, 0) + COALESCE(vb.bookingCount, 0) AS bookingCount,\n' +
+    '        GREATEST(\n' +
+    '          u.dateJoined,\n' +
+    '          COALESCE(wa.lastWalletActivity, u.dateJoined),\n' +
+    '          COALESCE(cb.lastBooking, u.dateJoined),\n' +
+    '          COALESCE(vb.lastBooking, u.dateJoined)\n' +
+    '        ) AS lastActivityAt,\n' +
+    '        ROUND(100 * ((\n' +
+    "  (NULLIF(TRIM(u.email), '') IS NOT NULL) +\n" +
+    "  (NULLIF(TRIM(u.fullName), '') IS NOT NULL) +\n" +
+    "  (NULLIF(TRIM(u.phoneNumber), '') IS NOT NULL) +\n" +
+    "  (NULLIF(TRIM(u.state), '') IS NOT NULL) +\n" +
+    "  (NULLIF(TRIM(COALESCE(u.lga, '')), '') IS NOT NULL) +\n" +
+    "  (NULLIF(TRIM(u.address), '') IS NOT NULL) +\n" +
+    "  (NULLIF(TRIM(COALESCE(u.bio, '')), '') IS NOT NULL) +\n" +
+    "  (NULLIF(TRIM(u.profileImage), '') IS NOT NULL)\n" +
+    ') + (CASE COALESCE(\n' +
+    '  u.role,\n' +
+    "  CASE WHEN u.hasBusinessAccount = 1 THEN 'artisan' ELSE 'client' END\n" +
+    ')\n' +
+    "  WHEN 'artisan' THEN\n" +
+    "    (NULLIF(TRIM(COALESCE(b.businessName, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(b.category, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(b.businessContact, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(b.description, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(b.location, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(b.businessLogo, '')), '') IS NOT NULL)\n" +
+    "  WHEN 'professional' THEN\n" +
+    "    (NULLIF(TRIM(COALESCE(pp.industry_category, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(pp.professional_service_category, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(pp.job_title, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(pp.qualification, '')), '') IS NOT NULL) +\n" +
+    '    (pp.years_experience IS NOT NULL) +\n' +
+    "    (NULLIF(TRIM(COALESCE(pp.cover_image_url, '')), '') IS NOT NULL)\n" +
+    "  WHEN 'recruiter' THEN\n" +
+    "    (NULLIF(TRIM(COALESCE(rp.company_name, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(rp.company_size, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(rp.industry_category, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(rp.recruitment_function, '')), '') IS NOT NULL) +\n" +
+    "    (NULLIF(TRIM(COALESCE(rp.position, '')), '') IS NOT NULL)\n" +
+    '  ELSE 0\n' +
+    'END)) / (CASE COALESCE(\n' +
+    '  u.role,\n' +
+    "  CASE WHEN u.hasBusinessAccount = 1 THEN 'artisan' ELSE 'client' END\n" +
+    ')\n' +
+    "  WHEN 'artisan' THEN 14\n" +
+    "  WHEN 'professional' THEN 14\n" +
+    "  WHEN 'recruiter' THEN 13\n" +
+    '  ELSE 8\n' +
+    'END)) AS profileCompletion\n' +
+    '      FROM users u\n' +
+    '      \n' +
+    '  LEFT JOIN businesses b\n' +
+    '    ON b.businessId = (\n' +
+    '      SELECT MAX(b2.businessId)\n' +
+    '      FROM businesses b2\n' +
+    '      WHERE b2.uid = u.uid AND b2.deleted = 0\n' +
+    '    )\n' +
+    '  LEFT JOIN professional_profiles pp ON pp.uid = u.uid\n' +
+    '  LEFT JOIN recruiter_profiles rp ON rp.uid = u.uid\n' +
+    '  LEFT JOIN (\n' +
+    '    SELECT uid, COUNT(*) AS portfolioCount\n' +
+    '    FROM user_portfolio\n' +
+    '    GROUP BY uid\n' +
+    '  ) pf ON pf.uid = u.uid\n' +
+    '  LEFT JOIN (\n' +
+    '    SELECT w.user_id,\n' +
+    "           SUM(CASE WHEN wl.direction = 'credit' THEN wl.amount ELSE -wl.amount END) AS walletBalance,\n" +
+    '           MAX(wl.created_at) AS lastWalletActivity\n' +
+    '    FROM wallets w\n' +
+    '    LEFT JOIN wallet_ledger wl ON wl.wallet_id = w.id\n' +
+    '    GROUP BY w.user_id\n' +
+    '  ) wa ON wa.user_id = u.userId\n' +
+    '  LEFT JOIN (\n' +
+    '    SELECT clientUID AS uid, COUNT(*) AS bookingCount, MAX(dateBooked) AS lastBooking\n' +
+    '    FROM bookings\n' +
+    '    GROUP BY clientUID\n' +
+    '  ) cb ON cb.uid = u.uid\n' +
+    '  LEFT JOIN (\n' +
+    '    SELECT bu.uid, COUNT(*) AS bookingCount, MAX(bk.dateBooked) AS lastBooking\n' +
+    '    FROM bookings bk\n' +
+    '    JOIN businesses bu ON bu.businessId = bk.businessId\n' +
+    '    GROUP BY bu.uid\n' +
+    '  ) vb ON vb.uid = u.uid\n' +
+    '\n' +
+    '      WHERE u.deleted = 0\n' +
+    '    ) support_users '
+}
