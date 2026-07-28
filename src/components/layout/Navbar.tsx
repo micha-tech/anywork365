@@ -45,6 +45,10 @@ const ADMIN_NAV = [
   { href: '/admin', label: 'Admin Panel' },
 ]
 
+const SUPPORT_NAV = [
+  { href: '/support', label: 'Support Console' },
+]
+
 function NotificationBell({ unreadCount, onClick }: { unreadCount: number; onClick: () => void }) {
   return (
     <button
@@ -72,14 +76,15 @@ export function Navbar() {
   const [dropOpen, setDropOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const { user, loading }  = useCurrentUser()
-  const hideNavbar = pathname === '/login' || pathname.startsWith('/signup') || pathname === '/onboarding'
+  const hideNavbar = pathname === '/login' || pathname.startsWith('/signup') || pathname === '/onboarding' || pathname.startsWith('/support')
 
   const isLoggedIn = !loading && !!user
   const isAdmin    = user?.role === 'admin'
+  const isSupport  = user?.role === 'support'
   const isVendor   = user?.role === 'artisan'
   const isRecruiter = user?.role === 'recruiter'
   const isProfessional = user?.role === 'professional'
-  const navLinks   = isAdmin ? ADMIN_NAV : isLoggedIn ? (isVendor ? VENDOR_AUTH_NAV : isRecruiter ? RECRUITER_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
+  const navLinks   = isAdmin ? ADMIN_NAV : isSupport ? SUPPORT_NAV : isLoggedIn ? (isVendor ? VENDOR_AUTH_NAV : isRecruiter ? RECRUITER_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
   const initials   = getInitialsFromUser(user)
 
   const handleConversationOpen = useCallback((conversationId: string) => {
@@ -173,6 +178,8 @@ export function Navbar() {
                       </div>
                       {(isAdmin ? [
                         { href: '/admin', label: 'Admin Panel' },
+                      ] : isSupport ? [
+                        { href: '/support', label: 'Support Console' },
                       ] : isVendor ? [
                         { href: '/dashboard', label: 'Dashboard' },
                         { href: '/artisans', label: 'Artisans' },

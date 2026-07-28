@@ -1,0 +1,11 @@
+admin stats GET error: Error: Unauthorized
+    at requireAdminApi (src\lib\admin.ts:16:11)
+    at async GET (src\app\api\admin\stats\route.ts:75:5)
+  14 |   const session = await getVerifiedSession()
+  15 |   if (!session || session.role !== 'admin') {
+> 16 |     throw new Error('Unauthorized')
+     |           ^
+  17 |   }
+  18 |   return session
+  19 | }
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase

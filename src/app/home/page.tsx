@@ -17,6 +17,9 @@ export default async function HomeRedirectPage() {
   if (session.role === 'admin') {
     redirect('/admin')
   }
+  if (session.role === 'support') {
+    redirect('/support')
+  }
 
   if (session.role === 'artisan') {
     redirect('/dashboard')

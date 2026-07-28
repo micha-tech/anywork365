@@ -16,6 +16,7 @@ const NAV_ITEMS = [
       { href: '/admin/users', label: 'Users', icon: UserIcon },
       { href: '/admin/reconciliation', label: 'Reconciliation', icon: WalletIcon },
       { href: '/admin/disputes', label: 'Disputes', icon: AlertIcon },
+      { href: '/support', label: 'Support Console', icon: SupportIcon },
     ],
   },
   {
@@ -148,6 +149,17 @@ function AlertIcon({ className }: { className?: string }) {
       <line x1="12" y1="8" x2="12" y2="12" />
       <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
+  )
+}
+
+function SupportIcon({ className }: { className?: string }) {
+  return (
+    <span className={cn('grid grid-cols-2 gap-0.5 rounded p-0.5', className)} aria-hidden="true">
+      <i className="rounded-[1px] bg-current" />
+      <i className="rounded-[1px] bg-current opacity-60" />
+      <i className="rounded-[1px] bg-current opacity-60" />
+      <i className="rounded-[1px] bg-current" />
+    </span>
   )
 }
 

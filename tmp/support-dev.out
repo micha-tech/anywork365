@@ -1,0 +1,27 @@
+
+> anywork365@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.5.21 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://169.254.83.107:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 962ms
+ ✓ Ready in 6.5s
+ ○ Compiling /api/auth/login ...
+ ✓ Compiled /api/auth/login in 4.9s
+ POST /api/auth/login 200 in 10154ms
+ ○ Compiling /api/admin/support-users ...
+ ✓ Compiled /api/admin/support-users in 555ms
+ GET /api/admin/support-users?limit=5 500 in 2560ms
+ POST /api/auth/login 200 in 1467ms
+ GET /api/admin/support-users?limit=5 200 in 3626ms
+ ✓ Compiled /api/admin/support-users/[uid] in 328ms
+ GET /api/admin/support-users/LDefumCPrGa0zy47mBkWygjbArb2 200 in 4440ms
+ POST /api/auth/login 200 in 1333ms
+ GET /api/admin/support-users?limit=1 200 in 1901ms
+ GET /api/admin/support-users?limit=2&progress=attention 200 in 1911ms
+ GET /api/admin/support-users?limit=2&category=Accounting%20%26%20Audit 200 in 3155ms
