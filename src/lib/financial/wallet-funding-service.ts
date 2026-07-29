@@ -59,6 +59,15 @@ export type WalletFundingReceipt = {
   status: string
 }
 
+export type WalletFundingReconciliationSummary = {
+  checked: number
+  confirmed: number
+  idempotentReplays: number
+  pending: number
+  terminal: number
+  failed: number
+}
+
 const ledger = new LedgerService()
 
 export async function initializeWalletFunding(
@@ -128,6 +137,14 @@ export async function confirmWalletFunding(
   rail: PaymentRail = paymentRail
 ): Promise<WalletFundingConfirmation> {
   const verified = await rail.verifyPayment(reference)
+  return confirmVerifiedWalletFunding(reference, actor, verified)
+}
+
+async function confirmVerifiedWalletFunding(
+  reference: string,
+  actor: LedgerActor,
+  verified: PaymentVerificationResult
+): Promise<WalletFundingConfirmation> {
   validateProviderPayment(verified)
 
   const conn = await getConnection()
@@ -260,6 +277,71 @@ export async function confirmWalletFunding(
   }
 }
 
+/**
+ * Recovers successful Paystack charges when the customer's browser callback is
+ * interrupted or a webhook is delayed. Every confirmation still passes through
+ * provider verification, intent matching, row locking and ledger idempotency.
+ */
+export async function reconcilePendingWalletFundings(
+  limit = 25,
+  rail: PaymentRail = paymentRail
+): Promise<WalletFundingReconciliationSummary> {
+  const summary: WalletFundingReconciliationSummary = {
+    checked: 0,
+    confirmed: 0,
+    idempotentReplays: 0,
+    pending: 0,
+    terminal: 0,
+    failed: 0,
+  }
+  const boundedLimit = Math.max(1, Math.min(100, Math.trunc(limit)))
+  const conn = await getConnection()
+  let intents: Array<{ internal_reference: string }> = []
+  try {
+    const [rows] = await conn.execute<(RowDataPacket & { internal_reference: string })[]>(
+      `SELECT internal_reference
+       FROM wallet_funding_intents
+       WHERE status IN ('initialized', 'pending')
+         AND initialized_at <= DATE_SUB(NOW(), INTERVAL 60 SECOND)
+         AND created_at >= DATE_SUB(NOW(), INTERVAL 3 DAY)
+       ORDER BY initialized_at, id
+       LIMIT ${boundedLimit}`
+    )
+    intents = rows
+  } finally {
+    conn.release()
+  }
+
+  for (const intent of intents) {
+    try {
+      const verified = await rail.verifyPayment(intent.internal_reference)
+      summary.checked += 1
+      if (verified.status === 'succeeded') {
+        const confirmation = await confirmVerifiedWalletFunding(
+          intent.internal_reference,
+          { type: 'system', id: 'wallet-funding-reconciler' },
+          verified
+        )
+        if (confirmation.credited) summary.confirmed += 1
+        else summary.idempotentReplays += 1
+      } else if (verified.status === 'pending') {
+        summary.pending += 1
+      } else {
+        await markProviderTerminalIntent(intent.internal_reference, verified)
+        summary.terminal += 1
+      }
+    } catch (error) {
+      summary.failed += 1
+      console.error(
+        '[WALLET FUNDING RECONCILIATION]',
+        intent.internal_reference,
+        safeError(error)
+      )
+    }
+  }
+  return summary
+}
+
 export async function isWalletFundingReference(reference: string): Promise<boolean> {
   const row = await queryOne<(RowDataPacket & { id: number })[]>(
     `SELECT id FROM wallet_funding_intents
@@ -268,6 +350,43 @@ export async function isWalletFundingReference(reference: string): Promise<boole
     [reference, reference]
   )
   return Boolean(row)
+}
+
+async function markProviderTerminalIntent(
+  reference: string,
+  verified: PaymentVerificationResult
+): Promise<void> {
+  if (verified.status !== 'failed' && verified.status !== 'cancelled') {
+    throw new FinancialError('INVALID_STATE', 'Provider payment is not terminal', 409)
+  }
+  const conn = await getConnection()
+  try {
+    await conn.beginTransaction()
+    const [rows] = await conn.execute<WalletFundingIntentRow[]>(
+      `SELECT * FROM wallet_funding_intents
+       WHERE internal_reference = ? OR (provider = ? AND provider_reference = ?)
+       LIMIT 1 FOR UPDATE`,
+      [reference, verified.provider, verified.reference]
+    )
+    const intent = rows[0]
+    if (!intent || intent.status === 'succeeded' || intent.status === 'failed') {
+      await conn.commit()
+      return
+    }
+    validateIntentAgainstProvider(intent, verified)
+    await conn.execute(
+      `UPDATE wallet_funding_intents
+       SET status = 'failed', failure_reason = ?, failed_at = NOW(), updated_at = NOW()
+       WHERE id = ?`,
+      [`Provider payment ${verified.status}`.slice(0, 500), intent.id]
+    )
+    await conn.commit()
+  } catch (error) {
+    await conn.rollback().catch(() => undefined)
+    throw error
+  } finally {
+    conn.release()
+  }
 }
 
 export async function getWalletFundingReceipt(
