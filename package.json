@@ -2,6 +2,9 @@
   "name": "anywork365",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -9,18 +12,22 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "backup": "node scripts/backup.mjs ./backups",
+    "backup:restore": "node scripts/restore-backup.mjs",
+    "deploy:configure:production": "node scripts/configure-vercel-production.mjs",
     "money:preflight": "node scripts/preflight-money-v2.mjs",
     "money:import:dry": "node scripts/migrate-money-v2.mjs",
     "money:import": "node scripts/migrate-money-v2.mjs --apply",
-    "money:reconcile": "node scripts/reconcile-money-v2.mjs"
-    ,"finance:v3:migrate:dry": "node scripts/migrate-marketplace-finance-v3.mjs"
-    ,"finance:v3:migrate": "node scripts/migrate-marketplace-finance-v3.mjs --apply"
-    ,"finance:v3:reconcile": "node scripts/reconcile-marketplace-finance-v3.mjs"
-    ,"test:financial": "tsc -p tests/financial/tsconfig.json && node --test \".test-build/tests/financial/*.test.js\""
+    "money:reconcile": "node scripts/reconcile-money-v2.mjs",
+    "finance:v3:migrate:dry": "node scripts/migrate-marketplace-finance-v3.mjs",
+    "finance:v3:migrate": "node scripts/migrate-marketplace-finance-v3.mjs --apply",
+    "finance:v3:reconcile": "node scripts/reconcile-marketplace-finance-v3.mjs",
+    "finance:v4:migrate:dry": "node scripts/migrate-wallet-funding-v4.mjs",
+    "finance:v4:migrate": "node scripts/migrate-wallet-funding-v4.mjs --apply",
+    "finance:v4:verify:staging": "tsx scripts/verify-wallet-v4-staging.ts",
+    "test:financial": "tsc -p tests/financial/tsconfig.json && node --test \".test-build/tests/financial/*.test.js\""
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
-    "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "@capacitor/ios": "^8.3.4",
     "@capacitor/push-notifications": "^8.1.1",
@@ -28,10 +35,10 @@
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
     "firebase": "^11.10.0",
-    "firebase-admin": "^13.9.0",
+    "firebase-admin": "^14.2.0",
     "jose": "^5.10.0",
     "mysql2": "^3.22.3",
-    "next": "^15.3.1",
+    "next": "^15.5.22",
     "nigeria-lga-data": "^1.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -41,7 +48,7 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.4.2",
     "@hookform/resolvers": "^5.0.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.15.3",
@@ -53,6 +60,35 @@
     "postcss": "^8.5.3",
     "react-hook-form": "^7.56.2",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.20.6",
     "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.24",
+      "sharp": "0.35.3"
+    },
+    "@eslint/config-array": {
+      "minimatch": "3.1.4"
+    },
+    "@eslint/eslintrc": {
+      "minimatch": "3.1.4"
+    },
+    "eslint": {
+      "minimatch": "3.1.4"
+    },
+    "eslint-plugin-import": {
+      "minimatch": "3.1.4"
+    },
+    "eslint-plugin-jsx-a11y": {
+      "minimatch": "3.1.4"
+    },
+    "eslint-plugin-react": {
+      "minimatch": "3.1.4"
+    },
+    "brace-expansion": "5.0.8",
+    "rimraf": "6.1.3",
+    "uuid": "11.1.1",
+    "jwks-rsa": "3.2.1"
   }
 }

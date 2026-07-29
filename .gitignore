@@ -35,6 +35,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.log
+backups/*.sql.gz
+backups/*.manifest.json
+tmp/.env.vercel.*
 
 # Runtime uploads
 storage/

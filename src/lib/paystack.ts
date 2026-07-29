@@ -77,11 +77,14 @@ export async function verifyPayment(reference: string) {
       status: 'success' | 'failed' | 'abandoned'
       reference: string
       amount: number
+      requested_amount?: number
+      fees?: number | null
       currency: string
       customer: { email: string; id: number }
       metadata: Record<string, string>
       paid_at: string
       channel: string
+      gateway_response?: string | null
     }
   }>(`/transaction/verify/${encodeURIComponent(reference)}`)
 }
@@ -154,6 +157,7 @@ export async function verifyTransfer(reference: string) {
       domain: 'test' | 'live'
       reference: string
       transfer_code: string
+      fee_charged?: number | null
     }
   }>(`/transfer/verify/${encodeURIComponent(reference)}`)
 }

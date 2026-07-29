@@ -55,11 +55,14 @@ export class PaystackGateway implements PaymentRail {
       reference: result.data.reference,
       providerTransactionId: String(result.data.id),
       amountMinor: result.data.amount,
+      requestedAmountMinor: result.data.requested_amount ?? result.data.amount,
+      providerFeeMinor: result.data.fees ?? 0,
       currency: result.data.currency,
       environment: result.data.domain,
       status: paymentStatus(result.data.status),
       customerEmail: result.data.customer.email,
       paymentMethod: result.data.channel || null,
+      gatewayResponse: result.data.gateway_response || null,
       paidAt: result.data.paid_at || null,
       metadata: result.data.metadata || {},
     }
@@ -98,6 +101,7 @@ export class PaystackGateway implements PaymentRail {
       reference: result.data.reference,
       transferCode: result.data.transfer_code || null,
       amountMinor: result.data.amount,
+      providerFeeMinor: result.data.fee_charged ?? 0,
       currency: result.data.currency,
       environment: result.data.domain,
       status: transferStatus(result.data.status),
@@ -122,4 +126,3 @@ export class PaystackGateway implements PaymentRail {
 }
 
 export const paymentRail: PaymentRail = new PaystackGateway()
-

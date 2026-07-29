@@ -13,11 +13,20 @@ transaction, transfer and refund event.
 
 ## Collections
 
-The server creates a booking and exact payment intent before calling Paystack.
-Metadata includes `type=booking_funding`, booking ID, client UID and intent ID.
-The callback is a user-experience confirmation path; signed webhooks are the
-durable asynchronous path. Both converge on the same idempotent provider
-verification and ledger operation.
+The server creates an exact wallet-funding intent before calling Paystack.
+Metadata includes `type=wallet_funding`, client UID, funding-intent ID and the
+intended wallet credit. The callback is a user-experience confirmation path;
+signed webhooks are the durable asynchronous path. Both converge on the same
+idempotent provider verification and ledger operation.
+
+The verifier requires a successful, environment-matched NGN transaction and
+an exact match for reference, requested amount, email and metadata. A unique
+Paystack transaction ID is the credit idempotency key. The receipt and client
+wallet credit are written atomically. The amount credited is the intended
+funding amount; Paystack's verified processing fee is posted separately.
+
+Bookings do not create new Paystack charges. A booking atomically locks the
+server-priced amount from the client's verified wallet balance.
 
 ## Webhooks
 
@@ -40,7 +49,9 @@ The app creates a persistent, 16–50 character internal reference before
 submitting a transfer. Paystack recipient code and masked bank details are
 stored. A submission attempt is claimed in the database first. Webhooks are
 preferred for terminal status; admin reconciliation uses Paystack’s verify
-transfer endpoint with the same reference.
+transfer endpoint with the same reference. The terminal verification response's
+`fee_charged` is recorded as a platform expense without reducing the artisan's
+withdrawal principal.
 
 Do not enable automatic transfers until the Paystack business is eligible,
 transfer balance/fees are funded, webhook delivery is verified, and the chosen

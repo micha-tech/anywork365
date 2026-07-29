@@ -12,6 +12,7 @@ import {
   isMarketplaceFinanceEnabled,
   releaseJobFundsToArtisanInTransaction,
 } from '@/lib/financial/marketplace-service'
+import { FinancialError } from '@/lib/financial/errors'
 
 export const runtime = 'nodejs'
 
@@ -263,8 +264,11 @@ export async function PATCH(
     }
     console.error('[BOOKING PATCH]', err)
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Failed to update booking' },
-      { status: 500 }
+      {
+        success: false,
+        error: err instanceof FinancialError ? err.message : 'Failed to update booking',
+      },
+      { status: err instanceof FinancialError ? err.httpStatus : 500 }
     )
   } finally {
     if (!connReleased) {

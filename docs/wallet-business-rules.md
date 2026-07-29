@@ -2,22 +2,28 @@
 
 ## Product rules
 
-1. A client pays for a specific booking at the price stored by the server.
-2. General wallet top-ups and unrestricted user-to-user transfers are disabled
-   in v3.
-3. A payment is usable only after Paystack verification matches reference,
-   amount, NGN currency, environment, customer email and booking metadata.
-4. Successfully collected money becomes locked job funds.
-5. Only the client can complete a confirmed booking. Completion releases the
+1. A client funds their own wallet through a server-created Paystack funding
+   intent. There is no unrestricted user-to-user transfer.
+2. A wallet credit is usable only after Paystack verification matches the
+   reference, requested amount, NGN currency, environment, customer email,
+   client UID and funding-intent metadata.
+3. The receipt and wallet ledger credit commit in the same database
+   transaction. A callback or webhook replay cannot credit the wallet twice.
+4. The credited wallet amount is the amount the client requested. Paystack
+   collection fees and any customer-paid fee recovery are recorded separately.
+5. Creating a booking atomically moves its server-priced amount from the
+   client's available wallet into booking-specific locked job funds.
+6. Only the client can complete a confirmed booking. Completion releases the
    job funds into artisan pending earnings and platform commission.
-6. Pending earnings are not spendable or withdrawable. The default safety hold
+7. Pending earnings are not spendable or withdrawable. The default safety hold
    is 72 hours.
-7. A worker moves matured pending earnings to available earnings exactly once.
-8. Cancellation before successful payment cancels the intent. Cancellation
-   after payment reserves a provider refund.
-9. A provider refund remains pending until a terminal Paystack event. A failed
+8. A worker moves matured pending earnings to available earnings exactly once.
+9. Cancellation of a wallet-funded booking before release atomically unlocks
+   the job amount back to the client's wallet. It does not create an external
+   Paystack refund because the money remains inside the verified wallet pool.
+10. A provider refund remains pending until a terminal Paystack event. A failed
    refund becomes a client refundable amount requiring finance resolution.
-10. A dispute makes job funds disputed and moves accessible artisan earnings
+11. A dispute makes job funds disputed and moves accessible artisan earnings
     into a non-withdrawable risk-hold account where possible.
 
 ## Fee rules
@@ -49,6 +55,8 @@ activation.
   automatically resent nor returned.
 - Only verified terminal provider status moves pending withdrawal funds to
   withdrawn earnings or back to available earnings.
+- Paystack's verified transfer fee is recorded as a platform processing
+  expense. The artisan receives the requested withdrawal principal.
 
 ## Authorization
 

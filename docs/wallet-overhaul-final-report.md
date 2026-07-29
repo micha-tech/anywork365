@@ -4,6 +4,34 @@ Date: 2026-07-28
 Implementation status: code complete behind a disabled v3 feature flag; not
 approved for production activation.
 
+## Wallet funding v4 update — 2026-07-29
+
+This update supersedes the earlier direct-per-booking collection rule while
+preserving the rule against arbitrary user-to-user transfers.
+
+- Clients can fund only their own wallet through a persisted Paystack intent.
+- Callback and signed webhook processing converge on exact provider
+  verification and one idempotent ledger credit.
+- A unique provider transaction ID, receipt and ledger transaction are required
+  for every succeeded funding intent. The requested amount is credited; the
+  charged amount and Paystack fee are recorded separately.
+- Booking creation atomically locks its server-priced amount from verified
+  client wallet funds. It does not make a second Paystack charge.
+- Cancellation before release atomically returns locked funds to the client
+  wallet. Client completion releases the booking-specific lock to artisan
+  pending earnings and versioned platform revenue.
+- Artisan release validates the job lock and verifies that cumulative released
+  wallet-funded jobs do not exceed succeeded Paystack funding receipts with
+  provider transaction IDs.
+- Withdrawal completion still requires terminal Paystack verification. The
+  verified transfer fee is recorded as a platform expense while the artisan
+  receives the requested principal.
+- `2026-07-29-wallet-funding-v4.sql` is additive and requires the v3 schema.
+  The configured database currently has neither v3 nor v4 installed, and the
+  global finance flag remains disabled.
+- Current verification: type-check passed, financial tests 9 passed/1 skipped,
+  production build passed, full dependency audit reports zero vulnerabilities.
+
 ## 1. Architecture implemented
 
 The repository now contains an NGN-only, integer-minor-unit, immutable

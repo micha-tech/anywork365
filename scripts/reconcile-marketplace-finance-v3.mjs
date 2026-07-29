@@ -39,6 +39,10 @@ async function main() {
   try {
     const [table] = await conn.query("SHOW TABLES LIKE 'job_funds'")
     if (!table.length) throw new Error('Marketplace finance v3 schema is not installed')
+    const [walletFundingTable] = await conn.query("SHOW TABLES LIKE 'wallet_funding_intents'")
+    if (!walletFundingTable.length) {
+      throw new Error('Wallet funding v4 schema is not installed')
+    }
 
     await check(conn, checks, 'balanced_posted_transactions', `
       SELECT mt.id, mt.reference, COALESCE(SUM(me.delta_kobo), 0) AS actual_amount_kobo
@@ -71,7 +75,7 @@ async function main() {
                ma.balance_kobo <> jf.expected_amount_kobo
              ))
          OR (jf.status IN ('released','refund_pending','refunded','cancelled')
-             AND jf.locked_amount_kobo <> 0)
+             AND (jf.locked_amount_kobo <> 0 OR ma.balance_kobo <> 0))
     `)
     await check(conn, checks, 'payment_intent_ledger_link', `
       SELECT mpi.internal_reference, mpi.provider_reference,
@@ -80,6 +84,52 @@ async function main() {
       JOIN job_funds jf ON jf.id = mpi.job_fund_id
       WHERE mpi.status = 'succeeded'
         AND (jf.funded_transaction_id IS NULL OR jf.funded_amount_kobo <> mpi.amount_kobo)
+    `)
+    await check(conn, checks, 'wallet_funding_receipt_and_ledger_link', `
+      SELECT wfi.internal_reference, wfi.provider_reference, wfi.client_uid AS user_uid,
+             wfi.requested_amount_kobo AS expected_amount_kobo,
+             wfi.credited_amount_kobo AS actual_amount_kobo,
+             wfi.status AS actual_status
+      FROM wallet_funding_intents wfi
+      LEFT JOIN money_transactions mt ON mt.id = wfi.ledger_transaction_id
+      WHERE wfi.status = 'succeeded'
+        AND (
+          wfi.provider_transaction_id IS NULL OR
+          wfi.receipt_number IS NULL OR
+          wfi.ledger_transaction_id IS NULL OR
+          wfi.credited_amount_kobo <> wfi.requested_amount_kobo OR
+          mt.transaction_type <> 'wallet_funding_confirmed'
+        )
+    `)
+    await check(conn, checks, 'verified_wallet_funding_release_coverage', `
+      SELECT released.client_uid AS user_uid,
+             verified.verified_amount_kobo AS expected_amount_kobo,
+             released.released_amount_kobo AS actual_amount_kobo
+      FROM (
+        SELECT jf.client_uid, COALESCE(SUM(jf.expected_amount_kobo), 0) AS released_amount_kobo
+        FROM job_funds jf
+        JOIN money_transactions funding_tx
+          ON funding_tx.id = jf.funded_transaction_id
+         AND funding_tx.transaction_type = 'job_wallet_funds_locked'
+         AND funding_tx.status = 'success'
+        WHERE jf.status = 'released'
+        GROUP BY jf.client_uid
+      ) released
+      LEFT JOIN (
+        SELECT wfi.client_uid,
+               COALESCE(SUM(wfi.credited_amount_kobo), 0) AS verified_amount_kobo
+        FROM wallet_funding_intents wfi
+        JOIN money_transactions funding_tx
+          ON funding_tx.id = wfi.ledger_transaction_id
+         AND funding_tx.transaction_type = 'wallet_funding_confirmed'
+         AND funding_tx.status = 'success'
+        WHERE wfi.status = 'succeeded'
+          AND wfi.provider_transaction_id IS NOT NULL
+          AND wfi.receipt_number IS NOT NULL
+          AND wfi.credited_amount_kobo = wfi.requested_amount_kobo
+        GROUP BY wfi.client_uid
+      ) verified ON BINARY verified.client_uid = BINARY released.client_uid
+      WHERE released.released_amount_kobo > COALESCE(verified.verified_amount_kobo, 0)
     `)
     await check(conn, checks, 'withdrawal_pending_projection', `
       SELECT wr.artisan_uid AS user_uid,

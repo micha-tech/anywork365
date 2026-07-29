@@ -8,12 +8,13 @@ import { config } from 'dotenv'
 import fs from 'fs'
 import { createRequire } from 'module'
 import { randomBytes } from 'crypto'
+import { cert, getApps, initializeApp } from 'firebase-admin/app'
+import { getAuth } from 'firebase-admin/auth'
 
 config({ path: '.env' })
 
 const require = createRequire(import.meta.url)
 const mysql = require('mysql2/promise')
-const admin = require('firebase-admin')
 
 const DEMO_CLIENT = { email: 'demo.client@anywork365.com', password: 'DemoTest123!' }
 const DEMO_ARTISAN = { email: 'demo.artisan@anywork365.com', password: 'DemoTest123!' }
@@ -23,10 +24,8 @@ async function main() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT
   if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT not set')
   const sa = JSON.parse(raw)
-  if (admin.apps.length === 0) {
-    admin.initializeApp({ credential: admin.credential.cert(sa) })
-  }
-  const auth = admin.auth()
+  const app = getApps()[0] ?? initializeApp({ credential: cert(sa) })
+  const auth = getAuth(app)
 
   // ── MySQL ────────────────────────────────────────────────────────
   const sslMode = process.env.MYSQL_SSL || ''

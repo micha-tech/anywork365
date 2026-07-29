@@ -15,6 +15,9 @@ test('allows intended terminal financial transitions', () => {
     assertTransition(jobFundsTransitions, 'locked', 'released', 'Job funds')
   )
   assert.doesNotThrow(() =>
+    assertTransition(jobFundsTransitions, 'locked', 'cancelled', 'Job funds')
+  )
+  assert.doesNotThrow(() =>
     assertTransition(withdrawalTransitions, 'processing', 'success', 'Withdrawal')
   )
 })

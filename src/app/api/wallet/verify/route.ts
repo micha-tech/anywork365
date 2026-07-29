@@ -12,6 +12,10 @@ import {
   confirmExternalPayment,
   isMarketplaceFinanceEnabled,
 } from '@/lib/financial/marketplace-service'
+import {
+  confirmWalletFunding,
+  isWalletFundingReference,
+} from '@/lib/financial/wallet-funding-service'
 
 export async function GET(req: NextRequest) {
   const session = await getVerifiedSession()
@@ -35,6 +39,19 @@ export async function GET(req: NextRequest) {
 
   try {
     if (isMarketplaceFinanceEnabled()) {
+      if (await isWalletFundingReference(ref)) {
+        const confirmation = await confirmWalletFunding(ref, {
+          type: 'user',
+          id: session.id,
+        })
+        const amountNGN = confirmation.creditedAmountMinor / 100
+        return NextResponse.redirect(
+          new URL(
+            `${walletPath}?status=success&amount=${amountNGN}&ref=${encodeURIComponent(confirmation.reference)}&receipt=${encodeURIComponent(confirmation.receiptNumber)}`,
+            req.url
+          )
+        )
+      }
       const confirmation = await confirmExternalPayment(ref, {
         type: 'user',
         id: session.id,

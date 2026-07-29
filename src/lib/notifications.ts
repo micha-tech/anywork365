@@ -29,9 +29,9 @@ export async function sendPushNotification(
   if (tokens.length === 0) return
 
   try {
-    const admin = await import('@/lib/firebase/admin').then(m => m.default)
+    const { messaging } = await import('@/lib/firebase/admin')
 
-    const response = await admin.messaging().sendEachForMulticast({
+    const response = await messaging.sendEachForMulticast({
       tokens,
       notification: { title, body },
       data: data || {},

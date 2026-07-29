@@ -18,12 +18,12 @@ import type mysql from 'mysql2'
 import type { RowDataPacket } from 'mysql2'
 import { holdBookingFunds, isMoneyV2Enabled, nairaToKobo } from '@/lib/money'
 import {
-  createJobFundingInTransaction,
-  initializeJobPayment,
+  createWalletFundedJobInTransaction,
   isMarketplaceFinanceEnabled,
-  type JobFundingInitialization,
+  type WalletFundedJob,
 } from '@/lib/financial/marketplace-service'
 import { majorToMinor } from '@/lib/financial/money-value'
+import { FinancialError } from '@/lib/financial/errors'
 
 export const runtime = 'nodejs'
 
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
 
   // Transaction: atomic booking and legacy locked-funds handling.
   const conn = await getConnection()
-  let fundingInitialization: JobFundingInitialization | null = null
+  let walletFunding: WalletFundedJob | null = null
   try {
     await conn.beginTransaction()
 
@@ -210,8 +210,11 @@ export async function POST(req: NextRequest) {
 
     // INSERT booking
     const [bookingResult] = await conn.execute<mysql.ResultSetHeader>(
-      `INSERT INTO bookings (businessId, clientUID, bookedDate, bookedTime, appointmentAddress, meetingPoint, additionalInfo, bookingStatus, amountAgreed, priceConfirmed, dateBooked)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())`,
+      `INSERT INTO bookings (
+         businessId, clientUID, bookedDate, bookedTime, appointmentAddress,
+         meetingPoint, additionalInfo, bookingStatus, vendorComment,
+         amountAgreed, priceConfirmed, reasonForCancellation, dateBooked
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, 1, '', NOW())`,
       [
         vendor.businessId,
         session.id,
@@ -220,18 +223,17 @@ export async function POST(req: NextRequest) {
         location || '',
         location || '',
         description,
-        useMarketplaceFinance ? 'Awaiting Payment' : 'Pending',
+        'Pending',
         budget,
       ]
     )
     const bookingId = bookingResult.insertId
 
     if (useMarketplaceFinance) {
-      fundingInitialization = await createJobFundingInTransaction(conn, {
+      walletFunding = await createWalletFundedJobInTransaction(conn, {
         bookingId,
         clientUid: session.id,
         artisanUid: vendorId,
-        customerEmail: session.email,
         amountMinor: majorToMinor(String(budget)),
         actor: { type: 'user', id: session.id },
       })
@@ -261,47 +263,6 @@ export async function POST(req: NextRequest) {
 
     await conn.commit()
 
-    if (useMarketplaceFinance && fundingInitialization) {
-      try {
-        const payment = await initializeJobPayment({
-          ...fundingInitialization,
-          customerEmail: session.email,
-          clientUid: session.id,
-          bookingId,
-          callbackUrl: `${req.nextUrl.origin}/api/wallet/verify?ref=${fundingInitialization.reference}`,
-        })
-        return NextResponse.json<ApiResponse<any>>(
-          {
-            success: true,
-            data: {
-              id: bookingId,
-              vendorId,
-              description,
-              budget,
-              date,
-              location,
-              status: 'awaiting_payment',
-              paymentReference: payment.reference,
-              authorizationUrl: payment.authorizationUrl,
-              createdAt: new Date().toISOString(),
-            },
-            message: 'Booking created. Complete payment to send it to the artisan.',
-          },
-          { status: 201 }
-        )
-      } catch (error) {
-        console.error('[BOOKING PAYMENT INITIALIZATION]', error)
-        return NextResponse.json<ApiResponse<any>>(
-          {
-            success: false,
-            error: 'Booking was saved, but payment could not be started. Retry payment from the booking.',
-            data: { id: bookingId, paymentReference: fundingInitialization.reference },
-          },
-          { status: 502 }
-        )
-      }
-    }
-
     const clientName = clientRow.fullName || 'A client'
     const notificationBody = `${clientName} sent booking #${bookingId} for ₦${budget.toLocaleString()}.`
     await Promise.allSettled([
@@ -325,18 +286,31 @@ export async function POST(req: NextRequest) {
           date,
           location,
           status: 'pending',
+          fundingReference: walletFunding?.reference ?? null,
+          platformFeeNGN: walletFunding ? walletFunding.platformFeeMinor / 100 : null,
           createdAt: new Date().toISOString(),
         },
-        message: 'Booking request sent! The artisan will respond shortly.',
+        message: useMarketplaceFinance
+          ? 'Booking funded from your verified wallet. The artisan can now accept it.'
+          : 'Booking request sent! The artisan will respond shortly.',
       },
       { status: 201 }
     )
   } catch (error) {
     await conn.rollback()
     console.error('Booking creation transaction error:', error)
+    const insufficient =
+      error instanceof FinancialError && error.code === 'INSUFFICIENT_FUNDS'
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Failed to create booking. Please try again.' },
-      { status: 500 }
+      {
+        success: false,
+        error: insufficient
+          ? 'Insufficient verified wallet balance. Fund your wallet before creating this booking.'
+          : error instanceof FinancialError
+            ? error.message
+            : 'Failed to create booking. Please try again.',
+      },
+      { status: insufficient ? 402 : error instanceof FinancialError ? error.httpStatus : 500 }
     )
   } finally {
     conn.release()

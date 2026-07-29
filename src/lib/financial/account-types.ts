@@ -22,6 +22,7 @@ export type FinancialAccountType =
   | 'artisan_reserve_hold'
   | 'platform_commission_revenue'
   | 'platform_transaction_fee_revenue'
+  | 'platform_payment_processing_expense'
   | 'platform_promotional_credit_expense'
   | 'platform_refund_liability'
   | 'platform_chargeback_liability'
@@ -72,6 +73,8 @@ export const accounts = {
     classified('platform', PLATFORM_ID, 'platform_commission_revenue', 'REVENUE', false),
   platformTransactionFeeRevenue: (): AccountSpec =>
     classified('platform', PLATFORM_ID, 'platform_transaction_fee_revenue', 'REVENUE', false),
+  platformPaymentProcessingExpense: (): AccountSpec =>
+    classified('platform', PLATFORM_ID, 'platform_payment_processing_expense', 'EXPENSE', true),
   platformPromotionalCreditExpense: (): AccountSpec =>
     classified('platform', PLATFORM_ID, 'platform_promotional_credit_expense', 'EXPENSE', true),
   platformRefundLiability: (): AccountSpec =>
