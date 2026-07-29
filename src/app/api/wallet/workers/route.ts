@@ -5,6 +5,7 @@ import { isMarketplaceFinanceEnabled, releaseMaturedEarnings } from '@/lib/finan
 import { processFinancialOutbox } from '@/lib/financial/outbox-service'
 import { processProviderEvents } from '@/lib/financial/provider-events'
 import { processRequestedRefunds } from '@/lib/financial/refund-service'
+import { reconcilePendingWalletFundings } from '@/lib/financial/wallet-funding-service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -30,12 +31,13 @@ async function runWorkers(req: NextRequest) {
   }
 
   const providerEvents = await processProviderEvents(25)
+  const walletFundings = await reconcilePendingWalletFundings(25)
   const refunds = await processRequestedRefunds(10)
   const earningsReleased = await releaseMaturedEarnings(50)
   const outbox = await processFinancialOutbox(50)
   return NextResponse.json({
     success: true,
-    data: { providerEvents, refunds, earningsReleased, outbox },
+    data: { providerEvents, walletFundings, refunds, earningsReleased, outbox },
   })
 }
 

@@ -23,6 +23,7 @@
     "finance:v3:reconcile": "node scripts/reconcile-marketplace-finance-v3.mjs",
     "finance:v4:migrate:dry": "node scripts/migrate-wallet-funding-v4.mjs",
     "finance:v4:migrate": "node scripts/migrate-wallet-funding-v4.mjs --apply",
+    "finance:v4:recover": "tsx scripts/reconcile-pending-wallet-fundings.ts",
     "finance:v4:verify:staging": "tsx scripts/verify-wallet-v4-staging.ts",
     "test:financial": "tsc -p tests/financial/tsconfig.json && node --test \".test-build/tests/financial/*.test.js\""
   },
