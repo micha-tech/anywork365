@@ -19,19 +19,22 @@ npm run finance:v3:reconcile -- --record
 
 The command checks journal balance and entry count, cached account projections,
 negative protected accounts, locked-job projections, successful
-payment-to-ledger links, pending withdrawals, provider dead letters and stale
-outbox work. It records the run and itemized exceptions.
+payment-to-ledger links, verified wallet-funding receipts, pending withdrawals,
+provider dead letters and stale outbox work. It records the run and itemized
+exceptions.
 
 An `attention_required` result is a launch blocker. Do not edit an account
 balance to clear a mismatch.
 
 ## Provider reconciliation
 
-For each internal payment, compare Paystack reference/transaction ID, amount,
-currency, environment, customer and final status. For each withdrawal, compare
-the same persistent internal reference, transfer code, amount, currency and
-final status. For refunds, compare original transaction reference, provider
-refund ID, amount and status.
+For each wallet funding, compare Paystack reference/transaction ID, requested
+amount, charged amount, fee, NGN currency, environment, customer and final
+status. A succeeded funding intent must have a unique receipt and ledger
+transaction, and credited amount must equal requested amount. For each
+withdrawal, compare the same persistent internal reference, transfer code,
+principal, fee, currency and final status. For refunds, compare original
+transaction reference, provider refund ID, amount and status.
 
 The repository has point-verification operations. A production batch importer
 for Paystack transaction, refund, transfer and settlement exports remains an

@@ -8,8 +8,13 @@ let sslConfig: mysql.ConnectionOptions = {}
 if (sslMode === 'skip-verify') {
   sslConfig = { ssl: { rejectUnauthorized: false } }
 } else if (sslMode === 'true') {
+  const caPem = process.env.MYSQL_CA_BASE64
+    ? Buffer.from(process.env.MYSQL_CA_BASE64, 'base64').toString('utf8')
+    : undefined
   const caPath = process.env.MYSQL_CA_PATH
-  if (caPath && fs.existsSync(caPath)) {
+  if (caPem) {
+    sslConfig = { ssl: { ca: caPem, rejectUnauthorized: true } }
+  } else if (caPath && fs.existsSync(caPath)) {
     sslConfig = { ssl: { ca: fs.readFileSync(caPath).toString() } }
   } else {
     sslConfig = { ssl: { rejectUnauthorized: true } }

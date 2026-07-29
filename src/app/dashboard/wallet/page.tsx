@@ -11,6 +11,7 @@ import type { Wallet, WalletTransaction, NigerianBank } from '@/types'
 type FinanceWallet = Wallet & {
   pendingBalance?: number
   refundPendingBalance?: number
+  refundableBalance?: number
   withdrawalPendingBalance?: number
   totalWithdrawn?: number
   platformFees?: number
@@ -22,6 +23,11 @@ type FinanceTransaction = WalletTransaction & {
   reference?: string
   bookingId?: number | null
   platformFeeNGN?: number | null
+  receiptNumber?: string | null
+  providerTransactionId?: string | null
+  providerFeeNGN?: number | null
+  chargedAmountNGN?: number | null
+  paymentMethod?: string | null
 }
 
 interface WalletData {
@@ -39,6 +45,8 @@ const TX_META: Record<string, { label: string; color: string; sign: string }> = 
   refund: { label: 'Refund', color: 'text-blue-600', sign: '+' },
 }
 
+type WalletTab = 'overview' | 'fund' | 'withdraw' | 'bank'
+
 function WalletPageContent() {
   const { user, loading: userLoading } = useCurrentUser()
   const searchParams = useSearchParams()
@@ -47,7 +55,10 @@ function WalletPageContent() {
   const [walletError, setWalletError] = useState(false)
   const [banks, setBanks] = useState<NigerianBank[]>([])
   const [loadingData, setLoadingData] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'withdraw' | 'bank'>('overview')
+  const [activeTab, setActiveTab] = useState<WalletTab>(
+    searchParams.get('tab') === 'fund' ? 'fund' : 'overview'
+  )
+  const [fundAmount, setFundAmount] = useState('')
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [bankCode, setBankCode] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
@@ -60,6 +71,7 @@ function WalletPageContent() {
   const payStatus = searchParams.get('status')
   const payAmount = searchParams.get('amount')
   const payMsg = searchParams.get('msg')
+  const payReceipt = searchParams.get('receipt')
 
   const fetchWallet = useCallback(async () => {
     setLoadingData(true)
@@ -97,14 +109,19 @@ function WalletPageContent() {
 
   useEffect(() => {
     if (payStatus === 'success' && payAmount) {
-      toast.success(`Wallet funded with ${formatCurrency(Number(payAmount))}`)
+      toast.success(`Wallet funded with ${formatCurrency(Number(payAmount))}`, payReceipt ? {
+        action: {
+          label: 'View receipt',
+          onClick: () => window.location.assign(`/wallet/receipts/${encodeURIComponent(payReceipt)}`),
+        },
+      } : undefined)
       fetchWallet()
     } else if (payStatus === 'failed') {
       toast.error('Payment wasn\u2019t completed')
     } else if (payStatus === 'error') {
       toast.error('Payment verification failed')
     }
-  }, [fetchWallet, payAmount, payMsg, payStatus])
+  }, [fetchWallet, payAmount, payMsg, payReceipt, payStatus])
 
   useEffect(() => {
     setResolvedName('')
@@ -213,6 +230,34 @@ function WalletPageContent() {
     }
   }
 
+  async function handleFundWallet(e: React.FormEvent) {
+    e.preventDefault()
+    const amount = Number(fundAmount)
+    if (!Number.isSafeInteger(amount) || amount < 100 || amount > 10_000_000) {
+      toast.error('Enter a whole amount between NGN 100 and NGN 10,000,000')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/wallet/fund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amountNGN: amount }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success || !data.data?.authorizationUrl) {
+        toast.error(data.error || 'Could not start Paystack checkout')
+        return
+      }
+      window.location.assign(data.data.authorizationUrl)
+    } catch {
+      toast.error('Network error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const isArtisan = user?.role === 'artisan'
   const wallet = walletData?.wallet
   const txHistory = walletData?.transactions ?? []
@@ -254,12 +299,14 @@ function WalletPageContent() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-brand-500 text-white rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-white/70">
-              {isArtisan ? 'Available Earnings' : 'Refundable Funds'}
+              {isArtisan ? 'Available Earnings' : 'Wallet Balance'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 break-words">
               {formatCurrency(wallet?.availableBalance ?? 0)}
             </p>
-            <p className="text-xs text-white/60">Ready to withdraw</p>
+            <p className="text-xs text-white/60">
+              {isArtisan ? 'Ready to withdraw' : 'Verified funds available for bookings'}
+            </p>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
@@ -275,9 +322,11 @@ function WalletPageContent() {
             </p>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">Total Earned</p>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+              {isArtisan ? 'Total Earned' : 'Total Funded'}
+            </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-slate-900 break-words">
-              {formatCurrency(wallet?.totalEarned ?? 0)}
+              {formatCurrency(isArtisan ? wallet?.totalEarned ?? 0 : wallet?.totalFunded ?? 0)}
             </p>
             <p className="text-xs text-slate-500">All time</p>
           </div>
@@ -295,7 +344,7 @@ function WalletPageContent() {
               ]
             : [
                 ['Refund Pending', wallet.refundPendingBalance ?? 0],
-                ['Total Funded', wallet.totalFunded ?? 0],
+                ['Refundable', wallet.refundableBalance ?? 0],
                 ['Total Spent', wallet.totalSpent ?? 0],
                 ['Locked for Jobs', wallet.escrowBalance ?? 0],
               ]
@@ -361,8 +410,8 @@ function WalletPageContent() {
                   { id: 'withdraw', label: 'Withdraw' },
                   { id: 'bank', label: 'Bank Account' },
                 ]
-              : []),
-          ] as { id: typeof activeTab; label: string }[]).map((tab) => (
+              : [{ id: 'fund', label: 'Fund Wallet' }]),
+          ] as { id: WalletTab; label: string }[]).map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -416,6 +465,19 @@ function WalletPageContent() {
                                 Platform fee: {formatCurrency(tx.platformFeeNGN)}
                               </p>
                             )}
+                            {tx.providerTransactionId && (
+                              <p className="text-[11px] text-slate-500 mt-0.5 break-all">
+                                Paystack transaction: {tx.providerTransactionId}
+                              </p>
+                            )}
+                            {tx.receiptNumber && (
+                              <a
+                                href={`/wallet/receipts/${encodeURIComponent(tx.receiptNumber)}`}
+                                className="mt-1 inline-flex text-xs font-semibold text-brand-600 hover:text-brand-700"
+                              >
+                                View receipt
+                              </a>
+                            )}
                           </div>
                           <div className="sm:text-right">
                             <p className={`text-sm font-semibold ${meta.color}`}>
@@ -442,6 +504,52 @@ function WalletPageContent() {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'fund' && !isArtisan && (
+        <div className="card max-w-xl">
+          <h2 className="font-medium text-base mb-1">Fund Wallet</h2>
+          <p className="text-sm text-slate-500 mb-5">
+            Add verified funds through Paystack for future marketplace bookings.
+          </p>
+
+          <form onSubmit={handleFundWallet}>
+            <div className="form-group">
+              <label className="label">Amount to credit (NGN)</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={fundAmount}
+                onChange={(event) => setFundAmount(event.target.value)}
+                className="input-field"
+                placeholder="e.g. 50000"
+                min="100"
+                max="10000000"
+                step="1"
+                required
+              />
+              <p className="text-xs text-slate-500 mt-1.5">
+                Minimum NGN 100. Your wallet receives the exact verified amount entered here.
+              </p>
+            </div>
+
+            <div className="mb-5 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-xs leading-5 text-brand-700">
+              Paystack may apply processing charges according to your payment channel. Anywork365
+              records the verified Paystack fee separately; it does not silently reduce the wallet
+              amount shown above. The receipt and wallet credit are created atomically.
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting || !fundAmount}
+              className="btn-primary w-full py-3 justify-center"
+            >
+              {submitting
+                ? 'Opening Paystack…'
+                : `Continue to Paystack${fundAmount ? ` · ${formatCurrency(Number(fundAmount))}` : ''}`}
+            </button>
+          </form>
         </div>
       )}
 

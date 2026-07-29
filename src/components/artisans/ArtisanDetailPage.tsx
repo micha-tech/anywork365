@@ -73,7 +73,16 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
 
       const data = await res.json()
       if (!res.ok || !data.success) {
-        toast.error(data.error || 'Failed to create booking')
+        if (res.status === 402) {
+          toast.error(data.error || 'Fund your wallet to continue', {
+            action: {
+              label: 'Fund wallet',
+              onClick: () => router.push('/wallet?tab=fund'),
+            },
+          })
+        } else {
+          toast.error(data.error || 'Failed to create booking')
+        }
         setBookingLoading(false)
         return
       }
@@ -86,7 +95,7 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
 
       setBookOpen(false)
       setBooked(true)
-      toast.success('Booking request sent!')
+      toast.success('Booking funded and sent to the artisan')
     } catch {
       toast.error('Network error. Please try again.')
     } finally {

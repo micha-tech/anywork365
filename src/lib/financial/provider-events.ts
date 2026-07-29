@@ -3,6 +3,10 @@ import type { RowDataPacket } from 'mysql2/promise'
 import { execute, getConnection } from '@/lib/db'
 import { getFinancialConfig } from './config'
 import { confirmExternalPayment } from './marketplace-service'
+import {
+  confirmWalletFunding,
+  isWalletFundingReference,
+} from './wallet-funding-service'
 import { reconcileMarketplaceWithdrawal } from './withdrawal-service'
 import { handleRefundProviderEvent } from './refund-service'
 import { recordProviderDispute } from './risk-service'
@@ -152,7 +156,11 @@ async function dispatchProviderEvent(event: ProviderEventRow): Promise<'processe
   if (event.event_type === 'charge.success') {
     const reference = String(data.reference ?? '')
     if (!reference) throw new Error('Successful charge event has no reference')
-    await confirmExternalPayment(reference, { type: 'provider', id: 'paystack' })
+    if (await isWalletFundingReference(reference)) {
+      await confirmWalletFunding(reference, { type: 'provider', id: 'paystack' })
+    } else {
+      await confirmExternalPayment(reference, { type: 'provider', id: 'paystack' })
+    }
     return 'processed'
   }
 

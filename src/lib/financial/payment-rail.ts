@@ -25,11 +25,14 @@ export type PaymentVerificationResult = {
   reference: string
   providerTransactionId: string
   amountMinor: number
+  requestedAmountMinor: number
+  providerFeeMinor: number
   currency: string
   environment: ProviderEnvironment
   status: NormalizedPaymentStatus
   customerEmail: string
   paymentMethod: string | null
+  gatewayResponse: string | null
   paidAt: string | null
   metadata: Record<string, string>
 }
@@ -39,6 +42,7 @@ export type TransferVerificationResult = {
   reference: string
   transferCode: string | null
   amountMinor: number
+  providerFeeMinor: number
   currency: string
   environment: ProviderEnvironment
   status: NormalizedTransferStatus
@@ -77,4 +81,3 @@ export interface PaymentRail {
   }): Promise<{ providerRefundReference: string; status: string }>
   verifyWebhook(rawBody: string, signature: string): boolean
 }
-

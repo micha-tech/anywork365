@@ -1,3 +1,3 @@
 export { getFirebaseApp, getFirebaseAuth } from './client'
-export { default as admin } from './admin'
+export { firebaseAdminApp, auth, messaging } from './admin'
 export * from './auth'

@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise'
-import admin from 'firebase-admin'
+import { cert, getApps, initializeApp } from 'firebase-admin/app'
+import { getAuth } from 'firebase-admin/auth'
 import { readFileSync } from 'fs'
 import { config } from 'dotenv'
 import { fileURLToPath } from 'url'
@@ -21,14 +22,15 @@ async function main() {
   const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
   if (!serviceAccount) throw new Error('FIREBASE_SERVICE_ACCOUNT is not configured')
 
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(serviceAccount)) })
-  }
+  const app = getApps()[0] ?? initializeApp({
+    credential: cert(JSON.parse(serviceAccount)),
+  })
+  const auth = getAuth(app)
 
   let firebaseUser
   try {
-    firebaseUser = await admin.auth().getUserByEmail(email)
-    firebaseUser = await admin.auth().updateUser(firebaseUser.uid, {
+    firebaseUser = await auth.getUserByEmail(email)
+    firebaseUser = await auth.updateUser(firebaseUser.uid, {
       password,
       emailVerified: true,
       disabled: false,
@@ -36,7 +38,7 @@ async function main() {
     })
   } catch (error) {
     if (error?.code !== 'auth/user-not-found') throw error
-    firebaseUser = await admin.auth().createUser({
+    firebaseUser = await auth.createUser({
       email,
       password,
       emailVerified: true,

@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise'
-import admin from 'firebase-admin'
+import { cert, getApps, initializeApp } from 'firebase-admin/app'
+import { getAuth } from 'firebase-admin/auth'
 import { readFileSync } from 'fs'
 import { config } from 'dotenv'
 import { fileURLToPath } from 'url'
@@ -15,10 +16,8 @@ async function main() {
   if (!saRaw) { console.error('FIREBASE_SERVICE_ACCOUNT not set'); process.exit(1) }
   const sa = JSON.parse(saRaw)
 
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(sa) })
-  }
-  const auth = admin.auth()
+  const app = getApps()[0] ?? initializeApp({ credential: cert(sa) })
+  const auth = getAuth(app)
 
   // ── MySQL ────────────────────────────────────────────────────────────
   const sslConfig = process.env.MYSQL_SSL === 'true' && process.env.MYSQL_CA_PATH

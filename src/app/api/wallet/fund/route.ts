@@ -16,6 +16,9 @@ import {
 } from '@/lib/money'
 import type { ApiResponse } from '@/types'
 import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
+import { initializeWalletFunding } from '@/lib/financial/wallet-funding-service'
+import { majorToMinor } from '@/lib/financial/money-value'
+import { FinancialError } from '@/lib/financial/errors'
 
 const schema = z.object({
   amountNGN: z
@@ -41,17 +44,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (isMarketplaceFinanceEnabled()) {
+    const useMarketplaceFinance = isMarketplaceFinanceEnabled()
+    if (useMarketplaceFinance && session.role !== 'client') {
       return NextResponse.json<ApiResponse<null>>(
         {
           success: false,
-          error: 'General wallet funding is disabled. Payments must be tied to a booking.',
+          error: 'Only clients can fund a marketplace wallet.',
         },
-        { status: 410 }
+        { status: 403 }
       )
     }
 
-    const rateLimit = isMoneyV2Enabled()
+    const rateLimit = useMarketplaceFinance || isMoneyV2Enabled()
       ? await checkDurableMoneyRateLimit(`fund:${session.id}`, 3, 60 * 1000)
       : checkRateLimit(`fund:${session.id}`, 3, 60 * 1000)
     if (!rateLimit.allowed) {
@@ -71,6 +75,27 @@ export async function POST(req: NextRequest) {
     }
 
     const { amountNGN } = parsed.data
+    if (useMarketplaceFinance) {
+      const result = await initializeWalletFunding({
+        clientUid: session.id,
+        customerEmail: session.email,
+        amountMinor: majorToMinor(String(amountNGN)),
+        callbackUrl: `${req.nextUrl.origin}/api/wallet/verify`,
+      })
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            authorizationUrl: result.authorizationUrl,
+            reference: result.reference,
+            amountNGN,
+          },
+          message: 'Paystack checkout initialized. The wallet is credited only after verification.',
+        },
+        { status: 200 }
+      )
+    }
+
     const amountKobo = nairaToKobo(amountNGN)
     if (isMoneyV2Enabled()) {
       const intent = await createFundingIntent({
@@ -110,8 +135,11 @@ export async function POST(req: NextRequest) {
     }
     console.error('[WALLET FUND]', err)
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Failed to initialize payment' },
-      { status: 500 }
+      {
+        success: false,
+        error: err instanceof FinancialError ? err.message : 'Failed to initialize payment',
+      },
+      { status: err instanceof FinancialError ? err.httpStatus : 500 }
     )
   }
 }

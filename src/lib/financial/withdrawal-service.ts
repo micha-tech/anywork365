@@ -418,7 +418,15 @@ async function finalizeWithdrawal(
     if (amount !== BigInt(verified.amountMinor) || verified.currency !== 'NGN') {
       throw new FinancialError('INVALID_AMOUNT', 'Provider transfer does not match the withdrawal')
     }
+    const providerFee = BigInt(verified.providerFeeMinor)
     const succeeded = terminal === 'success'
+    const feeEntries =
+      providerFee > 0n
+        ? [
+            { account: accounts.platformPaymentProcessingExpense(), deltaMinor: providerFee },
+            { account: accounts.platformPaystackClearing(), deltaMinor: -providerFee },
+          ]
+        : []
     const posted = await ledger.postInTransaction(conn, {
       idempotencyKey: `withdrawal-terminal:${withdrawal.id}:${terminal}`,
       transactionType: succeeded ? 'withdrawal_succeeded' : 'withdrawal_returned',
@@ -433,12 +441,19 @@ async function finalizeWithdrawal(
         ? [
             { account: accounts.artisanWithdrawalPending(withdrawal.artisan_uid), deltaMinor: -amount },
             { account: accounts.artisanWithdrawnEarnings(withdrawal.artisan_uid), deltaMinor: amount },
+            ...feeEntries,
           ]
         : [
             { account: accounts.artisanWithdrawalPending(withdrawal.artisan_uid), deltaMinor: -amount },
             { account: accounts.artisanAvailableEarnings(withdrawal.artisan_uid), deltaMinor: amount },
+            ...feeEntries,
           ],
-      metadata: { withdrawalId: withdrawal.id, providerStatus: verified.status },
+      metadata: {
+        withdrawalId: withdrawal.id,
+        providerStatus: verified.status,
+        providerFeeMinor: providerFee.toString(),
+        feeBearer: 'platform',
+      },
       outbox: {
         eventType: succeeded ? 'withdrawal.success' : 'withdrawal.failed',
         aggregateType: 'withdrawal',
@@ -449,12 +464,14 @@ async function finalizeWithdrawal(
     await conn.execute(
       `UPDATE marketplace_withdrawal_requests
        SET status = ?, terminal_transaction_id = ?, provider_reference = ?,
+           fee_kobo = ?, net_amount_kobo = amount_kobo,
            completed_at = ?, failed_at = ?, reversed_at = ?, updated_at = NOW()
        WHERE id = ?`,
       [
         terminal,
         posted.id,
         verified.transferCode,
+        providerFee.toString(),
         terminal === 'success' ? new Date() : null,
         terminal === 'failed' ? new Date() : null,
         terminal === 'reversed' ? new Date() : null,
@@ -583,6 +600,12 @@ function validateTransferVerification(verified: TransferVerificationResult): voi
   }
   if (verified.currency !== 'NGN') {
     throw new FinancialError('CURRENCY_MISMATCH', 'Provider returned an unexpected currency')
+  }
+  if (
+    !Number.isSafeInteger(verified.providerFeeMinor) ||
+    verified.providerFeeMinor < 0
+  ) {
+    throw new FinancialError('INVALID_AMOUNT', 'Provider returned an invalid transfer fee')
   }
 }
 

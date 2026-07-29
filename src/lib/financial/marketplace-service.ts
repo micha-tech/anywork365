@@ -56,6 +56,14 @@ export type JobFundingInitialization = {
   amountMinor: number
 }
 
+export type WalletFundedJob = {
+  jobFundId: number
+  transactionId: number
+  reference: string
+  amountMinor: number
+  platformFeeMinor: number
+}
+
 const ledger = new LedgerService()
 
 export function isMarketplaceFinanceEnabled(): boolean {
@@ -143,6 +151,112 @@ export async function createJobFundingInTransaction(
     jobFundId: jobResult.insertId,
     reference,
     amountMinor: toSafeDatabaseInteger(input.amountMinor),
+  }
+}
+
+export async function createWalletFundedJobInTransaction(
+  conn: PoolConnection,
+  input: {
+    bookingId: number
+    clientUid: string
+    artisanUid: string
+    amountMinor: MinorAmount
+    actor: LedgerActor
+  }
+): Promise<WalletFundedJob> {
+  if (input.amountMinor <= BigInt(0)) {
+    throw new FinancialError('INVALID_AMOUNT', 'Job funding amount must be positive')
+  }
+
+  const lockedAccount = await ledger.ensureAccountInTransaction(
+    conn,
+    accounts.clientLockedJobFunds(input.bookingId)
+  )
+  const feeRule = await activeFeeRule(conn)
+  const fee = calculateBasisPoints(input.amountMinor, Number(feeRule.fee_basis_points), {
+    minimum: minorFromDatabase(feeRule.minimum_fee_kobo),
+    maximum:
+      feeRule.maximum_fee_kobo === null
+        ? null
+        : minorFromDatabase(feeRule.maximum_fee_kobo),
+  })
+
+  const [jobResult] = await conn.execute<ResultSetHeader>(
+    `INSERT INTO job_funds (
+       booking_id, client_uid, artisan_uid, currency, expected_amount_kobo,
+       locked_account_id, status, fee_rule_id, platform_fee_kobo
+     ) VALUES (?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?)`,
+    [
+      input.bookingId,
+      input.clientUid,
+      input.artisanUid,
+      input.amountMinor.toString(),
+      lockedAccount.id,
+      feeRule.id,
+      fee.toString(),
+    ]
+  )
+
+  const posted = await ledger.postInTransaction(conn, {
+    idempotencyKey: `job-wallet-lock:${input.bookingId}`,
+    transactionType: 'job_wallet_funds_locked',
+    amountMinor: input.amountMinor,
+    userUid: input.clientUid,
+    bookingId: input.bookingId,
+    description: `Wallet funds locked for booking #${input.bookingId}`,
+    actor: input.actor,
+    entries: [
+      { account: accounts.clientAvailable(input.clientUid), deltaMinor: -input.amountMinor },
+      { account: accounts.clientLockedJobFunds(input.bookingId), deltaMinor: input.amountMinor },
+    ],
+    metadata: {
+      jobFundId: jobResult.insertId,
+      artisanUid: input.artisanUid,
+      feeMinor: fee.toString(),
+      fundingSource: 'verified_client_wallet',
+    },
+    outbox: {
+      eventType: 'job.funded',
+      aggregateType: 'booking',
+      aggregateId: String(input.bookingId),
+      payload: {
+        bookingId: input.bookingId,
+        clientUid: input.clientUid,
+        artisanUid: input.artisanUid,
+        amountMinor: input.amountMinor.toString(),
+      },
+    },
+  })
+
+  await conn.execute(
+    `UPDATE job_funds
+     SET status = 'locked', funded_transaction_id = ?,
+         funded_amount_kobo = expected_amount_kobo,
+         locked_amount_kobo = expected_amount_kobo,
+         funded_at = NOW(), updated_at = NOW()
+     WHERE id = ?`,
+    [posted.id, jobResult.insertId]
+  )
+  await writeAudit(conn, {
+    actor: input.actor,
+    action: 'job_funding.locked_from_verified_wallet',
+    resourceType: 'job_fund',
+    resourceId: String(jobResult.insertId),
+    reference: posted.reference,
+    details: {
+      bookingId: input.bookingId,
+      amountMinor: input.amountMinor.toString(),
+      platformFeeMinor: fee.toString(),
+      fundingTransactionId: posted.id,
+    },
+  })
+
+  return {
+    jobFundId: jobResult.insertId,
+    transactionId: posted.id,
+    reference: posted.reference,
+    amountMinor: toSafeDatabaseInteger(input.amountMinor),
+    platformFeeMinor: toSafeDatabaseInteger(fee),
   }
 }
 
@@ -316,6 +430,7 @@ export async function releaseJobFundsToArtisanInTransaction(
   }
 
   const amount = minorFromDatabase(jobFund.expected_amount_kobo)
+  await assertVerifiedJobFundingInTransaction(conn, jobFund, amount)
   const fee = minorFromDatabase(jobFund.platform_fee_kobo)
   const earnings = amount - fee
   if (earnings <= BigInt(0)) throw new FinancialError('INVALID_AMOUNT', 'Fee consumes job funds')
@@ -383,6 +498,124 @@ export async function releaseJobFundsToArtisanInTransaction(
   return {
     idempotentReplay: posted.idempotentReplay,
     earningsAvailableAfter: releaseRows[0]?.release_after ?? null,
+  }
+}
+
+async function assertVerifiedJobFundingInTransaction(
+  conn: PoolConnection,
+  jobFund: JobFundRow,
+  expectedAmount: MinorAmount
+): Promise<void> {
+  if (!jobFund.funded_transaction_id) {
+    throw new FinancialError(
+      'INVALID_STATE',
+      'Job funding transaction is missing; artisan earnings cannot be credited',
+      409
+    )
+  }
+  const [rows] = await conn.execute<(RowDataPacket & {
+    id: number
+    transaction_type: string
+    amount_kobo: string | number
+    booking_id: number | null
+    status: string
+  })[]>(
+    `SELECT id, transaction_type, amount_kobo, booking_id, status
+     FROM money_transactions WHERE id = ? FOR SHARE`,
+    [jobFund.funded_transaction_id]
+  )
+  const funding = rows[0]
+  if (
+    !funding ||
+    funding.status !== 'success' ||
+    funding.booking_id !== jobFund.booking_id ||
+    minorFromDatabase(funding.amount_kobo) !== expectedAmount ||
+    !['job_wallet_funds_locked', 'job_funding_confirmed'].includes(funding.transaction_type)
+  ) {
+    throw new FinancialError(
+      'INVALID_STATE',
+      'Job funding transaction could not be verified; artisan earnings were not credited',
+      409
+    )
+  }
+
+  const [entryRows] = await conn.execute<(RowDataPacket & {
+    locked_total: string | number
+  })[]>(
+    `SELECT COALESCE(SUM(CASE WHEN account_id = ? THEN delta_kobo ELSE 0 END), 0) AS locked_total
+     FROM money_entries WHERE transaction_id = ?`,
+    [jobFund.locked_account_id, jobFund.funded_transaction_id]
+  )
+  if (minorFromDatabase(entryRows[0]?.locked_total ?? 0) !== expectedAmount) {
+    throw new FinancialError(
+      'INVALID_STATE',
+      'Locked job funds do not match the verified funding transaction',
+      409
+    )
+  }
+
+  if (funding.transaction_type === 'job_funding_confirmed') {
+    const [intentRows] = await conn.execute<(RowDataPacket & {
+      provider_transaction_id: string | null
+      status: string
+    })[]>(
+      `SELECT provider_transaction_id, status
+       FROM marketplace_payment_intents
+       WHERE job_fund_id = ? ORDER BY id DESC LIMIT 1 FOR SHARE`,
+      [jobFund.id]
+    )
+    if (
+      intentRows[0]?.status !== 'succeeded' ||
+      !intentRows[0]?.provider_transaction_id
+    ) {
+      throw new FinancialError(
+        'INVALID_STATE',
+        'External job payment transaction ID was not verified',
+        409
+      )
+    }
+  } else {
+    const [provenanceRows] = await conn.execute<(RowDataPacket & {
+      verified_funding: string | number
+      released_jobs: string | number
+    })[]>(
+      `SELECT
+         (SELECT COALESCE(SUM(wfi.credited_amount_kobo), 0)
+          FROM wallet_funding_intents wfi
+          JOIN money_transactions funding_tx
+            ON funding_tx.id = wfi.ledger_transaction_id
+           AND funding_tx.transaction_type = 'wallet_funding_confirmed'
+           AND funding_tx.status = 'success'
+          WHERE wfi.client_uid = ?
+            AND wfi.status = 'succeeded'
+            AND wfi.provider_transaction_id IS NOT NULL
+            AND wfi.receipt_number IS NOT NULL
+            AND wfi.credited_amount_kobo = wfi.requested_amount_kobo
+         ) AS verified_funding,
+         (SELECT COALESCE(SUM(released.expected_amount_kobo), 0)
+          FROM job_funds released
+          JOIN money_transactions released_funding
+            ON released_funding.id = released.funded_transaction_id
+           AND released_funding.transaction_type = 'job_wallet_funds_locked'
+           AND released_funding.status = 'success'
+          WHERE released.client_uid = ?
+            AND released.status = 'released'
+         ) AS released_jobs`,
+      [jobFund.client_uid, jobFund.client_uid]
+    )
+    const verifiedFunding = minorFromDatabase(
+      provenanceRows[0]?.verified_funding ?? 0
+    )
+    const alreadyReleased = minorFromDatabase(
+      provenanceRows[0]?.released_jobs ?? 0
+    )
+    if (verifiedFunding < alreadyReleased + expectedAmount) {
+      throw new FinancialError(
+        'INVALID_STATE',
+        'Verified Paystack wallet funding does not cover this job release',
+        409
+      )
+    }
   }
 }
 
@@ -510,6 +743,67 @@ export async function cancelOrRefundJobInTransaction(
   if (jobFund.status === 'cancel_requested' || jobFund.status === 'cancelled') {
     return { refundReference: null, idempotentReplay: true }
   }
+  if (jobFund.status === 'locked' && jobFund.funded_transaction_id) {
+    const [fundingRows] = await conn.execute<(RowDataPacket & {
+      transaction_type: string
+    })[]>(
+      `SELECT transaction_type FROM money_transactions
+       WHERE id = ? AND status = 'success' FOR SHARE`,
+      [jobFund.funded_transaction_id]
+    )
+    if (fundingRows[0]?.transaction_type === 'job_wallet_funds_locked') {
+      const amount = minorFromDatabase(jobFund.expected_amount_kobo)
+      const posted = await ledger.postInTransaction(conn, {
+        idempotencyKey: `job-wallet-return:${jobFund.id}`,
+        transactionType: 'job_wallet_funds_returned',
+        amountMinor: amount,
+        userUid: jobFund.client_uid,
+        bookingId: input.bookingId,
+        description: `Booking #${input.bookingId} funds returned to client wallet`,
+        actor: input.actor,
+        entries: [
+          { account: accounts.clientLockedJobFunds(input.bookingId), deltaMinor: -amount },
+          { account: accounts.clientAvailable(jobFund.client_uid), deltaMinor: amount },
+        ],
+        metadata: {
+          jobFundId: jobFund.id,
+          originalFundingTransactionId: jobFund.funded_transaction_id,
+          reason: input.reason,
+        },
+        outbox: {
+          eventType: 'job.wallet_funds_returned',
+          aggregateType: 'booking',
+          aggregateId: String(input.bookingId),
+          payload: {
+            bookingId: input.bookingId,
+            clientUid: jobFund.client_uid,
+            amountMinor: amount.toString(),
+          },
+        },
+      })
+      await conn.execute(
+        `UPDATE job_funds
+         SET status = 'cancelled', refund_transaction_id = ?,
+             locked_amount_kobo = 0, cancelled_at = NOW(), updated_at = NOW()
+         WHERE id = ?`,
+        [posted.id, jobFund.id]
+      )
+      await writeAudit(conn, {
+        actor: input.actor,
+        action: 'job_funding.returned_to_client_wallet',
+        resourceType: 'job_fund',
+        resourceId: String(jobFund.id),
+        reference: posted.reference,
+        details: {
+          bookingId: input.bookingId,
+          amountMinor: amount.toString(),
+          originalFundingTransactionId: jobFund.funded_transaction_id,
+          reason: input.reason,
+        },
+      })
+      return { refundReference: null, idempotentReplay: posted.idempotentReplay }
+    }
+  }
   const result = await requestJobRefundInTransaction(conn, input)
   return { refundReference: result.refundReference, idempotentReplay: result.idempotentReplay }
 }
@@ -584,16 +878,14 @@ export async function getMarketplaceWalletSnapshot(
   uid: string,
   role: 'client' | 'artisan'
 ) {
-  const purposes =
-    role === 'artisan'
-      ? ['artisan_available_earnings', 'artisan_available_earnings']
-      : ['client_refundable', 'client_available']
+  const availablePurpose =
+    role === 'artisan' ? 'artisan_available_earnings' : 'client_available'
   const [balanceRow, stateRow, recipient, transactions] = await Promise.all([
     queryOne<(RowDataPacket & { balance: string | number })[]>(
       `SELECT COALESCE(SUM(balance_kobo), 0) AS balance
        FROM money_accounts
-       WHERE owner_id = ? AND owner_type = ? AND purpose IN (?, ?) AND currency = 'NGN'`,
-      [uid, role, purposes[0], purposes[1]]
+       WHERE owner_id = ? AND owner_type = ? AND purpose = ? AND currency = 'NGN'`,
+      [uid, role, availablePurpose]
     ),
     role === 'artisan'
       ? queryOne<(RowDataPacket & {
@@ -629,6 +921,7 @@ export async function getMarketplaceWalletSnapshot(
           platformFees: string | number
           totalFunded: string | number
           totalSpent: string | number
+          refundable: string | number
         })[]>(
           `SELECT
              COALESCE(SUM(CASE WHEN status = 'refund_pending'
@@ -636,11 +929,17 @@ export async function getMarketplaceWalletSnapshot(
              COALESCE(SUM(locked_amount_kobo), 0) AS pending,
              0 AS totalEarned, 0 AS withdrawalPending, 0 AS totalWithdrawn,
              0 AS platformFees,
-             COALESCE(SUM(funded_amount_kobo), 0) AS totalFunded,
-             COALESCE(SUM(released_amount_kobo), 0) AS totalSpent
+             (SELECT COALESCE(SUM(credited_amount_kobo), 0)
+              FROM wallet_funding_intents
+              WHERE client_uid = ? AND status = 'succeeded') AS totalFunded,
+             COALESCE(SUM(released_amount_kobo), 0) AS totalSpent,
+             (SELECT COALESCE(SUM(balance_kobo), 0)
+              FROM money_accounts
+              WHERE owner_type = 'client' AND owner_id = ?
+                AND purpose = 'client_refundable' AND currency = 'NGN') AS refundable
            FROM job_funds
            WHERE client_uid = ?`,
-          [uid]
+          [uid, uid, uid]
         ),
     role === 'artisan'
       ? queryOne<(RowDataPacket & {
@@ -688,6 +987,9 @@ export async function getMarketplaceWalletSnapshot(
       refundPendingBalance: Number(
         (stateRow as (typeof stateRow & { refundPending?: string | number }))?.refundPending ?? 0
       ) / 100,
+      refundableBalance: Number(
+        (stateRow as (typeof stateRow & { refundable?: string | number }))?.refundable ?? 0
+      ) / 100,
       withdrawalPendingBalance: Number(stateRow?.withdrawalPending ?? 0) / 100,
       totalWithdrawn: Number(stateRow?.totalWithdrawn ?? 0) / 100,
       platformFees: Number(stateRow?.platformFees ?? 0) / 100,
@@ -710,10 +1012,15 @@ export async function getMarketplaceWalletSnapshot(
         typeof transaction.metadata === 'string'
           ? safeJson(transaction.metadata)
           : transaction.metadata ?? {}
+      const displayedAmountMinor =
+        transaction.transaction_type === 'job_funds_released' &&
+        typeof metadata.earningsMinor === 'string'
+          ? Number(metadata.earningsMinor)
+          : Number(transaction.amount_kobo)
       return {
         id: `ledger-${transaction.id}`,
         type: walletTransactionType(transaction.transaction_type),
-        amountNGN: Number(transaction.amount_kobo) / 100,
+        amountNGN: displayedAmountMinor / 100,
         description:
           typeof metadata.description === 'string'
             ? metadata.description
@@ -724,6 +1031,22 @@ export async function getMarketplaceWalletSnapshot(
         bookingId: transaction.booking_id,
         platformFeeNGN:
           typeof metadata.feeMinor === 'string' ? Number(metadata.feeMinor) / 100 : null,
+        receiptNumber:
+          typeof metadata.receiptNumber === 'string' ? metadata.receiptNumber : null,
+        providerTransactionId:
+          typeof metadata.providerTransactionId === 'string'
+            ? metadata.providerTransactionId
+            : null,
+        providerFeeNGN:
+          typeof metadata.providerFeeMinor === 'string'
+            ? Number(metadata.providerFeeMinor) / 100
+            : null,
+        chargedAmountNGN:
+          typeof metadata.chargedMinor === 'string'
+            ? Number(metadata.chargedMinor) / 100
+            : null,
+        paymentMethod:
+          typeof metadata.paymentMethod === 'string' ? metadata.paymentMethod : null,
       }
     }),
   }
@@ -883,7 +1206,10 @@ function safeJson(value: string): Record<string, unknown> {
 }
 
 function walletTransactionType(type: string): string {
-  if (type.includes('funding')) return 'job_payment'
+  if (type === 'wallet_funding_confirmed') return 'credit'
+  if (type === 'job_wallet_funds_locked') return 'escrow_lock'
+  if (type === 'job_funding_confirmed') return 'job_payment'
+  if (type === 'job_funds_released') return 'earning'
   if (type.includes('earnings')) return 'earning'
   if (type.includes('refund')) return 'refund'
   if (type.includes('withdrawal')) return 'debit'

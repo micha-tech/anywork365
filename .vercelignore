@@ -1,0 +1,5 @@
+backups/
+tmp/
+output/
+.test-build/
+*.log

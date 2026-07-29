@@ -16,7 +16,7 @@ export const jobFundsTransitions = {
   awaiting_funding: ['funding_pending', 'cancelled'],
   funding_pending: ['locked', 'cancel_requested'],
   cancel_requested: ['locked', 'refund_pending'],
-  locked: ['released', 'refund_pending', 'disputed'],
+  locked: ['released', 'refund_pending', 'cancelled', 'disputed'],
   released: ['disputed'],
   refund_pending: ['refunded', 'locked', 'disputed'],
   refunded: ['disputed'],
