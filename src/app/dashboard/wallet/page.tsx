@@ -73,23 +73,40 @@ function WalletPageContent() {
   const payMsg = searchParams.get('msg')
   const payReceipt = searchParams.get('receipt')
 
-  const fetchWallet = useCallback(async () => {
-    setLoadingData(true)
-    setWalletError(false)
+  const fetchWallet = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoadingData(true)
+      setWalletError(false)
+    }
     try {
-      const res = await fetch('/api/wallet')
+      const res = await fetch('/api/wallet', { cache: 'no-store' })
       const data = await res.json()
       if (!res.ok || !data.success) throw new Error('Unable to load wallet')
       setWalletData(data.data)
     } catch {
-      setWalletError(true)
+      if (!silent) setWalletError(true)
     } finally {
-      setLoadingData(false)
+      if (!silent) setLoadingData(false)
     }
   }, [])
 
   useEffect(() => {
     fetchWallet()
+  }, [fetchWallet])
+
+  useEffect(() => {
+    const refreshVisibleWallet = () => {
+      if (document.visibilityState === 'visible') void fetchWallet(true)
+    }
+    const interval = window.setInterval(refreshVisibleWallet, 15_000)
+
+    window.addEventListener('focus', refreshVisibleWallet)
+    document.addEventListener('visibilitychange', refreshVisibleWallet)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('focus', refreshVisibleWallet)
+      document.removeEventListener('visibilitychange', refreshVisibleWallet)
+    }
   }, [fetchWallet])
 
   useEffect(() => {
@@ -267,12 +284,12 @@ function WalletPageContent() {
       <PullToRefresh onRefresh={fetchWallet}>
         <div className="mb-5 sm:mb-7">
           <h1 className="font-display text-xl sm:text-2xl font-semibold">Wallet</h1>
-          <p className="text-sm text-slate-500 mt-1">We couldn’t load your current balances.</p>
+          <p className="text-sm text-slate-500 mt-1">We couldn?t load your current balances.</p>
         </div>
         <div className="card max-w-xl text-center">
           <p className="text-sm font-medium text-slate-900">Wallet temporarily unavailable</p>
           <p className="mt-1 text-sm text-slate-500">No balance is shown until the financial data can be verified.</p>
-          <button type="button" onClick={fetchWallet} className="btn-primary mt-4 px-6 py-2.5">
+          <button type="button" onClick={() => fetchWallet()} className="btn-primary mt-4 px-6 py-2.5">
             Try again
           </button>
         </div>
@@ -376,7 +393,7 @@ function WalletPageContent() {
 
       {wallet?.isVerified && (
         <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">
-          <span className="text-green-600 text-lg leading-none mt-0.5">✓</span>
+          <span className="text-green-600 text-lg leading-none mt-0.5">?</span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-green-800">Bank account verified</p>
             <p className="text-xs text-green-700 break-words">
@@ -439,7 +456,7 @@ function WalletPageContent() {
             <div className="divide-y divide-slate-200">
               {txHistory.map((tx) => {
                 const meta = TX_META[tx.type] ?? { label: tx.type, color: 'text-slate-900', sign: '' }
-                const direction = tx.type === 'credit' || tx.type === 'earning' || tx.type === 'escrow_release' || tx.type === 'refund' ? '↓' : '↑'
+                const direction = tx.type === 'credit' || tx.type === 'earning' || tx.type === 'escrow_release' || tx.type === 'refund' ? '?' : '?'
 
                 return (
                   <div key={tx.id} className="py-3.5">
@@ -457,7 +474,7 @@ function WalletPageContent() {
                             {tx.reference && (
                               <p className="text-[11px] text-slate-400 mt-0.5 break-all">
                                 Ref: {tx.reference}
-                                {tx.bookingId ? ` · Booking #${tx.bookingId}` : ''}
+                                {tx.bookingId ? ` ? Booking #${tx.bookingId}` : ''}
                               </p>
                             )}
                             {tx.platformFeeNGN !== null && tx.platformFeeNGN !== undefined && (
@@ -546,8 +563,8 @@ function WalletPageContent() {
               className="btn-primary w-full py-3 justify-center"
             >
               {submitting
-                ? 'Opening Paystack…'
-                : `Continue to Paystack${fundAmount ? ` · ${formatCurrency(Number(fundAmount))}` : ''}`}
+                ? 'Opening Paystack?'
+                : `Continue to Paystack${fundAmount ? ` ? ${formatCurrency(Number(fundAmount))}` : ''}`}
             </button>
           </form>
         </div>
