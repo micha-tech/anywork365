@@ -15,6 +15,7 @@
     "../../src/lib/financial/money-value.ts",
     "../../src/lib/financial/ledger-invariants.ts",
     "../../src/lib/financial/state-machines.ts",
+    "../../src/lib/financial/controlled-test-exception.ts",
     "../../src/lib/financial/errors.ts"
   ]
 }

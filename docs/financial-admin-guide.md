@@ -1,5 +1,26 @@
 # Financial admin guide
 
+## Financial Operations Console
+
+Named administrators use `/moderation` for financial oversight and controlled
+operations. The console includes the Paystack transfer balance, liability
+accounts, ledger journal, job funds, withdrawals, refunds, provider disputes,
+customer lookup, reconciliation and immutable audit history.
+
+Every money-changing action requires:
+
+- an active, narrowly scoped `financial_admin_permissions` grant;
+- an attributable administrator session;
+- an incident or support ticket;
+- a written operational reason;
+- a typed confirmation phrase; and
+- the existing idempotent financial service for the requested operation.
+
+The console never edits balances directly. Withdrawal cancellation is available
+only before a Paystack transfer exists, refund completion remains dependent on a
+verified provider outcome, and a successful transfer cannot be returned by
+changing the internal ledger.
+
 ## Principles
 
 The finance console is for investigation, approval and reconciliation. It is

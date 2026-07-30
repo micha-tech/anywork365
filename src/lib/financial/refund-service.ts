@@ -1,5 +1,5 @@
 import type { RowDataPacket } from 'mysql2/promise'
-import { execute, getConnection } from '@/lib/db'
+import { execute, getConnection, queryOne } from '@/lib/db'
 import { accounts } from './account-types'
 import { getFinancialConfig } from './config'
 import { FinancialError } from './errors'
@@ -33,30 +33,30 @@ export async function processRequestedRefunds(
   for (let count = 0; count < limit; count += 1) {
     const refund = await claimRefund()
     if (!refund) break
-    try {
-      const provider = await rail.initiateRefund({
-        transactionReference: refund.provider_transaction_id || refund.provider_reference,
-        amountMinor: toSafeDatabaseInteger(minorFromDatabase(refund.amount_kobo)),
-        currency: 'NGN',
-      })
-      await execute(
-        `UPDATE refund_requests
-         SET provider_refund_reference = ?, status = 'processing'
-         WHERE id = ? AND status = 'processing'`,
-        [provider.providerRefundReference, refund.id]
-      )
-      summary.submitted += 1
-    } catch (error) {
-      // Provider timeouts are ambiguous. Keep the ledger reservation intact.
-      await execute(
-        `UPDATE refund_requests SET status = 'needs_attention', reason = ?
-         WHERE id = ? AND status = 'processing'`,
-        [`Provider submission requires reconciliation: ${safeError(error)}`.slice(0, 500), refund.id]
-      )
-      summary.review += 1
-    }
+    const status = await submitClaimedRefund(refund, rail)
+    summary[status] += 1
   }
   return summary
+}
+
+export async function processRefundById(
+  refundId: number,
+  rail: PaymentRail = paymentRail
+): Promise<{ status: 'submitted' | 'review'; providerReference: string | null }> {
+  const refund = await claimRefund(refundId)
+  if (!refund) {
+    throw new FinancialError(
+      'INVALID_STATE',
+      'Only a requested refund can be submitted to Paystack',
+      409
+    )
+  }
+  const status = await submitClaimedRefund(refund, rail)
+  const row = await queryOne<(RowDataPacket & { provider_refund_reference: string | null })[]>(
+    'SELECT provider_refund_reference FROM refund_requests WHERE id = ?',
+    [refundId]
+  )
+  return { status, providerReference: row?.provider_refund_reference ?? null }
 }
 
 export async function handleRefundProviderEvent(input: {
@@ -181,18 +181,20 @@ export async function handleRefundProviderEvent(input: {
   }
 }
 
-async function claimRefund(): Promise<RefundRow | null> {
+async function claimRefund(refundId?: number): Promise<RefundRow | null> {
   const conn = await getConnection()
   try {
     await conn.beginTransaction()
+    const idClause = refundId ? 'AND rr.id = ?' : ''
     const [rows] = await conn.execute<RefundRow[]>(
       `SELECT rr.*, jf.client_uid, jf.booking_id, mpi.id AS payment_intent_id,
               mpi.provider_transaction_id, mpi.provider_reference
        FROM refund_requests rr
        JOIN job_funds jf ON jf.id = rr.job_fund_id
        JOIN marketplace_payment_intents mpi ON mpi.job_fund_id = jf.id
-       WHERE rr.status = 'requested'
-       ORDER BY rr.id LIMIT 1 FOR UPDATE SKIP LOCKED`
+       WHERE rr.status = 'requested' ${idClause}
+       ORDER BY rr.id LIMIT 1 FOR UPDATE SKIP LOCKED`,
+      refundId ? [refundId] : []
     )
     const refund = rows[0]
     if (!refund) {
@@ -210,6 +212,34 @@ async function claimRefund(): Promise<RefundRow | null> {
     throw error
   } finally {
     conn.release()
+  }
+}
+
+async function submitClaimedRefund(
+  refund: RefundRow,
+  rail: PaymentRail
+): Promise<'submitted' | 'review'> {
+  try {
+    const provider = await rail.initiateRefund({
+      transactionReference: refund.provider_transaction_id || refund.provider_reference,
+      amountMinor: toSafeDatabaseInteger(minorFromDatabase(refund.amount_kobo)),
+      currency: 'NGN',
+    })
+    await execute(
+      `UPDATE refund_requests
+       SET provider_refund_reference = ?, status = 'processing'
+       WHERE id = ? AND status = 'processing'`,
+      [provider.providerRefundReference, refund.id]
+    )
+    return 'submitted'
+  } catch (error) {
+    // Provider timeouts are ambiguous. Keep the ledger reservation intact.
+    await execute(
+      `UPDATE refund_requests SET status = 'needs_attention', reason = ?
+       WHERE id = ? AND status = 'processing'`,
+      [`Provider submission requires reconciliation: ${safeError(error)}`.slice(0, 500), refund.id]
+    )
+    return 'review'
   }
 }
 

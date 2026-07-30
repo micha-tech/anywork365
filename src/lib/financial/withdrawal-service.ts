@@ -12,6 +12,8 @@ import {
   claimFinancialIdempotency,
   completeFinancialIdempotency,
 } from './idempotency-service'
+import { getControlledWithdrawalTestException } from './controlled-test-exception'
+import { assertTransition, withdrawalTransitions } from './state-machines'
 
 type RecipientRow = RowDataPacket & {
   id: number
@@ -40,6 +42,8 @@ type WithdrawalRow = RowDataPacket & {
   status: string
   risk_status: string
   submission_attempts: number
+  terminal_transaction_id: number | null
+  failure_reason: string | null
 }
 
 const ledger = new LedgerService()
@@ -52,6 +56,10 @@ export async function saveVerifiedTransferRecipient(input: {
   accountNumberLastFour: string
   accountName: string
   ownershipStatus: 'matched' | 'manual_review'
+  controlledTestException?: {
+    expiresAt: string
+    reason: string
+  }
   actor: LedgerActor
 }): Promise<{ id: number }> {
   const conn = await getConnection()
@@ -105,6 +113,7 @@ export async function saveVerifiedTransferRecipient(input: {
       bankName: input.bankName,
       accountLastFour: input.accountNumberLastFour,
       ownershipStatus: input.ownershipStatus,
+      controlledTestException: input.controlledTestException ?? null,
     })
     await conn.commit()
     return { id: result.insertId }
@@ -161,6 +170,7 @@ export async function requestMarketplaceWithdrawal(input: {
   recipient: { bankName: string; accountLastFour: string }
 }> {
   const config = getFinancialConfig()
+  const controlledTest = getControlledWithdrawalTestException(input.artisanUid)
   enforceConfiguredAmountLimits(input.amountMinor)
   const durableIdempotencyKey = `withdrawal:${createHash('sha256')
     .update(`${input.artisanUid}:${input.idempotencyKey}`)
@@ -210,12 +220,15 @@ export async function requestMarketplaceWithdrawal(input: {
     const recipient = await activeRecipient(conn, input.artisanUid)
     if (
       recipient.verification_status !== 'verified' ||
-      recipient.ownership_status !== 'matched'
+      (recipient.ownership_status !== 'matched' && !controlledTest.active)
     ) {
       throw new FinancialError('RISK_REVIEW_REQUIRED', 'Bank recipient requires review', 403)
     }
     const ageMs = Date.now() - new Date(recipient.updated_at).getTime()
-    if (ageMs < config.BANK_CHANGE_HOLD_HOURS * 60 * 60 * 1000) {
+    if (
+      ageMs < config.BANK_CHANGE_HOLD_HOURS * 60 * 60 * 1000 &&
+      !controlledTest.active
+    ) {
       throw new FinancialError(
         'RISK_REVIEW_REQUIRED',
         `Withdrawals are held for ${config.BANK_CHANGE_HOLD_HOURS} hours after bank changes`,
@@ -251,7 +264,12 @@ export async function requestMarketplaceWithdrawal(input: {
         { account: accounts.artisanAvailableEarnings(input.artisanUid), deltaMinor: -input.amountMinor },
         { account: accounts.artisanWithdrawalPending(input.artisanUid), deltaMinor: input.amountMinor },
       ],
-      metadata: { recipientId: recipient.id },
+      metadata: {
+        recipientId: recipient.id,
+        controlledTestException: controlledTest.active
+          ? { expiresAt: controlledTest.expiresAt }
+          : null,
+      },
       outbox: {
         eventType: 'withdrawal.requested',
         aggregateType: 'withdrawal',
@@ -277,6 +295,22 @@ export async function requestMarketplaceWithdrawal(input: {
         status === 'approved' ? new Date() : null,
       ]
     )
+    if (controlledTest.active) {
+      await audit(
+        conn,
+        input.actor,
+        'withdrawal.controlled_test_exception_applied',
+        'withdrawal',
+        String(withdrawalResult.insertId),
+        {
+          reference,
+          artisanUid: input.artisanUid,
+          recipientId: recipient.id,
+          amountMinor: input.amountMinor.toString(),
+          expiresAt: controlledTest.expiresAt,
+        }
+      )
+    }
     await completeFinancialIdempotency(conn, {
       id: idempotency.row.id,
       resourceType: 'withdrawal',
@@ -334,6 +368,114 @@ export async function approveMarketplaceWithdrawal(
       reason,
     })
     await conn.commit()
+  } catch (error) {
+    await conn.rollback().catch(() => undefined)
+    throw error
+  } finally {
+    conn.release()
+  }
+}
+
+export async function cancelUnsubmittedMarketplaceWithdrawal(
+  reference: string,
+  actor: LedgerActor,
+  reason: string
+): Promise<{ changed: boolean; ledgerReference: string }> {
+  const conn = await getConnection()
+  try {
+    await conn.beginTransaction()
+    const [rows] = await conn.execute<WithdrawalRow[]>(
+      'SELECT * FROM marketplace_withdrawal_requests WHERE internal_reference = ? FOR UPDATE',
+      [reference]
+    )
+    const withdrawal = rows[0]
+    if (!withdrawal) throw new FinancialError('NOT_FOUND', 'Withdrawal was not found', 404)
+    if (withdrawal.status === 'cancelled' && withdrawal.terminal_transaction_id) {
+      const [transactions] = await conn.execute<(RowDataPacket & { reference: string })[]>(
+        'SELECT reference FROM money_transactions WHERE id = ? LIMIT 1',
+        [withdrawal.terminal_transaction_id]
+      )
+      await conn.commit()
+      return {
+        changed: false,
+        ledgerReference: transactions[0]?.reference ?? reference,
+      }
+    }
+    assertTransition(
+      withdrawalTransitions,
+      withdrawal.status as keyof typeof withdrawalTransitions,
+      'cancelled',
+      'Withdrawal'
+    )
+    if (withdrawal.provider_reference) {
+      throw new FinancialError(
+        'INVALID_STATE',
+        'A provider transfer exists; reconcile it instead of cancelling',
+        409
+      )
+    }
+    if (!isConclusivePreTransferRejection(withdrawal.failure_reason)) {
+      throw new FinancialError(
+        'INVALID_STATE',
+        'The provider response is not conclusive enough to return reserved funds',
+        409
+      )
+    }
+
+    const amount = minorFromDatabase(withdrawal.amount_kobo)
+    const posted = await ledger.postInTransaction(conn, {
+      idempotencyKey: `withdrawal-cancelled:${withdrawal.id}`,
+      transactionType: 'withdrawal_returned',
+      amountMinor: amount,
+      userUid: withdrawal.artisan_uid,
+      description: 'Unsubmitted withdrawal returned to available earnings',
+      actor,
+      entries: [
+        { account: accounts.artisanWithdrawalPending(withdrawal.artisan_uid), deltaMinor: -amount },
+        { account: accounts.artisanAvailableEarnings(withdrawal.artisan_uid), deltaMinor: amount },
+      ],
+      metadata: {
+        withdrawalId: withdrawal.id,
+        providerFailure: withdrawal.failure_reason,
+        cancellationReason: reason,
+        providerTransferCreated: false,
+      },
+      outbox: {
+        eventType: 'withdrawal.cancelled',
+        aggregateType: 'withdrawal',
+        aggregateId: String(withdrawal.id),
+        payload: {
+          artisanUid: withdrawal.artisan_uid,
+          amountMinor: amount.toString(),
+        },
+      },
+    })
+    await conn.execute(
+      `UPDATE marketplace_withdrawal_requests
+       SET status = 'cancelled', terminal_transaction_id = ?,
+           failed_at = NOW(), failure_reason = ?, updated_at = NOW()
+       WHERE id = ?`,
+      [
+        posted.id,
+        `${withdrawal.failure_reason} | ${reason}`.slice(0, 500),
+        withdrawal.id,
+      ]
+    )
+    await audit(
+      conn,
+      actor,
+      'withdrawal.cancelled_before_provider_creation',
+      'withdrawal',
+      String(withdrawal.id),
+      {
+        reference,
+        reason,
+        providerFailure: withdrawal.failure_reason,
+        ledgerReference: posted.reference,
+      }
+    )
+    await conn.commit()
+    return { changed: !posted.idempotentReplay, ledgerReference: posted.reference }
   } catch (error) {
     await conn.rollback().catch(() => undefined)
     throw error
@@ -631,4 +773,12 @@ function financialReference(prefix: string): string {
 
 function safeError(error: unknown): string {
   return error instanceof Error ? error.message : 'Provider request failed'
+}
+
+function isConclusivePreTransferRejection(reason: string | null): boolean {
+  const normalized = reason?.toLowerCase() ?? ''
+  return (
+    normalized.includes('balance is not enough to fulfil this request') ||
+    normalized.includes('balance is not enough to fulfill this request')
+  )
 }

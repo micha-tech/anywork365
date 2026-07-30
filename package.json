@@ -26,6 +26,8 @@
     "finance:v4:recover": "tsx scripts/reconcile-pending-wallet-fundings.ts",
     "finance:v4:test:webhook": "tsx scripts/test-paystack-webhook.ts --production",
     "finance:v4:verify:staging": "tsx scripts/verify-wallet-v4-staging.ts",
+    "moderation:migrate:dry": "node scripts/migrate-moderation-console.mjs",
+    "moderation:migrate": "node scripts/migrate-moderation-console.mjs --apply",
     "test:financial": "tsc -p tests/financial/tsconfig.json && node --test \".test-build/tests/financial/*.test.js\""
   },
   "dependencies": {

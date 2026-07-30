@@ -207,6 +207,16 @@ export async function listBanks() {
   }>('/bank?country=nigeria&currency=NGN&perPage=100')
 }
 
+export async function getPaystackBalance() {
+  return paystackRequest<{
+    status: boolean
+    data: Array<{
+      currency: string
+      balance: number
+    }>
+  }>('/balance')
+}
+
 export function verifyWebhookSignature(payload: string, signature: string): boolean {
   const hash = createHmac('sha512', getPaystackSecret())
     .update(payload)

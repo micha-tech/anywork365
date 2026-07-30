@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { queryOne, execute } from '@/lib/db'
 import type { RowDataPacket } from 'mysql2/promise'
+import { z } from 'zod'
 import { requireAdminApi, unauthorized, logAdminAction } from '@/lib/admin'
 import { rollbackWithdrawal } from '@/lib/wallet'
 import {
@@ -13,12 +14,31 @@ import { verifyTransfer } from '@/lib/paystack'
 import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
 import {
   approveMarketplaceWithdrawal,
+  cancelUnsubmittedMarketplaceWithdrawal,
   reconcileMarketplaceWithdrawal,
   submitMarketplaceWithdrawal,
 } from '@/lib/financial/withdrawal-service'
 import { requireFinancialPermission } from '@/lib/financial/admin-permissions'
 
 type AnyRow = RowDataPacket & Record<string, unknown>
+
+const marketplaceActionSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('approve'),
+    reason: z.string().min(20).max(500),
+    ticketReference: z.string().min(3).max(160),
+  }),
+  z.object({
+    action: z.literal('reconcile'),
+    reason: z.string().min(20).max(500),
+    ticketReference: z.string().min(3).max(160),
+  }),
+  z.object({
+    action: z.literal('cancel_unsubmitted'),
+    reason: z.string().min(20).max(500),
+    ticketReference: z.string().min(3).max(160),
+  }),
+])
 
 export async function POST(
   request: NextRequest,
@@ -40,19 +60,20 @@ export async function POST(
       if (!withdrawal) {
         return NextResponse.json({ success: false, error: 'Withdrawal not found' }, { status: 404 })
       }
-      const body = await request.json()
+      const parsed = marketplaceActionSchema.safeParse(await request.json())
+      if (!parsed.success) {
+        return NextResponse.json(
+          { success: false, error: parsed.error.errors[0].message },
+          { status: 400 }
+        )
+      }
+      const body = parsed.data
       if (body.action === 'approve') {
         await requireFinancialPermission(session.id, 'withdrawal.approve')
-        if (!body.reason || typeof body.reason !== 'string') {
-          return NextResponse.json(
-            { success: false, error: 'An approval reason is required' },
-            { status: 400 }
-          )
-        }
         await approveMarketplaceWithdrawal(
           withdrawal.internal_reference,
           { type: 'admin', id: session.id },
-          body.reason
+          `${body.reason} [${body.ticketReference}]`
         )
         const submitted = await submitMarketplaceWithdrawal(
           withdrawal.internal_reference,
@@ -63,6 +84,7 @@ export async function POST(
           priorStatus: withdrawal.status,
           providerStatus: submitted.status,
           reason: body.reason,
+          ticketReference: body.ticketReference,
         })
         return NextResponse.json({ success: true, data: submitted })
       }
@@ -76,13 +98,28 @@ export async function POST(
           reference: withdrawal.internal_reference,
           priorStatus: withdrawal.status,
           providerStatus: reconciled.status,
+          reason: body.reason,
+          ticketReference: body.ticketReference,
         })
         return NextResponse.json({ success: true, data: reconciled })
       }
-      return NextResponse.json(
-        { success: false, error: 'Allowed actions are approve and reconcile' },
-        { status: 400 }
-      )
+      if (body.action === 'cancel_unsubmitted') {
+        await requireFinancialPermission(session.id, 'withdrawal.approve')
+        const cancelled = await cancelUnsubmittedMarketplaceWithdrawal(
+          withdrawal.internal_reference,
+          { type: 'admin', id: session.id },
+          `${body.reason} [${body.ticketReference}]`
+        )
+        await logAdminAction(session.id, 'cancel_unsubmitted_marketplace_withdrawal', 'withdrawal', id, {
+          reference: withdrawal.internal_reference,
+          priorStatus: withdrawal.status,
+          reason: body.reason,
+          ticketReference: body.ticketReference,
+          ledgerReference: cancelled.ledgerReference,
+        })
+        return NextResponse.json({ success: true, data: cancelled })
+      }
+      return NextResponse.json({ success: false, error: 'Unsupported action' }, { status: 400 })
     }
 
     if (isMoneyV2Enabled()) {
