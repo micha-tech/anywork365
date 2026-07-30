@@ -26,6 +26,7 @@ import {
   submitMarketplaceWithdrawal,
 } from '@/lib/financial/withdrawal-service'
 import { FinancialError } from '@/lib/financial/errors'
+import { getControlledWithdrawalTestException } from '@/lib/financial/controlled-test-exception'
 
 const schema = z.object({
   amountNGN: z
@@ -85,7 +86,8 @@ export async function POST(req: NextRequest) {
         )
       }
       const userRow = await getUserRowByUid(session.id)
-      if (!userRow?.verified || !userRow.nin) {
+      const controlledTest = getControlledWithdrawalTestException(session.id)
+      if ((!userRow?.verified || !userRow.nin) && !controlledTest.active) {
         return NextResponse.json<ApiResponse<null>>(
           { success: false, error: 'Identity verification is required before withdrawing funds' },
           { status: 403 }

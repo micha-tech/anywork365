@@ -19,6 +19,7 @@ import {
   disableTransferRecipients,
   saveVerifiedTransferRecipient,
 } from '@/lib/financial/withdrawal-service'
+import { getControlledWithdrawalTestException } from '@/lib/financial/controlled-test-exception'
 
 function normalizedNameTokens(value: string): Set<string> {
   return new Set(
@@ -132,18 +133,30 @@ export async function POST(req: NextRequest) {
     }
 
     const { accountNumber, bankCode, bankName } = parsed.data
+    const user = durableMoney ? await getUserRowByUid(session.id) : null
+    const controlledTest = getControlledWithdrawalTestException(session.id)
+
+    if (durableMoney && !user) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'User profile was not found' },
+        { status: 404 }
+      )
+    }
+    if (durableMoney && user && (!user.verified || !user.nin) && !controlledTest.active) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Identity verification is required before adding a withdrawal account' },
+        { status: 403 }
+      )
+    }
+
     const resolved = await resolveAccountNumber({ accountNumber, bankCode })
     const accountName = resolved.data.account_name
+    const ownershipMatches = user
+      ? bankNameMatchesProfile(user.fullName, accountName)
+      : false
 
-    if (durableMoney) {
-      const user = await getUserRowByUid(session.id)
-      if (!user?.verified || !user.nin) {
-        return NextResponse.json<ApiResponse<null>>(
-          { success: false, error: 'Identity verification is required before adding a withdrawal account' },
-          { status: 403 }
-        )
-      }
-      if (!bankNameMatchesProfile(user.fullName, accountName)) {
+    if (durableMoney && user) {
+      if (!ownershipMatches && !controlledTest.active) {
         return NextResponse.json<ApiResponse<null>>(
           { success: false, error: 'The bank account name does not match your verified profile name' },
           { status: 400 }
@@ -162,7 +175,13 @@ export async function POST(req: NextRequest) {
         bankName,
         accountNumberLastFour: accountNumber.slice(-4),
         accountName,
-        ownershipStatus: 'matched',
+        ownershipStatus: ownershipMatches ? 'matched' : 'manual_review',
+        controlledTestException: controlledTest.active
+          ? {
+              expiresAt: controlledTest.expiresAt!,
+              reason: 'Owner-authorized Webjara controlled withdrawal test',
+            }
+          : undefined,
         actor: { type: 'user', id: session.id },
       })
       return NextResponse.json(

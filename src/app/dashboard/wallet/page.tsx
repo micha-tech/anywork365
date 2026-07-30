@@ -203,7 +203,7 @@ function WalletPageContent() {
         fetchWallet()
         setActiveTab('overview')
       } else {
-        toast.error('Couldn\u2019t verify bank account')
+        toast.error(data.error ?? 'Couldn\u2019t verify bank account')
       }
     } catch {
       toast.error('Network error')

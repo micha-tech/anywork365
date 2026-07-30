@@ -13,6 +13,7 @@ const NAV_ITEMS = [
     label: 'Management',
     links: [
       { href: '/admin', label: 'Overview', icon: GridIcon },
+      { href: '/moderation', label: 'Financial Operations', icon: WalletIcon },
       { href: '/admin/users', label: 'Users', icon: UserIcon },
       { href: '/admin/reconciliation', label: 'Reconciliation', icon: WalletIcon },
       { href: '/admin/disputes', label: 'Disputes', icon: AlertIcon },

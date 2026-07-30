@@ -10,6 +10,7 @@ export type FinancialPermission =
   | 'refund.manage'
   | 'risk_hold.manage'
   | 'adjustment.create'
+  | 'reconciliation.run'
 
 export async function requireFinancialPermission(
   adminUid: string,
