@@ -89,18 +89,12 @@ export function ModerationShell({
 
       <div className="lg:pl-[252px]">
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="flex min-h-[76px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex min-h-[76px] items-center px-4 sm:px-6 lg:px-8">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-500 lg:hidden">
                 Anywork365 Moderation
               </p>
               <p className="text-sm font-semibold text-slate-900">Financial Operations Console</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                Live environment
-              </span>
             </div>
           </div>
           <nav className="flex gap-1 overflow-x-auto border-t border-slate-100 px-3 py-2 lg:hidden">
