@@ -4,9 +4,9 @@
   "webDir": "capacitor-public",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://anywork365-blond.vercel.app",
+    "url": "https://anywork365.ng",
     "androidScheme": "https",
-    "cleartext": true
+    "cleartext": false
   },
   "plugins": {
     "StatusBar": {
@@ -33,6 +33,6 @@
     "allowsLinkPreview": false
   },
   "android": {
-    "allowMixedContent": true
+    "allowMixedContent": false
   }
 }
