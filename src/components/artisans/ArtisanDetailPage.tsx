@@ -428,10 +428,20 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
             <label className="label">Your Location</label>
             <input name="location" type="text" className="input-field" placeholder="e.g. Lekki Phase 1, Lagos" />
           </div>
-          <div className="sticky bottom-0 z-10 -mx-5 mt-6 flex flex-col gap-3 border-t border-slate-200 bg-white/95 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:static sm:mx-0 sm:flex-row sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
-            <button type="button" onClick={() => setBookOpen(false)} className="btn-ghost w-full sm:w-auto px-6 justify-center">Cancel</button>
-            <button type="submit" disabled={bookingLoading} className="btn-primary w-full sm:w-auto px-8 justify-center">
-              {bookingLoading ? 'Sending...' : 'Send Request'}
+          <div className="sticky bottom-0 z-10 -mx-5 mt-6 flex items-center gap-2 border-t border-slate-200 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:static sm:mx-0 sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+            <button
+              type="button"
+              onClick={() => setBookOpen(false)}
+              className="inline-flex h-11 flex-none items-center justify-center rounded-lg px-3.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200 sm:px-5"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={bookingLoading}
+              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(15,79,74,0.16)] transition-all hover:bg-brand-600 active:scale-[0.98] active:bg-brand-700 disabled:pointer-events-none disabled:opacity-50 sm:flex-none sm:px-6"
+            >
+              {bookingLoading ? 'Sending...' : 'Send request'}
             </button>
           </div>
         </form>
