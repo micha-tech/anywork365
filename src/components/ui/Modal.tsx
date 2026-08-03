@@ -52,7 +52,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
       <div className={cn(
-        'bg-white w-full max-h-[92dvh] overflow-y-auto',
+        'bg-white w-full min-w-0 max-w-full max-h-[92dvh] overflow-x-hidden overflow-y-auto scroll-momentum',
         'rounded-t-2xl sm:rounded-2xl',
         sizeMap[size],
         'shadow-xl',
@@ -81,7 +81,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
         </div>
 
         {/* Content */}
-        <div className="px-5 sm:px-6 py-5 pb-8 sm:pb-6">{children}</div>
+        <div className="min-w-0 px-5 py-5 pb-8 sm:px-6 sm:pb-6">{children}</div>
       </div>
     </div>
   )

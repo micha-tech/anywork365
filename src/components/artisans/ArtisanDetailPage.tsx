@@ -403,7 +403,7 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       <Modal open={bookOpen} onClose={() => setBookOpen(false)} title={`Book ${displayName}`}>
-        <form onSubmit={handleBook}>
+        <form onSubmit={handleBook} className="min-w-0">
           <div className="form-group">
             <label className="label">Describe your job *</label>
             <textarea
@@ -414,21 +414,21 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
               placeholder="What do you need done? Include location, materials, and any specific requirements..."
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="form-group">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="form-group min-w-0">
               <label className="label">Your Budget (₦)</label>
-              <input name="budget" type="number" inputMode="numeric" className="input-field" min={1000} placeholder="50000" required />
+              <input name="budget" type="number" inputMode="numeric" className="input-field min-w-0 max-w-full" min={1000} placeholder="50000" required />
             </div>
-            <div className="form-group">
+            <div className="form-group min-w-0">
               <label className="label">Preferred Date</label>
-              <input name="date" type="date" className="input-field" min={new Date().toISOString().split('T')[0]} required />
+              <input name="date" type="date" className="input-field min-w-0 max-w-full" min={new Date().toISOString().split('T')[0]} required />
             </div>
           </div>
           <div className="form-group">
             <label className="label">Your Location</label>
             <input name="location" type="text" className="input-field" placeholder="e.g. Lekki Phase 1, Lagos" />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 justify-end mt-6">
+          <div className="sticky bottom-0 z-10 -mx-5 mt-6 flex flex-col gap-3 border-t border-slate-200 bg-white/95 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:static sm:mx-0 sm:flex-row sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
             <button type="button" onClick={() => setBookOpen(false)} className="btn-ghost w-full sm:w-auto px-6 justify-center">Cancel</button>
             <button type="submit" disabled={bookingLoading} className="btn-primary w-full sm:w-auto px-8 justify-center">
               {bookingLoading ? 'Sending...' : 'Send Request'}
