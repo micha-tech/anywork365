@@ -23,7 +23,7 @@ type SupportUserRow = RowDataPacket & {
   businessContact: string | null
   businessDescription: string | null
   businessLocation: string | null
-  businessLogo: string | null
+  businessState: string | null
   industryCategory: string | null
   professionalServiceCategory: string | null
   jobTitle: string | null
@@ -133,14 +133,19 @@ const BASE_SCORE = `(
   (NULLIF(TRIM(u.profileImage), '') IS NOT NULL)
 )`
 
+// Keep the support-side artisan score identical to the six fields shown in
+// Dashboard > Business Profile. Personal profile fields and a separate
+// business logo are intentionally not part of artisan profile completion.
+const ARTISAN_SCORE = `(
+  (NULLIF(TRIM(COALESCE(b.businessName, '')), '') IS NOT NULL) +
+  (NULLIF(TRIM(COALESCE(b.category, '')), '') IS NOT NULL) +
+  (NULLIF(TRIM(COALESCE(b.businessContact, '')), '') IS NOT NULL) +
+  (NULLIF(TRIM(COALESCE(b.description, '')), '') IS NOT NULL) +
+  (NULLIF(TRIM(COALESCE(b.location, '')), '') IS NOT NULL) +
+  (NULLIF(TRIM(COALESCE(b.state, '')), '') IS NOT NULL)
+)`
+
 const ROLE_SCORE = `CASE ${ROLE_EXPRESSION}
-  WHEN 'artisan' THEN
-    (NULLIF(TRIM(COALESCE(b.businessName, '')), '') IS NOT NULL) +
-    (NULLIF(TRIM(COALESCE(b.category, '')), '') IS NOT NULL) +
-    (NULLIF(TRIM(COALESCE(b.businessContact, '')), '') IS NOT NULL) +
-    (NULLIF(TRIM(COALESCE(b.description, '')), '') IS NOT NULL) +
-    (NULLIF(TRIM(COALESCE(b.location, '')), '') IS NOT NULL) +
-    (NULLIF(TRIM(COALESCE(b.businessLogo, '')), '') IS NOT NULL)
   WHEN 'professional' THEN
     (NULLIF(TRIM(COALESCE(pp.industry_category, '')), '') IS NOT NULL) +
     (NULLIF(TRIM(COALESCE(pp.professional_service_category, '')), '') IS NOT NULL) +
@@ -158,18 +163,30 @@ const ROLE_SCORE = `CASE ${ROLE_EXPRESSION}
 END`
 
 const ROLE_TOTAL = `CASE ${ROLE_EXPRESSION}
-  WHEN 'artisan' THEN 14
   WHEN 'professional' THEN 14
   WHEN 'recruiter' THEN 13
   ELSE 8
 END`
 
-const PROFILE_COMPLETION = `ROUND(100 * (${BASE_SCORE} + (${ROLE_SCORE})) / (${ROLE_TOTAL}))`
+const PROFILE_COMPLETION = `CASE ${ROLE_EXPRESSION}
+  WHEN 'artisan' THEN ROUND(100 * ${ARTISAN_SCORE} / 6)
+  ELSE ROUND(100 * (${BASE_SCORE} + (${ROLE_SCORE})) / (${ROLE_TOTAL}))
+END`
 
 function missingSteps(user: SupportUserRow): string[] {
   const missing: string[] = []
   const add = (value: unknown, label: string) => {
     if (value === null || value === undefined || String(value).trim() === '') missing.push(label)
+  }
+
+  if (user.role === 'artisan') {
+    add(user.businessName, 'Business name')
+    add(user.category, 'Service category')
+    add(user.businessContact, 'Business contact')
+    add(user.businessDescription, 'Business description')
+    add(user.businessLocation, 'Business location')
+    add(user.businessState, 'State')
+    return missing
   }
 
   add(user.fullName, 'Full name')
@@ -181,14 +198,7 @@ function missingSteps(user: SupportUserRow): string[] {
   add(user.address, 'Address')
   add(user.bio, 'Profile bio')
 
-  if (user.role === 'artisan') {
-    add(user.businessName, 'Business name')
-    add(user.category, 'Service category')
-    add(user.businessContact, 'Business contact')
-    add(user.businessDescription, 'Business description')
-    add(user.businessLocation, 'Business location')
-    add(user.businessLogo, 'Business logo')
-  } else if (user.role === 'professional') {
+  if (user.role === 'professional') {
     add(user.industryCategory, 'Industry')
     add(user.professionalServiceCategory, 'Professional service')
     add(user.jobTitle, 'Job title')
@@ -243,7 +253,7 @@ export async function GET(request: NextRequest) {
           'General'
         ) AS category,
         b.businessName, b.businessContact, b.description AS businessDescription,
-        b.location AS businessLocation, b.businessLogo,
+        b.location AS businessLocation, b.state AS businessState,
         pp.industry_category AS industryCategory,
         pp.professional_service_category AS professionalServiceCategory,
         pp.job_title AS jobTitle, pp.qualification,
