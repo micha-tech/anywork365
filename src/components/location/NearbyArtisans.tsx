@@ -103,15 +103,16 @@ export function NearbyArtisans() {
 
       {!loading && hasSearched && !error && (
         <div className="mt-6">
-          <p className="mb-4 text-sm font-medium text-slate-600">{artisans.length} artisan{artisans.length === 1 ? '' : 's'} within 50 km</p>
           {artisans.length ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {artisans.map((artisan) => <NearbyCard key={artisan.id} artisan={artisan} />)}
-            </div>
+            <>
+              <p className="mb-4 text-sm font-medium text-slate-600">{artisans.length} artisan{artisans.length === 1 ? '' : 's'} within 50 km</p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {artisans.map((artisan) => <NearbyCard key={artisan.id} artisan={artisan} />)}
+              </div>
+            </>
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
-              <p className="font-semibold text-slate-800">No artisans are available nearby</p>
-              <p className="mt-1 text-sm text-slate-500">Try another service or check again later.</p>
+              <p className="font-semibold text-slate-800">No artisans near you at the moment</p>
             </div>
           )}
         </div>
