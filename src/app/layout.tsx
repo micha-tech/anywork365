@@ -76,22 +76,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           toastOptions={{
             duration: 3500,
             style: {
-              background: '#1e293b',
-              color: '#f8fafc',
-              border: '1px solid #334155',
-              borderRadius: '16px',
-              padding: '16px 20px',
-              fontSize: '15px',
-              fontWeight: 500,
+              background: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              borderRadius: '14px',
+              padding: '14px 18px',
+              fontSize: '14px',
+              fontWeight: 600,
               lineHeight: 1.5,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.15)',
+              boxShadow: '0 16px 40px rgba(15,23,42,0.14), 0 2px 8px rgba(15,23,42,0.06)',
               WebkitFontSmoothing: 'antialiased',
             },
             success: {
-              style: { background: '#0f172a', border: '1px solid #166534' },
+              style: { background: '#ffffff', color: '#0f172a', border: '1px solid #b8e0e0' },
             },
             error: {
-              style: { background: '#0f172a', border: '1px solid #854d0e' },
+              style: { background: '#ffffff', color: '#0f172a', border: '1px solid #fcd34d' },
             },
           } as any}
           style={{ padding: '0 max(env(safe-area-inset-right), 12px) 0 max(env(safe-area-inset-left), 12px)' }}

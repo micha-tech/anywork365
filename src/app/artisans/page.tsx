@@ -3,7 +3,6 @@ import { ProCard } from '@/components/forms/ProCard'
 import { ProfessionalFilters } from '@/components/forms/ProfessionalFilters'
 import { EmptyState } from '@/components/ui'
 import Link from 'next/link'
-import { ArtisanLiveLocation } from '@/components/location/ArtisanLiveLocation'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,7 +52,6 @@ export default async function ArtisansPage({
       </div>
 
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8">
-        <div className="mb-4"><ArtisanLiveLocation /></div>
         <ProfessionalFilters category={category} state={state} lga={lga} search={search} />
         <div className="-mx-3 mb-5 flex gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:mb-8 sm:flex-wrap sm:px-0">
           {CATEGORIES.map((item) => (

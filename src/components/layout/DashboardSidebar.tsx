@@ -74,12 +74,12 @@ export function DashboardSidebar() {
   }
 
   return (
-    <aside className="hidden md:flex flex-col w-60 flex-shrink-0 bg-white/95 border-r border-slate-100 min-h-[calc(100dvh-64px)] py-6 px-3 shadow-[1px_0_0_rgba(15,23,42,0.03)]">
-      <div className="px-3 pb-4 mb-3 border-b border-slate-100">
+    <aside className="hidden min-h-[calc(100dvh-64px)] w-64 flex-shrink-0 flex-col border-r border-slate-200/80 bg-white/90 px-3 py-6 shadow-[1px_0_3px_rgba(15,23,42,0.03)] backdrop-blur md:flex">
+      <div className="mb-4 border-b border-slate-100 px-3 pb-5">
         <BrandLogo size="md" imageClassName="max-w-[185px] object-contain" />
       </div>
 
-      <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 mb-5">
+      <div className="mb-6 flex items-center gap-3 rounded-2xl border border-brand-100/80 bg-brand-50/70 px-3 py-3.5">
         <Avatar
           src={loading ? undefined : user?.avatarUrl}
           initials={loading ? '...' : initials}
@@ -96,16 +96,16 @@ export function DashboardSidebar() {
 
       {isAdmin ? (
         <div className="mb-4">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500 px-3 mb-1.5">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
             Admin
           </p>
           <Link
             href="/admin"
             className={cn(
-              'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm mb-0.5 transition-colors',
+              'mb-1 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-colors',
               pathname.startsWith('/admin')
-                ? 'bg-brand-50 text-brand-600 font-semibold'
-                : 'text-slate-500 hover:bg-brand-50 hover:text-brand-500'
+                ? 'bg-brand-500 text-white font-semibold shadow-[0_5px_14px_rgba(15,79,74,0.16)]'
+                : 'text-slate-600 hover:bg-brand-50 hover:text-brand-600'
             )}
           >
             <ShieldIcon className="w-4 h-4 flex-shrink-0" />
@@ -115,7 +115,7 @@ export function DashboardSidebar() {
       ) : (
         nav?.map((section) => (
           <div key={section.label} className="mb-4">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500 px-3 mb-1.5">
+            <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
               {section.label}
             </p>
             {section.links.map((link) => {
@@ -127,10 +127,10 @@ export function DashboardSidebar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm mb-0.5 transition-colors',
+                    'mb-1 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-colors',
                     active
-                      ? 'bg-brand-50 text-brand-600 font-semibold'
-                      : 'text-slate-500 hover:bg-brand-50 hover:text-brand-500'
+                      ? 'bg-brand-500 text-white font-semibold shadow-[0_5px_14px_rgba(15,79,74,0.16)]'
+                      : 'text-slate-600 hover:bg-brand-50 hover:text-brand-600'
                   )}
                 >
                   <Icon className="w-4 h-4 flex-shrink-0" />
@@ -142,7 +142,7 @@ export function DashboardSidebar() {
         ))
       )}
 
-      <div className="mt-auto pt-4 border-t border-slate-100">
+      <div className="mt-auto border-t border-slate-100 pt-4">
         <Link
           href="/"
           className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-500 hover:bg-brand-50 hover:text-brand-500 transition-colors"
