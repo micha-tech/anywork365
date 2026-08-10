@@ -1,9 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Geolocation, type Position } from '@capacitor/geolocation'
 import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import {
+  clearLocationWatch,
+  getCurrentLocation,
+  watchCurrentLocation,
+  type AppPosition,
+} from '@/lib/client-geolocation'
 
 const SHARING_KEY = 'anywork365_artisan_live_location'
 
@@ -14,7 +19,7 @@ export function ArtisanLiveLocation() {
   const watchId = useRef<string | null>(null)
   const lastSentAt = useRef(0)
 
-  const publish = useCallback(async (position: Position) => {
+  const publish = useCallback(async (position: AppPosition) => {
     if (Date.now() - lastSentAt.current < 30_000) return
     lastSentAt.current = Date.now()
 
@@ -45,19 +50,13 @@ export function ArtisanLiveLocation() {
   }, [])
 
   const beginWatching = useCallback(async (requestPermission: boolean) => {
-    let permission = await Geolocation.checkPermissions()
-    if (requestPermission && permission.location === 'prompt') {
-      permission = await Geolocation.requestPermissions()
-    }
-    if (permission.location !== 'granted') throw new Error('Location permission was not granted.')
-
-    const firstPosition = await Geolocation.getCurrentPosition({
+    const firstPosition = await getCurrentLocation({
       enableHighAccuracy: true,
       timeout: 15_000,
       maximumAge: 30_000,
-    })
+    }, requestPermission)
     await publish(firstPosition)
-    watchId.current = await Geolocation.watchPosition(
+    watchId.current = await watchCurrentLocation(
       { enableHighAccuracy: true, timeout: 30_000, minimumUpdateInterval: 30_000 },
       (position, error) => {
         if (position) void publish(position).catch(() => undefined)
@@ -74,7 +73,7 @@ export function ArtisanLiveLocation() {
       setSharing(false)
     })
     return () => {
-      if (watchId.current) void Geolocation.clearWatch({ id: watchId.current })
+      if (watchId.current) void clearLocationWatch(watchId.current)
     }
   }, [beginWatching, loading, user?.role])
 
@@ -96,7 +95,7 @@ export function ArtisanLiveLocation() {
   async function stopSharing() {
     setBusy(true)
     try {
-      if (watchId.current) await Geolocation.clearWatch({ id: watchId.current })
+      if (watchId.current) await clearLocationWatch(watchId.current)
       watchId.current = null
       await fetch('/api/artisan-location', { method: 'DELETE' })
       localStorage.removeItem(SHARING_KEY)

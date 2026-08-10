@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Geolocation } from '@capacitor/geolocation'
 import { BUSINESS_CATEGORY_GROUPS } from '@/types'
+import { getCurrentLocation } from '@/lib/client-geolocation'
 
 type NearbyArtisan = {
   id: string
@@ -30,11 +30,7 @@ export function NearbyArtisans() {
     setLoading(true)
     setError('')
     try {
-      let permission = await Geolocation.checkPermissions()
-      if (permission.location === 'prompt') permission = await Geolocation.requestPermissions()
-      if (permission.location !== 'granted') throw new Error('Allow location access to search nearby artisans.')
-
-      const position = await Geolocation.getCurrentPosition({
+      const position = await getCurrentLocation({
         enableHighAccuracy: true,
         timeout: 15_000,
         maximumAge: 30_000,
