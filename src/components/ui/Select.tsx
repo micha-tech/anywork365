@@ -19,24 +19,36 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {label}
           </label>
         )}
-        <select
-          ref={ref}
-          id={inputId}
-          className={cn(
-            'input-field appearance-none bg-white',
-            error && 'border-amber-300',
-            className
-          )}
-          {...props}
-        >
-          {placeholder && <option value="">{placeholder}</option>}
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {error && <p className="mt-1.5 text-xs text-amber-600">{error}</p>}
+        <div className="relative">
+          <select
+            ref={ref}
+            id={inputId}
+            className={cn(
+              'input-field appearance-none bg-white pr-11',
+              error && 'border-amber-300 focus:border-amber-400 focus:ring-amber-400/10',
+              className
+            )}
+            {...props}
+          >
+            {placeholder && <option value="">{placeholder}</option>}
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <svg
+            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            aria-hidden="true"
+          >
+            <path d="m5 7.5 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        {error && <p className="mt-2 text-xs font-medium text-amber-700">{error}</p>}
       </div>
     )
   }

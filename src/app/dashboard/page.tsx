@@ -9,6 +9,7 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { SkeletonMetricCard } from '@/components/ui/Skeleton'
 import { ProCard } from '@/components/forms/ProCard'
 import { JobCard } from '@/components/forms/JobCard'
+import { ArtisanLiveLocation } from '@/components/location/ArtisanLiveLocation'
 import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES, type Job, type User } from '@/types'
 
 interface Metric {
@@ -287,6 +288,8 @@ export default function DashboardPage() {
           ) : null}
         </div>
       </div>
+
+      {isVendorDashboard && <ArtisanLiveLocation />}
 
       {isClientDashboard && clientSummary?.activeBookings ? (
         <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:p-5">

@@ -47,15 +47,15 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       ref={overlayRef}
       className={cn(
         'fixed inset-0 z-50 flex items-end sm:items-center justify-center transition-opacity duration-200',
-        animating ? 'bg-black/40 backdrop-blur-sm' : 'bg-transparent'
+        animating ? 'bg-slate-950/45 backdrop-blur-[3px]' : 'bg-transparent'
       )}
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
       <div className={cn(
         'bg-white w-full min-w-0 max-w-full max-h-[92dvh] overflow-x-hidden overflow-y-auto scroll-momentum',
-        'rounded-t-2xl sm:rounded-2xl',
+        'rounded-t-3xl border border-white/60 sm:rounded-3xl',
         sizeMap[size],
-        'shadow-xl',
+        'shadow-[0_24px_70px_rgba(15,23,42,0.24)]',
         'transition-all duration-200',
         animating
           ? 'translate-y-0 opacity-100 sm:scale-100'
@@ -63,15 +63,15 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       )}>
         {/* Drag handle — mobile only */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-10 h-1 bg-ui-border rounded-full" />
+          <div className="h-1 w-10 rounded-full bg-slate-300" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-200">
-          <h2 className="font-display font-semibold text-lg text-slate-900">{title}</h2>
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-5 py-4 sm:px-6 sm:py-5">
+          <h2 className="font-display text-lg font-bold tracking-[-0.02em] text-slate-950">{title}</h2>
           <button
             onClick={onClose}
-            className="w-11 h-11 flex items-center justify-center rounded-xl text-slate-500 hover:bg-gray-100 transition-colors -mr-1.5"
+            className="-mr-1.5 flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
             aria-label="Close"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

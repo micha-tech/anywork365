@@ -73,7 +73,7 @@ export function Card({ size = 'md', hover = false, className, children, ...props
     <div
       className={cn(
         size === 'sm' ? 'card-sm' : 'card',
-        hover && 'cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-500',
+        hover && 'cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)]',
         className
       )}
       {...props}
@@ -140,12 +140,12 @@ export function EmptyState({ icon = 'search', title, description, action }: Empt
   const iconNode = typeof icon === 'string' ? emptyIcons[icon as EmptyIconName] ?? emptyIcons.search : icon
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white px-6 py-16 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-lg bg-slate-100">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/80 px-6 py-14 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-brand-100 bg-brand-50">
         {iconNode}
       </div>
-      <h3 className="mb-2 text-base font-semibold text-slate-900">{title}</h3>
-      {description && <p className="max-w-sm text-sm text-slate-500">{description}</p>}
+      <h3 className="mb-2 text-base font-semibold tracking-[-0.015em] text-slate-900">{title}</h3>
+      {description && <p className="max-w-sm text-sm leading-6 text-slate-500">{description}</p>}
       {action && <div className="mt-6">{action}</div>}
     </div>
   )

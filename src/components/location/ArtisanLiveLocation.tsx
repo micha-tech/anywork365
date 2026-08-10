@@ -98,33 +98,69 @@ export function ArtisanLiveLocation() {
   async function stopSharing() {
     setBusy(true)
     try {
+      const response = await fetch('/api/artisan-location', { method: 'DELETE' })
+      if (!response.ok) throw new Error('Location sharing could not be stopped.')
       if (watchId.current) await clearLocationWatch(watchId.current)
       watchId.current = null
-      await fetch('/api/artisan-location', { method: 'DELETE' })
       localStorage.removeItem(SHARING_KEY)
       setSharing(false)
       toast.success('Live location sharing stopped.')
+    } catch {
+      toast.error('We could not stop location sharing. Please try again.')
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className="rounded-xl border border-brand-100 bg-brand-50 p-3 sm:flex sm:items-center sm:justify-between sm:gap-4">
-      <div>
-        <p className="text-sm font-bold text-brand-800">Live location</p>
-        <p className="mt-0.5 text-xs text-brand-700">
-          {sharing ? 'Clients near you can find your profile while the app is active. Your location expires after 30 minutes.' : 'Share your current position so clients in your area can find you.'}
-        </p>
+    <section className={`mb-5 overflow-hidden rounded-2xl border bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] ${sharing ? 'border-brand-200' : 'border-slate-200'}`}>
+      <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="flex min-w-0 items-start gap-3.5">
+          <div className={`relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl ${sharing ? 'bg-brand-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
+            <LocationPinIcon />
+            <span className={`absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white ${sharing ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-display text-base font-bold text-slate-900">Location sharing</h2>
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${sharing ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                {sharing ? 'On' : 'Off'}
+              </span>
+            </div>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+              {sharing
+                ? 'Clients can find your profile when they search for artisans near their current location.'
+                : 'Turn this on when you are available for work and want nearby clients to find you.'}
+            </p>
+            <p className="mt-1.5 text-xs leading-5 text-slate-400">
+              Your exact coordinates are not shown. Sharing updates while the app is open and expires after 30 minutes.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={sharing ? stopSharing : startSharing}
+          aria-pressed={sharing}
+          className={`min-h-11 w-full flex-shrink-0 justify-center px-5 sm:w-auto ${sharing ? 'btn-outline border-slate-300 text-slate-700' : 'btn-primary'}`}
+        >
+          {busy ? 'Please wait...' : sharing ? 'Turn off' : 'Share my location'}
+        </button>
       </div>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={sharing ? stopSharing : startSharing}
-        className={`mt-3 w-full justify-center sm:mt-0 sm:w-auto ${sharing ? 'btn-outline' : 'btn-primary'}`}
-      >
-        {busy ? 'Please wait...' : sharing ? 'Stop sharing' : 'Share live location'}
-      </button>
-    </div>
+      {sharing && (
+        <div className="border-t border-brand-100 bg-brand-50/70 px-4 py-2.5 text-xs font-medium text-brand-700 sm:px-5">
+          Your profile is currently included in nearby searches.
+        </div>
+      )}
+    </section>
+  )
+}
+
+function LocationPinIcon() {
+  return (
+    <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </svg>
   )
 }
