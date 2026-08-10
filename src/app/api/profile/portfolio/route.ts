@@ -73,6 +73,13 @@ export async function POST(req: NextRequest) {
     const projectUrlRaw = String(form.get('projectUrl') || '').trim()
     let projectUrl: string | undefined
 
+    if (session.role === 'professional' && file) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Professional portfolio images are not available yet' },
+        { status: 400 }
+      )
+    }
+
     if (title.length < 3 || title.length > 120) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Portfolio title must be between 3 and 120 characters' },

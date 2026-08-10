@@ -38,6 +38,26 @@ export interface PortfolioItem {
   createdAt: string
 }
 
+export interface ProfessionalCertification {
+  name: string
+  yearObtained: number
+}
+
+export interface ProfessionalWorkExperience {
+  jobTitle: string
+  employer: string
+  startYear: number
+  endYear?: number
+  current: boolean
+  description?: string
+}
+
+export interface ProfessionalBackground {
+  schoolName: string
+  certifications: ProfessionalCertification[]
+  workExperience: ProfessionalWorkExperience[]
+}
+
 export interface AuthUser {
   // Optional profile fields stored in JWT payload
   phone?: string
