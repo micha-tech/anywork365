@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BUSINESS_CATEGORY_GROUPS } from '@/types'
-import { getCurrentLocation } from '@/lib/client-geolocation'
+import { getCurrentLocation, LocationAccessError } from '@/lib/client-geolocation'
 
 type NearbyArtisan = {
   id: string
@@ -17,6 +17,25 @@ type NearbyArtisan = {
   location: string
   distanceKm: number
   updatedAt: string
+}
+
+class NearbyRequestError extends Error {}
+
+async function readResponse(response: Response): Promise<{ data?: NearbyArtisan[]; error?: string }> {
+  const text = await response.text()
+  if (!text) return {}
+  try {
+    return JSON.parse(text) as { data?: NearbyArtisan[]; error?: string }
+  } catch {
+    return {}
+  }
+}
+
+function requestErrorMessage(status: number, serverMessage?: string): string {
+  if (serverMessage) return serverMessage
+  if (status === 429) return 'Too many nearby searches. Please wait a moment and try again.'
+  if (status >= 500) return 'Nearby search is temporarily unavailable. Please try again shortly.'
+  return 'We could not complete the nearby search. Please try again.'
 }
 
 export function NearbyArtisans() {
@@ -43,12 +62,16 @@ export function NearbyArtisans() {
       if (category) params.set('category', category)
 
       const response = await fetch(`/api/artisans/nearby?${params}`)
-      const body = await response.json() as { data?: NearbyArtisan[]; error?: string }
-      if (!response.ok) throw new Error(body.error || 'Could not load nearby artisans.')
+      const body = await readResponse(response)
+      if (!response.ok) throw new NearbyRequestError(requestErrorMessage(response.status, body.error))
       setArtisans(body.data || [])
       setHasSearched(true)
     } catch (searchError) {
-      setError(searchError instanceof Error ? searchError.message : 'Could not get your current location.')
+      if (searchError instanceof LocationAccessError || searchError instanceof NearbyRequestError) {
+        setError(searchError.message)
+      } else {
+        setError('We could not connect to nearby search. Check your connection and try again.')
+      }
     } finally {
       setLoading(false)
     }

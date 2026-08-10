@@ -23,18 +23,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid location data.' }, { status: 400 })
   }
 
-  const { latitude, longitude, accuracy, locationLabel } = parsed.data
-  await execute(
-    `INSERT INTO artisan_live_locations
-       (uid, latitude, longitude, accuracy_meters, location_label, sharing_enabled, updated_at)
-     VALUES (?, ?, ?, ?, ?, 1, NOW())
-     ON DUPLICATE KEY UPDATE latitude = VALUES(latitude), longitude = VALUES(longitude),
-       accuracy_meters = VALUES(accuracy_meters), location_label = VALUES(location_label),
-       sharing_enabled = 1, updated_at = NOW()`,
-    [session.id, latitude, longitude, accuracy ?? null, locationLabel],
-  )
+  try {
+    const { latitude, longitude, accuracy, locationLabel } = parsed.data
+    await execute(
+      `INSERT INTO artisan_live_locations
+         (uid, latitude, longitude, accuracy_meters, location_label, sharing_enabled, updated_at)
+       VALUES (?, ?, ?, ?, ?, 1, NOW())
+       ON DUPLICATE KEY UPDATE latitude = VALUES(latitude), longitude = VALUES(longitude),
+         accuracy_meters = VALUES(accuracy_meters), location_label = VALUES(location_label),
+         sharing_enabled = 1, updated_at = NOW()`,
+      [session.id, latitude, longitude, accuracy ?? null, locationLabel],
+    )
 
-  return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[ARTISAN LOCATION UPDATE]', error)
+    return NextResponse.json(
+      { error: 'We could not update your location. Please try again.' },
+      { status: 503 },
+    )
+  }
 }
 
 export async function DELETE() {
@@ -43,9 +51,17 @@ export async function DELETE() {
     return NextResponse.json({ error: 'Authentication required.' }, { status: 403 })
   }
 
-  await execute(
-    'UPDATE artisan_live_locations SET sharing_enabled = 0, updated_at = NOW() WHERE uid = ?',
-    [session.id],
-  )
-  return NextResponse.json({ success: true })
+  try {
+    await execute(
+      'UPDATE artisan_live_locations SET sharing_enabled = 0, updated_at = NOW() WHERE uid = ?',
+      [session.id],
+    )
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[ARTISAN LOCATION DELETE]', error)
+    return NextResponse.json(
+      { error: 'We could not stop location sharing. Please try again.' },
+      { status: 503 },
+    )
+  }
 }
