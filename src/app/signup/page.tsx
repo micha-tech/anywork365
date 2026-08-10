@@ -3,11 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
-import { toast } from 'sonner'
-import { GoogleAuthButton, AuthDivider } from '@/components/auth/GoogleAuthButton'
-import { isGoogleUser, onAuthChange, signInWithGoogle, signOut as signOutFirebase } from '@/lib/firebase/auth'
-import { exchangeGoogleUser, getGoogleProfile } from '@/lib/google-auth'
-import { getPostLoginPath } from '@/lib/auth-routing'
+import { AuthDivider } from '@/components/auth/GoogleAuthButton'
+import { isGoogleUser, onAuthChange, signOut as signOutFirebase } from '@/lib/firebase/auth'
+import { getGoogleProfile } from '@/lib/google-auth'
 
 const accountTypes = [
   {
@@ -41,7 +39,6 @@ const accountTypes = [
 ] as const
 
 export default function SignupPage() {
-  const [googleSubmitting, setGoogleSubmitting] = useState(false)
   const [googleEmail, setGoogleEmail] = useState('')
 
   useEffect(() => {
@@ -59,33 +56,6 @@ export default function SignupPage() {
       return undefined
     }
   }, [])
-
-  async function handleGoogleSignUp() {
-    setGoogleSubmitting(true)
-    try {
-      const { user, error } = await signInWithGoogle()
-      if (error || !user) {
-        if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') {
-          toast.error(error?.message || 'We couldn’t continue with Google.')
-        }
-        return
-      }
-
-      const result = await exchangeGoogleUser(user)
-      if (!result.needsProfile) {
-        window.location.href = getPostLoginPath(result.user?.role)
-        return
-      }
-
-      sessionStorage.setItem('anywork365_google_signup', '1')
-      setGoogleEmail(result.email)
-      toast.success('Google connected. Choose your account type to continue.')
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'We couldn’t continue with Google.')
-    } finally {
-      setGoogleSubmitting(false)
-    }
-  }
 
   async function switchToEmailSignup() {
     await signOutFirebase().catch(() => undefined)
@@ -111,8 +81,8 @@ export default function SignupPage() {
                 </p>
               </div>
 
-              <div className="mt-7">
-                {googleEmail ? (
+              {googleEmail && (
+                <div className="mt-7">
                   <div className="rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-center">
                     <p className="text-sm font-semibold text-brand-800">Google account connected</p>
                     <p className="mt-0.5 truncate text-xs text-brand-700">{googleEmail}</p>
@@ -125,13 +95,11 @@ export default function SignupPage() {
                       Use email instead
                     </button>
                   </div>
-                ) : (
-                  <GoogleAuthButton onClick={handleGoogleSignUp} loading={googleSubmitting} />
-                )}
-                <AuthDivider label={googleEmail ? 'choose your account type' : 'or choose an account type and use email'} />
-              </div>
+                  <AuthDivider label="choose your account type" />
+                </div>
+              )}
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className={`grid gap-3 sm:grid-cols-2 ${googleEmail ? '' : 'mt-7'}`}>
                 {accountTypes.map(({ href, title, description, icon: Icon, accent }) => (
                   <Link
                     key={href}
