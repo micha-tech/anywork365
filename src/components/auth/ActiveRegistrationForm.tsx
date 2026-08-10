@@ -182,7 +182,7 @@ export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormPr
         title={isArtisan ? 'Create your artisan account' : 'Create your client account'}
         description={isArtisan
           ? 'Tell us who you are and the primary service you provide.'
-          : 'Enter your details to start finding and booking trusted people.'}
+          : 'Enter your details to start finding and booking artisans.'}
       />
 
       {googleUser ? (

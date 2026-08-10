@@ -85,7 +85,7 @@ export function ArtisanLiveLocation() {
     try {
       await beginWatching(true)
       localStorage.setItem(SHARING_KEY, '1')
-      toast.success('Your live location is now visible in Nearby while this app is active.')
+      toast.success('Clients near you can now find your profile while this app is active.')
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Could not start location sharing.')
     } finally {
@@ -112,7 +112,7 @@ export function ArtisanLiveLocation() {
       <div>
         <p className="text-sm font-bold text-brand-800">Live location</p>
         <p className="mt-0.5 text-xs text-brand-700">
-          {sharing ? 'Visible in Nearby while the app is active. It expires after 30 minutes.' : 'Share your current position so nearby clients can find you.'}
+          {sharing ? 'Clients near you can find your profile while the app is active. Your location expires after 30 minutes.' : 'Share your current position so clients in your area can find you.'}
         </p>
       </div>
       <button

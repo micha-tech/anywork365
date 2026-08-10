@@ -27,8 +27,8 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: "Nigeria's trusted work platform",
-  description: 'Connect with verified artisans and professionals across Nigeria.',
+  title: "Nigeria's work marketplace",
+  description: 'Find artisans, professional opportunities and candidates across Nigeria.',
   keywords: ['Nigeria', 'freelance', 'artisans', 'professionals', 'recruiters', 'Lagos', 'Abuja'],
   manifest: '/manifest.webmanifest',
   icons: {

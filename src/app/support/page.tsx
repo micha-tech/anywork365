@@ -211,8 +211,7 @@ export default function SupportDashboardPage() {
     <div className="mx-auto max-w-[1600px] px-4 py-6 md:px-7 lg:px-8 lg:py-8">
       <section className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-500">User success</p>
-          <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
             Profile setup progress
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
@@ -228,7 +227,7 @@ export default function SupportDashboardPage() {
         <MetricCard label="Users in view" value={total.toLocaleString()} note="Matching this support queue" accent="brand" />
         <MetricCard label="Average setup" value={`${summary.averageCompletion}%`} note="Across matching users" accent="blue" />
         <MetricCard label="Need attention" value={summary.needsAttention.toLocaleString()} note="Below 50% complete" accent="rose" />
-        <MetricCard label="Profiles complete" value={summary.completeProfiles.toLocaleString()} note="Ready to be discovered" accent="emerald" />
+        <MetricCard label="Profiles complete" value={summary.completeProfiles.toLocaleString()} note="All required fields completed" accent="emerald" />
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.05)]">

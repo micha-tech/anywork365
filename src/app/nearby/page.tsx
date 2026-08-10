@@ -9,9 +9,8 @@ export default function NearbyPage() {
       <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#F0FDFA_100%)] px-4 py-7 sm:px-6 sm:py-12">
         <div className="mx-auto max-w-6xl">
           <Link href="/artisans" className="text-sm font-semibold text-brand-600">← All artisans</Link>
-          <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-brand-500">Live nearby</p>
-          <h1 className="mt-2 font-display text-3xl font-extrabold text-slate-950 sm:text-5xl">Find artisans near you</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">Choose a category and discover artisans currently sharing their location, ordered by distance from you.</p>
+          <h1 className="mt-5 font-display text-3xl font-extrabold text-slate-950 sm:text-5xl">Artisans near you</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">Choose a service to see available artisans nearby, starting with the closest.</p>
         </div>
       </div>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-9">

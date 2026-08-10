@@ -5,7 +5,6 @@ import { BrandWordmark } from '@/components/layout/BrandLogo'
 
 type RegistrationShellProps = {
   role: string
-  eyebrow: string
   title: string
   description: string
   benefits: string[]
@@ -18,7 +17,6 @@ type RegistrationShellProps = {
 
 export function RegistrationShell({
   role,
-  eyebrow,
   title,
   description,
   benefits,
@@ -34,8 +32,7 @@ export function RegistrationShell({
         <span className="flex h-6 w-6 items-center justify-center text-amber-300 [&>svg]:h-5 [&>svg]:w-5">{icon}</span>
         Register as {role}
       </div>
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">{eyebrow}</p>
-      <h1 className="mt-2 max-w-lg font-display text-2xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-3xl lg:text-[2.6rem]">{title}</h1>
+      <h1 className="max-w-lg font-display text-2xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-3xl lg:text-[2.6rem]">{title}</h1>
       <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/85 lg:text-base">{description}</p>
 
       <div className="mt-4 grid gap-2 border-t border-white/20 pt-4 lg:mt-5 lg:grid-cols-1 lg:pt-5 xl:grid-cols-3">
@@ -124,8 +121,7 @@ export function RegistrationShell({
 export function RegistrationFormHeader({ title, description }: { title: string; description: string }) {
   return (
     <div className="mb-6 border-b border-slate-100 pb-4 sm:mb-7 sm:pb-5">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-600">Create your account</p>
-      <h2 className="mt-2 font-display text-[1.65rem] font-extrabold leading-tight tracking-tight text-slate-950 sm:text-3xl">{title}</h2>
+      <h2 className="font-display text-[1.65rem] font-extrabold leading-tight tracking-tight text-slate-950 sm:text-3xl">{title}</h2>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-500">{description}</p>
     </div>
   )

@@ -12,38 +12,30 @@ const AUTH_ENTRY_PATH = '/login'
 const slides = [
   {
     image: '/images/onboarding-plumber.jpg',
-    eyebrow: 'Home services',
-    title: 'Trusted help is closer than you think',
+    title: 'Find artisans in your area',
     description:
-      'Find skilled plumbers, electricians, cleaners, installers, and repair experts near you, with reviews that help you choose confidently.',
-    proof: 'Verified profiles. Real reviews.',
+      'Search for plumbers, electricians, cleaners, installers and repair services near you. Compare profiles and reviews before you choose.',
     align: 'object-center',
   },
   {
     image: '/images/onboarding-carpenter.jpg',
-    eyebrow: 'Quality work',
-    title: 'Book professionals who take pride in the details',
+    title: 'Compare and book',
     description:
-      'Compare services, message the right expert, agree on the job, and move forward with clarity before anyone starts work.',
-    proof: 'Clear choices. Better outcomes.',
+      'Review services, message an artisan and agree on the job before work starts.',
     align: 'object-center',
   },
   {
     image: '/images/onboarding-engineers.jpg',
-    eyebrow: 'Secure flow',
-    title: 'Stay in control from booking to completion',
+    title: 'Manage the booking from start to finish',
     description:
-      'Use chat, job updates, and booking-linked payments to keep every engagement transparent until the work is done.',
-    proof: 'Chat. Track. Pay with confidence.',
+      'Use chat, booking updates and booking-linked payments until the work is complete.',
     align: 'object-[48%_center]',
   },
   {
     image: '/images/onboarding-mechanic.jpg',
-    eyebrow: 'For professionals',
-    title: 'Turn your skill into steady local demand',
+    title: 'Offer your services',
     description:
-      'Create a profile, showcase your work, receive bookings, and build trust with customers looking for reliable service providers.',
-    proof: 'Get discovered. Get booked.',
+      'Create a profile, show previous work and receive booking requests from clients.',
     align: 'object-center',
   },
 ]
@@ -198,17 +190,11 @@ export default function OnboardingPage() {
               aria-live={i === active ? 'polite' : undefined}
             >
               <div className="max-w-[21.5rem]">
-                <p className="mb-3 inline-flex rounded-lg bg-brand-500/90 px-3 py-1.5 text-xs font-bold text-white shadow-[0_12px_32px_rgba(15,79,74,0.28)]">
-                  {slide.eyebrow}
-                </p>
                 <h1 className="font-display text-[clamp(2rem,8vw,3rem)] font-extrabold leading-[1.02] text-white text-balance">
                   {slide.title}
                 </h1>
                 <p className="mt-4 text-[15px] leading-relaxed text-white/80 text-balance">
                   {slide.description}
-                </p>
-                <p className="mt-4 text-sm font-semibold text-amber-300">
-                  {slide.proof}
                 </p>
               </div>
             </div>
@@ -253,7 +239,7 @@ function OnboardingSplash() {
         </div>
 
         <h1 className="max-w-xs text-2xl font-extrabold leading-tight text-white">
-          Trusted professionals for everyday work
+          Find work. Hire skilled people.
         </h1>
 
         <div className="mt-8 flex items-center justify-center gap-2" aria-label="Loading onboarding">
