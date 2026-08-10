@@ -10,6 +10,13 @@ export type AppPosition = {
   timestamp: number
 }
 
+export class LocationAccessError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'LocationAccessError'
+  }
+}
+
 type PositionOptions = {
   enableHighAccuracy?: boolean
   timeout?: number
@@ -19,13 +26,13 @@ type PositionOptions = {
 
 function browserPosition(options: PositionOptions): Promise<AppPosition> {
   if (typeof navigator === 'undefined' || !navigator.geolocation) {
-    return Promise.reject(new Error('Location is not supported by this browser.'))
+    return Promise.reject(new LocationAccessError('Location is not supported by this browser.'))
   }
 
   return new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(
       (position) => resolve(position),
-      (error) => reject(new Error(browserLocationError(error))),
+      (error) => reject(new LocationAccessError(browserLocationError(error))),
       options,
     )
   })
@@ -44,7 +51,7 @@ async function ensureNativePermission(requestPermission: boolean): Promise<void>
     permission = await Geolocation.requestPermissions()
   }
   if (permission.location !== 'granted') {
-    throw new Error('Allow location access in your device settings and try again.')
+    throw new LocationAccessError('Allow location access in your device settings and try again.')
   }
 }
 
@@ -54,8 +61,20 @@ export async function getCurrentLocation(
 ): Promise<AppPosition> {
   if (!Capacitor.isNativePlatform()) return browserPosition(options)
 
-  await ensureNativePermission(requestPermission)
-  return Geolocation.getCurrentPosition(options)
+  try {
+    await ensureNativePermission(requestPermission)
+    return await Geolocation.getCurrentPosition(options)
+  } catch (error) {
+    if (error instanceof LocationAccessError) throw error
+    const message = error instanceof Error ? error.message : ''
+    if (/permission|denied/i.test(message)) {
+      throw new LocationAccessError('Allow location access in your device settings and try again.')
+    }
+    if (/timeout/i.test(message)) {
+      throw new LocationAccessError('Location lookup timed out. Check that location services are enabled.')
+    }
+    throw new LocationAccessError('Your location is currently unavailable. Please try again.')
+  }
 }
 
 export async function watchCurrentLocation(
@@ -64,11 +83,11 @@ export async function watchCurrentLocation(
 ): Promise<string> {
   if (!Capacitor.isNativePlatform()) {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      throw new Error('Location is not supported by this browser.')
+      throw new LocationAccessError('Location is not supported by this browser.')
     }
     const id = navigator.geolocation.watchPosition(
       (position) => callback(position),
-      (error) => callback(null, new Error(browserLocationError(error))),
+      (error) => callback(null, new LocationAccessError(browserLocationError(error))),
       options,
     )
     return `web:${id}`

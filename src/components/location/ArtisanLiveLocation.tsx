@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import {
   clearLocationWatch,
   getCurrentLocation,
+  LocationAccessError,
   watchCurrentLocation,
   type AppPosition,
 } from '@/lib/client-geolocation'
@@ -86,7 +87,9 @@ export function ArtisanLiveLocation() {
       localStorage.setItem(SHARING_KEY, '1')
       toast.success('Clients near you can now find your profile while this app is active.')
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not start location sharing.')
+      toast.error(error instanceof LocationAccessError
+        ? error.message
+        : 'We could not start location sharing. Please try again.')
     } finally {
       setBusy(false)
     }
