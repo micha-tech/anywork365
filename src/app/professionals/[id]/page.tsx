@@ -4,8 +4,20 @@ import { notFound } from 'next/navigation'
 import { Avatar, Badge } from '@/components/ui'
 import { getAvatarUrl } from '@/lib/avatar'
 import { getPortfolioByUid, getProfessionalProfileByUid } from '@/lib/queries'
+import type { ProfessionalCertification, ProfessionalWorkExperience } from '@/types'
 
 export const dynamic = 'force-dynamic'
+
+function parseList<T>(value: string | unknown[] | null | undefined): T[] {
+  if (Array.isArray(value)) return value as T[]
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed as T[] : []
+  } catch {
+    return []
+  }
+}
 
 export default async function ProfessionalProfilePage({
   params,
@@ -27,6 +39,10 @@ export default async function ProfessionalProfilePage({
   const portfolioUrl = professional.linkedin_or_portfolio_url && /^https?:\/\//i.test(professional.linkedin_or_portfolio_url)
     ? professional.linkedin_or_portfolio_url
     : null
+  const certifications = parseList<ProfessionalCertification>(professional.certifications)
+    .filter((item) => item && typeof item.name === 'string' && Number.isInteger(item.yearObtained))
+  const workExperience = parseList<ProfessionalWorkExperience>(professional.work_experience)
+    .filter((item) => item && typeof item.jobTitle === 'string' && typeof item.employer === 'string')
 
   return (
     <main className="min-h-screen bg-slate-100 px-3 py-4 sm:px-6 sm:py-8">
@@ -96,16 +112,36 @@ export default async function ProfessionalProfilePage({
             </ProfileSection>
 
             <ProfileSection title="Experience">
-              <div className="flex gap-4">
-                <SectionIcon type="experience" />
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-slate-900">{professional.job_title}</h3>
-                  <p className="mt-0.5 text-sm text-slate-600">{professional.professional_service_category}</p>
-                  <p className="mt-1 text-sm text-slate-400">
-                    {professional.years_experience} {professional.years_experience === 1 ? 'year' : 'years'} of professional experience
-                  </p>
+              {workExperience.length > 0 ? (
+                <div className="space-y-5">
+                  {workExperience.map((experience, index) => (
+                    <div key={`${experience.employer}-${experience.startYear}-${index}`} className="flex gap-4 border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                      <SectionIcon type="experience" />
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-slate-900">{experience.jobTitle}</h3>
+                        <p className="mt-0.5 text-sm font-medium text-slate-600">{experience.employer}</p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          {experience.startYear} – {experience.current ? 'Present' : experience.endYear}
+                        </p>
+                        {experience.description && (
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{experience.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <div className="flex gap-4">
+                  <SectionIcon type="experience" />
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-slate-900">{professional.job_title}</h3>
+                    <p className="mt-0.5 text-sm text-slate-600">{professional.professional_service_category}</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      {professional.years_experience} {professional.years_experience === 1 ? 'year' : 'years'} of professional experience
+                    </p>
+                  </div>
+                </div>
+              )}
             </ProfileSection>
 
             <ProfileSection title="Education">
@@ -113,10 +149,27 @@ export default async function ProfessionalProfilePage({
                 <SectionIcon type="education" />
                 <div className="min-w-0">
                   <h3 className="font-semibold text-slate-900">{professional.qualification}</h3>
-                  <p className="mt-1 text-sm text-slate-500">Professional qualification</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {professional.school_name || 'Professional qualification'}
+                  </p>
                 </div>
               </div>
             </ProfileSection>
+
+            {certifications.length > 0 && (
+              <ProfileSection title="Certifications">
+                <div className="divide-y divide-slate-100">
+                  {certifications.map((certification, index) => (
+                    <div key={`${certification.name}-${certification.yearObtained}-${index}`} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                      <p className="text-sm font-semibold text-slate-800">{certification.name}</p>
+                      <span className="flex-shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+                        {certification.yearObtained}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ProfileSection>
+            )}
 
             {portfolio.length > 0 && (
               <ProfileSection title="Portfolio">
@@ -171,6 +224,7 @@ export default async function ProfessionalProfilePage({
                 <ProfileDetail label="Specialty" value={professional.professional_service_category} />
                 <ProfileDetail label="Location" value={location} />
                 <ProfileDetail label="Experience" value={`${professional.years_experience} years`} />
+                {professional.school_name && <ProfileDetail label="School" value={professional.school_name} />}
               </dl>
             </ProfileSection>
           </aside>

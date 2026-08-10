@@ -156,6 +156,9 @@ export interface ProfessionalDirectoryRow extends RowDataPacket {
   professional_service_category: string
   job_title: string
   qualification: string
+  school_name?: string | null
+  certifications?: string | unknown[] | null
+  work_experience?: string | unknown[] | null
   years_experience: number
   linkedin_or_portfolio_url: string | null
   cover_image_url: string | null
@@ -1178,11 +1181,64 @@ export async function getProfessionalProfileByUid(uid: string): Promise<Professi
   return queryOne<ProfessionalDirectoryRow[]>(
     `SELECT u.uid, u.fullName AS full_name, u.profileImage AS profile_image,
       u.state, u.lga, u.bio, pp.industry_category, pp.professional_service_category,
-      pp.job_title, pp.qualification, pp.years_experience, pp.linkedin_or_portfolio_url, pp.cover_image_url
+      pp.job_title, pp.qualification, pp.school_name, pp.certifications, pp.work_experience,
+      pp.years_experience, pp.linkedin_or_portfolio_url, pp.cover_image_url
      FROM professional_profiles pp
      JOIN users u ON u.uid = pp.uid
      WHERE pp.uid = ? AND u.role = 'professional' AND u.deleted = 0 AND u.suspended = 0`,
     [uid]
+  )
+}
+
+export async function getProfessionalBackgroundByUid(uid: string): Promise<{
+  schoolName: string
+  certifications: unknown[]
+  workExperience: unknown[]
+} | null> {
+  const row = await queryOne<Array<RowDataPacket & {
+    school_name: string | null
+    certifications: string | unknown[] | null
+    work_experience: string | unknown[] | null
+  }>>(
+    `SELECT school_name, certifications, work_experience
+     FROM professional_profiles WHERE uid = ?`,
+    [uid]
+  )
+  if (!row) return null
+
+  const parseArray = (value: string | unknown[] | null): unknown[] => {
+    if (Array.isArray(value)) return value
+    if (!value) return []
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+
+  return {
+    schoolName: row.school_name || '',
+    certifications: parseArray(row.certifications),
+    workExperience: parseArray(row.work_experience),
+  }
+}
+
+export async function updateProfessionalBackground(uid: string, data: {
+  schoolName: string
+  certifications: unknown[]
+  workExperience: unknown[]
+}): Promise<void> {
+  await execute(
+    `UPDATE professional_profiles
+     SET school_name = ?, certifications = ?, work_experience = ?, updated_at = NOW()
+     WHERE uid = ?`,
+    [
+      data.schoolName || null,
+      JSON.stringify(data.certifications),
+      JSON.stringify(data.workExperience),
+      uid,
+    ]
   )
 }
 

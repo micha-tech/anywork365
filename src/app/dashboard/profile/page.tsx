@@ -6,7 +6,13 @@ import Image from 'next/image'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
-import { NIGERIAN_STATE_NAMES, type NigerianState, type PortfolioItem } from '@/types'
+import {
+  NIGERIAN_STATE_NAMES,
+  type NigerianState,
+  type PortfolioItem,
+  type ProfessionalCertification,
+  type ProfessionalWorkExperience,
+} from '@/types'
 import { useCurrentUser, getInitialsFromUser, notifyCurrentUserChanged } from '@/hooks/useCurrentUser'
 import { getLocalGovernments } from '@/lib/nigeria-locations'
 
@@ -42,6 +48,32 @@ interface ProfileForm {
   lga: string
   address: string
   bio: string
+}
+
+type EditableCertification = ProfessionalCertification & { key: string }
+type EditableWorkExperience = ProfessionalWorkExperience & { key: string }
+
+const CURRENT_YEAR = new Date().getFullYear()
+
+function itemKey(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random()}`
+}
+
+function blankCertification(): EditableCertification {
+  return { key: itemKey(), name: '', yearObtained: CURRENT_YEAR }
+}
+
+function blankWorkExperience(): EditableWorkExperience {
+  return {
+    key: itemKey(),
+    jobTitle: '',
+    employer: '',
+    startYear: CURRENT_YEAR,
+    current: true,
+    description: '',
+  }
 }
 
 function inferImageType(file: File): string {
@@ -156,6 +188,11 @@ export default function ProfilePage() {
   const [portfolioLink, setPortfolioLink] = useState('')
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null)
   const [portfolioPreview, setPortfolioPreview] = useState<string | null>(null)
+  const [backgroundLoading, setBackgroundLoading] = useState(false)
+  const [backgroundSaving, setBackgroundSaving] = useState(false)
+  const [schoolName, setSchoolName] = useState('')
+  const [certifications, setCertifications] = useState<EditableCertification[]>([])
+  const [workExperience, setWorkExperience] = useState<EditableWorkExperience[]>([])
 
   useEffect(() => {
     if (!user) return
@@ -196,6 +233,29 @@ export default function ProfilePage() {
         if (data.success) setCoverUrl(data.data?.url || null)
       })
       .catch(() => undefined)
+  }, [user?.role])
+
+  useEffect(() => {
+    if (user?.role !== 'professional') return
+    setBackgroundLoading(true)
+    fetch('/api/profile/professional')
+      .then(async (response) => {
+        const data = await response.json()
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Could not load professional background')
+        }
+        setSchoolName(data.data?.schoolName || '')
+        setCertifications((data.data?.certifications || []).map((item: ProfessionalCertification) => ({
+          ...item,
+          key: itemKey(),
+        })))
+        setWorkExperience((data.data?.workExperience || []).map((item: ProfessionalWorkExperience) => ({
+          ...item,
+          key: itemKey(),
+        })))
+      })
+      .catch((error: Error) => toast.error(error.message))
+      .finally(() => setBackgroundLoading(false))
   }, [user?.role])
 
   useEffect(() => {
@@ -408,6 +468,43 @@ export default function ProfilePage() {
     }
     setPortfolio((items) => items.filter((item) => item.id !== id))
     toast.success('Portfolio item removed')
+  }
+
+  function updateCertification(key: string, updates: Partial<EditableCertification>) {
+    setCertifications((items) => items.map((item) => item.key === key ? { ...item, ...updates } : item))
+  }
+
+  function updateWorkExperience(key: string, updates: Partial<EditableWorkExperience>) {
+    setWorkExperience((items) => items.map((item) => item.key === key ? { ...item, ...updates } : item))
+  }
+
+  async function handleProfessionalBackgroundSave() {
+    setBackgroundSaving(true)
+    try {
+      const response = await fetch('/api/profile/professional', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          schoolName: schoolName.trim(),
+          certifications: certifications.map(({ key: _key, ...item }) => item),
+          workExperience: workExperience.map(({ key: _key, ...item }) => ({
+            ...item,
+            endYear: item.current ? undefined : item.endYear,
+            description: item.description?.trim() || undefined,
+          })),
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Could not save professional background')
+        return
+      }
+      toast.success('Professional background saved')
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setBackgroundSaving(false)
+    }
   }
 
   async function handleCoverUpload(file: File | null) {
@@ -819,40 +916,272 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {user?.role === 'professional' && (
+        <section className="card mt-4 sm:mt-6">
+          <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">Professional background</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                Add your education, certifications and employment history for recruiters.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleProfessionalBackgroundSave}
+              disabled={backgroundLoading || backgroundSaving}
+              className="btn-primary w-full px-5 sm:w-auto"
+            >
+              {backgroundSaving ? 'Saving...' : 'Save background'}
+            </button>
+          </div>
+
+          {backgroundLoading ? (
+            <div className="space-y-4 py-6">
+              <div className="h-12 animate-pulse rounded-xl bg-slate-100" />
+              <div className="h-28 animate-pulse rounded-xl bg-slate-100" />
+              <div className="h-40 animate-pulse rounded-xl bg-slate-100" />
+            </div>
+          ) : (
+            <div className="space-y-8 pt-6">
+              <div>
+                <label htmlFor="professional-school" className="label">School or institution</label>
+                <input
+                  id="professional-school"
+                  className="input-field"
+                  value={schoolName}
+                  onChange={(event) => setSchoolName(event.target.value)}
+                  placeholder="For example, University of Lagos"
+                  maxLength={220}
+                  autoComplete="organization"
+                />
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">Certifications</h3>
+                    <p className="mt-0.5 text-xs text-slate-500">Add the certification name and year obtained.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCertifications((items) => [...items, blankCertification()])}
+                    disabled={certifications.length >= 20}
+                    className="btn-ghost flex-shrink-0 px-3 py-2 text-xs"
+                  >
+                    + Add certification
+                  </button>
+                </div>
+
+                {certifications.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-6 text-center text-sm text-slate-500">
+                    No certifications added yet.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {certifications.map((certification, index) => (
+                      <div key={certification.key} className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Certification {index + 1}</p>
+                          <button
+                            type="button"
+                            onClick={() => setCertifications((items) => items.filter((item) => item.key !== certification.key))}
+                            className="text-xs font-medium text-red-600 hover:text-red-700"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+                          <div>
+                            <label className="label" htmlFor={`certification-name-${certification.key}`}>Certification name</label>
+                            <input
+                              id={`certification-name-${certification.key}`}
+                              className="input-field"
+                              value={certification.name}
+                              onChange={(event) => updateCertification(certification.key, { name: event.target.value })}
+                              placeholder="For example, AWS Solutions Architect"
+                              maxLength={180}
+                            />
+                          </div>
+                          <div>
+                            <label className="label" htmlFor={`certification-year-${certification.key}`}>Year obtained</label>
+                            <input
+                              id={`certification-year-${certification.key}`}
+                              className="input-field"
+                              type="number"
+                              inputMode="numeric"
+                              min={1950}
+                              max={CURRENT_YEAR}
+                              value={certification.yearObtained}
+                              onChange={(event) => updateCertification(certification.key, { yearObtained: Number(event.target.value) })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">Work experience</h3>
+                    <p className="mt-0.5 text-xs text-slate-500">List your most relevant role first.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setWorkExperience((items) => [...items, blankWorkExperience()])}
+                    disabled={workExperience.length >= 20}
+                    className="btn-ghost flex-shrink-0 px-3 py-2 text-xs"
+                  >
+                    + Add experience
+                  </button>
+                </div>
+
+                {workExperience.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-6 text-center text-sm text-slate-500">
+                    No work experience added yet.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {workExperience.map((experience, index) => (
+                      <div key={experience.key} className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Experience {index + 1}</p>
+                          <button
+                            type="button"
+                            onClick={() => setWorkExperience((items) => items.filter((item) => item.key !== experience.key))}
+                            className="text-xs font-medium text-red-600 hover:text-red-700"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <label className="label" htmlFor={`experience-title-${experience.key}`}>Job title</label>
+                            <input
+                              id={`experience-title-${experience.key}`}
+                              className="input-field"
+                              value={experience.jobTitle}
+                              onChange={(event) => updateWorkExperience(experience.key, { jobTitle: event.target.value })}
+                              placeholder="Job title"
+                              maxLength={160}
+                            />
+                          </div>
+                          <div>
+                            <label className="label" htmlFor={`experience-employer-${experience.key}`}>Employer</label>
+                            <input
+                              id={`experience-employer-${experience.key}`}
+                              className="input-field"
+                              value={experience.employer}
+                              onChange={(event) => updateWorkExperience(experience.key, { employer: event.target.value })}
+                              placeholder="Company or organisation"
+                              maxLength={180}
+                            />
+                          </div>
+                          <div>
+                            <label className="label" htmlFor={`experience-start-${experience.key}`}>Start year</label>
+                            <input
+                              id={`experience-start-${experience.key}`}
+                              className="input-field"
+                              type="number"
+                              inputMode="numeric"
+                              min={1950}
+                              max={CURRENT_YEAR}
+                              value={experience.startYear}
+                              onChange={(event) => updateWorkExperience(experience.key, { startYear: Number(event.target.value) })}
+                            />
+                          </div>
+                          <div>
+                            <label className="label" htmlFor={`experience-end-${experience.key}`}>End year</label>
+                            <input
+                              id={`experience-end-${experience.key}`}
+                              className="input-field"
+                              type="number"
+                              inputMode="numeric"
+                              min={experience.startYear || 1950}
+                              max={CURRENT_YEAR}
+                              value={experience.endYear ?? CURRENT_YEAR}
+                              disabled={experience.current}
+                              onChange={(event) => updateWorkExperience(experience.key, { endYear: Number(event.target.value) })}
+                            />
+                          </div>
+                        </div>
+                        <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                          <input
+                            type="checkbox"
+                            checked={experience.current}
+                            onChange={(event) => updateWorkExperience(experience.key, {
+                              current: event.target.checked,
+                              endYear: event.target.checked ? undefined : (experience.endYear || CURRENT_YEAR),
+                            })}
+                            className="h-4 w-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500"
+                          />
+                          I currently work here
+                        </label>
+                        <div className="mt-3">
+                          <label className="label" htmlFor={`experience-description-${experience.key}`}>Responsibilities or achievements <span className="font-normal text-slate-400">(optional)</span></label>
+                          <textarea
+                            id={`experience-description-${experience.key}`}
+                            className="input-field min-h-24 resize-y"
+                            value={experience.description || ''}
+                            onChange={(event) => updateWorkExperience(experience.key, { description: event.target.value })}
+                            placeholder="Summarise your responsibilities and notable achievements"
+                            maxLength={1200}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       {(user?.role === 'artisan' || user?.role === 'professional') && (
         <section className="card mt-4 sm:mt-6">
           <div className="mb-5">
             <h2 className="font-medium text-base">Portfolio</h2>
-            <p className="text-sm text-slate-500 mt-1">Add projects with a title, description, optional image, and optional portfolio link.</p>
+            <p className="text-sm text-slate-500 mt-1">
+              {user?.role === 'professional'
+                ? 'Add projects with a title, description and optional project link.'
+                : 'Add projects with a title, description, work photo and optional link.'}
+            </p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,320px)_1fr]">
             <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => portfolioInputRef.current?.click()}
-                className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500 transition-colors hover:border-brand-500 hover:text-brand-600"
-              >
-                {portfolioPreview ? (
-                  <Image
-                    src={portfolioPreview}
-                    alt="Portfolio preview"
-                    width={640}
-                    height={360}
-                    className="h-full w-full object-cover"
-                    unoptimized
+              {user?.role === 'artisan' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => portfolioInputRef.current?.click()}
+                    className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500 transition-colors hover:border-brand-500 hover:text-brand-600"
+                  >
+                    {portfolioPreview ? (
+                      <Image
+                        src={portfolioPreview}
+                        alt="Portfolio preview"
+                        width={640}
+                        height={360}
+                        className="h-full w-full object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <span>Choose work photo</span>
+                    )}
+                  </button>
+                  <input
+                    ref={portfolioInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(event) => handlePortfolioFile(event.target.files?.[0] || null)}
                   />
-                ) : (
-                  <span>{user?.role === 'professional' ? 'Add an optional project image' : 'Choose work photo'}</span>
-                )}
-              </button>
-              <input
-                ref={portfolioInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                className="hidden"
-                onChange={(event) => handlePortfolioFile(event.target.files?.[0] || null)}
-              />
+                </>
+              )}
               <input
                 className="input-field"
                 value={portfolioTitle}
