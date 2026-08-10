@@ -326,15 +326,16 @@ implicitly migrate production data.
 Before merging or deploying a production change:
 
 1. Review the diff for secrets, generated binaries and unrelated changes.
-2. Run type checking, the production build and affected test suites.
-3. Apply and verify migrations in staging.
-4. Exercise authentication and the affected role paths.
-5. For money changes, complete preflight, migration and reconciliation checks.
-6. Verify Paystack mode, webhook configuration and worker secrets.
-7. Confirm support and rollback procedures for the release.
-8. Deploy the web application.
-9. Publish a new mobile build when native code or permissions changed.
-10. Monitor errors, financial health, webhooks and reconciliation after release.
+2. Confirm the commit author is linked to a member of the Anywork365 Vercel team.
+3. Run type checking, the production build and affected test suites.
+4. Apply and verify migrations in staging.
+5. Exercise authentication and the affected role paths.
+6. For money changes, complete preflight, migration and reconciliation checks.
+7. Verify Paystack mode, webhook configuration and worker secrets.
+8. Confirm support and rollback procedures for the release.
+9. Deploy the web application.
+10. Publish a new mobile build when native code or permissions changed.
+11. Monitor errors, financial health, webhooks and reconciliation after release.
 
 ## Operational ownership
 
