@@ -5,10 +5,9 @@ export default function RecruiterRegistrationPage() {
   return (
     <RegistrationShell
       role="Recruiter"
-      eyebrow="Hire better"
-      title="Meet the people your business needs."
-      description="Set up your recruiter profile to reach qualified professionals and artisans, share opportunities and manage hiring conversations."
-      benefits={['Reach qualified candidates', 'Share the right opportunities', 'Keep hiring conversations organised']}
+      title="Post jobs and review applicants"
+      description="Create a recruiter profile to publish opportunities and manage applications."
+      benefits={['Publish job openings', 'Review candidate profiles', 'Manage hiring conversations']}
       imageSrc="/images/registration-recruiter.jpg"
       imageAlt="A recruiter speaking with a candidate"
       imagePosition="center center"

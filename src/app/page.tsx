@@ -64,22 +64,14 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
-              </span>
-              <span className="text-xs font-semibold text-slate-500">Trusted by 10,000+ users across Nigeria</span>
-            </div>
-
             <div>
               <h1 className="max-w-2xl font-display text-4xl sm:text-5xl lg:text-[3.65rem] font-extrabold leading-[1.06] text-slate-900">
-                Connect with <span className="text-brand-500">trusted</span> professionals
+                Find artisans and job opportunities
               </h1>
             </div>
 
             <p className="max-w-xl text-lg text-slate-600 leading-relaxed">
-              Book verified artisans, technicians, and service providers near you. Secure payments. Guaranteed quality.
+              Search for local services, book artisans and manage payment through the platform. Professionals can also find and apply for jobs.
             </p>
 
             <form action="/artisans" method="GET" className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:flex-row">
@@ -114,7 +106,7 @@ function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolea
             {!loading && !user && (
               <div className="flex flex-wrap gap-3">
                 <Link href="/signup" className="h-[48px] px-6 rounded-lg bg-brand-500 text-white font-semibold text-sm flex items-center justify-center hover:bg-brand-600 active:scale-[0.98] transition-all shadow-[0_10px_22px_rgba(15,79,74,0.16)]">
-                  Get Started Free
+                  Create account
                 </Link>
                 <Link href="/login" className="h-[48px] px-6 rounded-lg border border-slate-200 text-slate-700 font-semibold text-sm flex items-center justify-center hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all">
                   Sign In
@@ -244,7 +236,6 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Services</p>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Browse by category</h2>
             </div>
             <Link href="/artisans" className="text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors">
@@ -272,8 +263,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Top Rated</p>
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Featured Artisans</h2>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Artisans</h2>
             </div>
             <Link href="/artisans" className="text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors">
               View all
@@ -344,16 +334,15 @@ export default function HomePage() {
       <section className="border-t border-slate-100 bg-white px-4 py-10 sm:px-6 sm:py-12 lg:px-8 content-below-fold">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-2">How it works</p>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Book in three simple steps</h2>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">How booking works</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
               {
                 step: '01',
-                title: 'Search & Compare',
-                desc: 'Browse verified professionals by category, location, and rating. Read reviews from real clients.',
+                title: 'Search and compare',
+                desc: 'Browse artisans by category, location and rating. Check profiles and reviews before choosing.',
                 icon: (
                   <svg className="w-6 h-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -362,7 +351,7 @@ export default function HomePage() {
               },
               {
                 step: '02',
-                title: 'Book & Pay Securely',
+                title: 'Book and pay',
                 desc: 'Select your preferred professional, agree on terms, and pay for that booking through our protected marketplace flow.',
                 icon: (
                   <svg className="w-6 h-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -372,7 +361,7 @@ export default function HomePage() {
               },
               {
                 step: '03',
-                title: 'Work & Review',
+                title: 'Complete and review',
                 desc: 'Get your job done, release payment when satisfied, and leave a review to help others.',
                 icon: (
                   <svg className="w-6 h-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -398,8 +387,7 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1.5">Careers</p>
-                <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Latest Openings</h2>
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Latest jobs</h2>
               </div>
               <Link href="/jobs" className="text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors">
                 View all
@@ -420,14 +408,14 @@ export default function HomePage() {
         <section className="border-t border-slate-100 bg-brand-500 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 content-below-fold">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
-              Ready to get started?
+              Create an account
             </h2>
             <p className="text-brand-100 text-lg mb-8 leading-relaxed">
-              Join thousands of Nigerians who trust Anywork365 to connect them with quality professionals.
+              Book an artisan, offer your services, apply for jobs or recruit candidates.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="h-[52px] px-8 rounded-lg bg-white text-brand-600 font-bold text-sm flex items-center justify-center hover:bg-brand-50 active:scale-[0.98] transition-all shadow-sm">
-                Create Free Account
+                Create account
               </Link>
               <Link href="/artisans" className="h-[52px] px-8 rounded-lg border border-white/30 text-white font-semibold text-sm flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
                 Browse Artisans

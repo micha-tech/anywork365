@@ -5,9 +5,8 @@ export default function ClientRegistrationPage() {
   return (
     <RegistrationShell
       role="Client"
-      eyebrow="Hire with confidence"
-      title="Find the right person. Get the work done."
-      description="Create a client account to compare trusted talent, book services and manage every job in one place."
+      title="Find and book an artisan"
+      description="Create a client account to compare artisans, book services and manage your jobs."
       benefits={['Find the right skills faster', 'Keep every booking organised', 'Pay securely on the platform']}
       imageSrc="/images/registration-client.jpg"
       imageAlt="A confident Anywork365 client"

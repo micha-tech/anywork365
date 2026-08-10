@@ -44,11 +44,10 @@ export default async function ArtisansPage({
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">Artisans</h1>
-            <p className="mt-2 text-sm text-slate-600">{totalCount.toLocaleString()} artisans ready for booking</p>
+            <p className="mt-2 text-sm text-slate-600">{totalCount.toLocaleString()} artisan{totalCount === 1 ? '' : 's'} listed</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/nearby" className="btn-primary px-4 py-2 text-sm">⌖ Find nearby artisans</Link>
-            <div className="inline-flex w-fit rounded-lg border border-brand-100 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-600 sm:text-sm">Verified artisans</div>
+            <Link href="/nearby" className="btn-primary px-4 py-2 text-sm">Artisans near me</Link>
           </div>
         </div>
       </div>

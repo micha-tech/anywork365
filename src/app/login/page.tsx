@@ -125,7 +125,7 @@ export default function LoginPage() {
 
         <div className="card p-5 sm:p-8">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Welcome back</h1>
-          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to discover artisans, jobs, and your bookings.</p>
+          <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to find artisans, view jobs and manage your bookings.</p>
 
           <GoogleAuthButton onClick={handleGoogleSignIn} loading={googleSubmitting} />
           <AuthDivider />

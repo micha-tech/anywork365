@@ -45,7 +45,7 @@ const RECRUITER_NAV = [
     ],
   },
   {
-    label: 'Discover',
+    label: 'Marketplace',
     links: [
       { href: '/artisans', label: 'Artisans', icon: StoreIcon },
       { href: '/jobs', label: 'Jobs', icon: BriefcaseIcon },

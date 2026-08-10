@@ -624,8 +624,7 @@ function OperationModal({
         <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-500">Financial operation</p>
-              <h2 id="operation-title" className="mt-1 text-lg font-bold text-slate-950">{details.title}</h2>
+              <h2 id="operation-title" className="text-lg font-bold text-slate-950">{details.title}</h2>
               <p className="mt-1 text-sm text-slate-500">{details.description}</p>
             </div>
             <button type="button" onClick={close} className="rounded-lg px-2 py-1 text-xl text-slate-400 hover:bg-slate-100" aria-label="Close">×</button>

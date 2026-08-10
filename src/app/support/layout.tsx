@@ -11,8 +11,7 @@ export default async function SupportLayout({ children }: { children: React.Reac
         <BrandWordmark href="/support" className="w-[188px]" priority />
 
         <div className="mt-8 rounded-2xl bg-brand-500 px-4 py-4 text-white">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Workspace</p>
-          <p className="mt-1 text-sm font-semibold">Customer Support</p>
+          <p className="text-sm font-semibold">Customer Support</p>
           <span className="mt-3 inline-flex rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide">
             View only
           </span>
@@ -51,10 +50,7 @@ export default async function SupportLayout({ children }: { children: React.Reac
           <div className="lg:hidden">
             <BrandWordmark href="/support" className="w-[150px]" />
           </div>
-          <div className="hidden lg:block">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Support console</p>
-          </div>
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3">
             <span className="hidden rounded-full bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-500 sm:inline-flex">
               Read-only access
             </span>

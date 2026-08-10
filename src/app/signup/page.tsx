@@ -11,28 +11,28 @@ const accountTypes = [
   {
     href: '/signup/client',
     title: 'Client',
-    description: 'Hire trusted people and manage work from one place.',
+    description: 'Find artisans, book services and manage your jobs.',
     icon: ClientIcon,
     accent: 'bg-brand-50 text-brand-600 group-hover:bg-brand-500 group-hover:text-white',
   },
   {
     href: '/signup/artisan',
     title: 'Artisan',
-    description: 'Offer skilled, hands-on services and get discovered locally.',
+    description: 'List your services and receive requests from clients.',
     icon: ArtisanIcon,
     accent: 'bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white',
   },
   {
     href: '/signup/professional',
     title: 'Professional',
-    description: 'Showcase your expertise and access career opportunities.',
+    description: 'Create a profile and apply for job opportunities.',
     icon: ProfessionalIcon,
     accent: 'bg-sky-50 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
   },
   {
     href: '/signup/recruiter',
     title: 'Recruiter',
-    description: 'Find qualified talent and recruit for your organisation.',
+    description: 'Post jobs, review applicants and manage hiring.',
     icon: RecruiterIcon,
     accent: 'bg-violet-50 text-violet-600 group-hover:bg-violet-500 group-hover:text-white',
   },
@@ -74,8 +74,7 @@ export default function SignupPage() {
 
             <div className="mx-auto max-w-xl">
               <div className="text-center">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-500">Create your account</p>
-                <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">Register as</h2>
+                <h2 className="font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">Choose an account type</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500 sm:text-base">
                   Choose the option that best describes how you want to use Anywork365.
                 </p>

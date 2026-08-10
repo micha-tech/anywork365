@@ -252,7 +252,7 @@ export default function DashboardPage() {
             <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{greeting}</h1>
             <p className="mt-1 text-sm text-slate-600">
               {isClientDashboard
-                ? 'Find a trusted artisan and get the job moving.'
+                ? 'Search for an artisan or review your bookings.'
                 : isVendorDashboard
                   ? 'Manage requests, keep your business profile sharp, and track earnings.'
                   : 'Here is what is happening with your projects.'}
@@ -284,11 +284,7 @@ export default function DashboardPage() {
                 Update business
               </Link>
             </div>
-          ) : (
-            <span className="inline-flex w-fit items-center rounded-lg border border-brand-100 bg-brand-50 px-3 py-2 text-xs font-bold uppercase text-brand-600">
-              Account overview
-            </span>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -312,7 +308,7 @@ export default function DashboardPage() {
                 <p className="mt-1 text-sm text-slate-500">
                   {clientSummary?.activeBookings
                     ? 'Review active requests, confirm progress, or message your artisan.'
-                    : 'Browse verified artisans and send your first service request.'}
+                    : 'Browse artisans and send your first service request.'}
                 </p>
               </div>
             </div>
@@ -330,8 +326,8 @@ export default function DashboardPage() {
         <section className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:mb-7 sm:p-5">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="font-display text-lg font-bold text-slate-900">Discover work and artisans</h2>
-              <p className="mt-1 text-sm text-slate-500">Search once, compare artisans and open jobs from here.</p>
+              <h2 className="font-display text-lg font-bold text-slate-900">Search</h2>
+              <p className="mt-1 text-sm text-slate-500">Find artisans or open jobs.</p>
             </div>
             <div className="inline-flex w-fit rounded-lg border border-slate-200 bg-slate-50 p-1">
               {([
@@ -581,9 +577,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="card">
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-4 flex items-center gap-3">
           <h2 className="font-display text-base font-bold text-slate-900">Recent Activity</h2>
-          <span className="text-xs font-medium text-slate-400">Live updates</span>
         </div>
         <div className="divide-y divide-slate-100">
           {dashboardLoading ? (
@@ -598,7 +593,7 @@ export default function DashboardPage() {
               </p>
               <p className="mt-1 max-w-sm text-sm text-slate-500">
                 {isClientDashboard
-                  ? 'Find a trusted artisan near you and your updates will appear here.'
+                  ? 'Your booking updates will appear here after you contact an artisan.'
                   : isVendorDashboard
                     ? 'Client requests and booking updates will appear here when they start coming in.'
                     : 'New project updates will appear here.'}
