@@ -346,3 +346,5 @@ reconciliation runbooks in `docs/`.
 This is proprietary Anywork365 software. Distribution and reuse are governed by
 the organisation's internal agreements; the repository is not published under
 the MIT licence.
+
+Production deployments are managed through Vercel.
