@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginInput } from '@/lib/validators/auth'
-import { linkPendingGoogleCredential, signIn, signInWithGoogle } from '@/lib/firebase/auth'
+import { linkPendingGoogleCredential, resetPassword, signIn, signInWithGoogle } from '@/lib/firebase/auth'
 import { exchangeGoogleUser } from '@/lib/google-auth'
 import { getPostLoginPath } from '@/lib/auth-routing'
 import { toErrorMessage } from '@/lib/utils'
@@ -18,12 +18,38 @@ import { AuthDivider, GoogleAuthButton } from '@/components/auth/GoogleAuthButto
 export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [googleSubmitting, setGoogleSubmitting] = useState(false)
+  const [resetSubmitting, setResetSubmitting] = useState(false)
 
   const {
     register,
     handleSubmit,
+    getValues,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) })
+
+  async function handleForgotPassword() {
+    const emailIsValid = await trigger('email')
+    if (!emailIsValid) {
+      toast.error('Enter your email address first.')
+      return
+    }
+
+    setResetSubmitting(true)
+    try {
+      const { error } = await resetPassword(getValues('email'))
+      if (error) {
+        toast.error(error)
+        return
+      }
+
+      toast.success('Password reset email sent. Check your inbox.')
+    } catch (error) {
+      toast.error(toErrorMessage(error))
+    } finally {
+      setResetSubmitting(false)
+    }
+  }
 
   async function onSubmit(data: LoginInput) {
     try {
@@ -121,7 +147,14 @@ export default function LoginPage() {
             <div className="form-group">
               <div className="flex items-center justify-between mb-1.5">
                 <label className="label mb-0">Password</label>
-                <span className="text-xs font-semibold text-brand-500 cursor-pointer">Forgot password?</span>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={resetSubmitting}
+                  className="text-xs font-semibold text-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {resetSubmitting ? 'Sending...' : 'Forgot password?'}
+                </button>
               </div>
               <div className="relative">
                 <input
