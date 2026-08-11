@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
   googleAddress   VARCHAR(500) NOT NULL DEFAULT '',
   hasBusinessAccount TINYINT(1) NOT NULL DEFAULT 0,
   role            ENUM('client','artisan','professional','recruiter','support','admin') DEFAULT NULL,
+  can_switch_client_recruiter TINYINT(1) NOT NULL DEFAULT 0,
   verified        TINYINT(1) NOT NULL DEFAULT 0,
   suspended       TINYINT(1) NOT NULL DEFAULT 0,
   businessUuid    VARCHAR(128) DEFAULT NULL,

@@ -219,6 +219,14 @@ export function Navbar() {
                           {item.label}
                         </Link>
                       ))}
+                      {user?.canSwitchClientRecruiter && (
+                        <Link
+                          href="/profile#account-mode"
+                          className="mx-1.5 flex items-center rounded-lg bg-amber-50 px-3 py-2.5 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-100"
+                        >
+                          Switch account type
+                        </Link>
+                      )}
                       <div className="border-t border-slate-100 mt-1 pt-1">
                         <button
                           onClick={handleLogout}
@@ -320,6 +328,14 @@ export function Navbar() {
                         {item.label}
                       </Link>
                     ))}
+                    {user?.canSwitchClientRecruiter && (
+                      <Link
+                        href="/profile#account-mode"
+                        className="flex items-center gap-3 rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+                      >
+                        Switch account type
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50"

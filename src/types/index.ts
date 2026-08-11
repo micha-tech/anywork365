@@ -67,6 +67,7 @@ export interface AuthUser {
   bio?: string
   avatarUrl?: string
   emailVerified?: boolean
+  canSwitchClientRecruiter?: boolean
   id: string
   email: string
   firstName: string
