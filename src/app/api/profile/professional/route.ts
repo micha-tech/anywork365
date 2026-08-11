@@ -35,7 +35,8 @@ const backgroundSchema = z.object({
   workExperience: z.array(experienceSchema).max(20, 'You can add up to 20 work experiences'),
 })
 
-function requireProfessional(session: Awaited<ReturnType<typeof getVerifiedSession>>) {
+export async function GET() {
+  const session = await getVerifiedSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: 'Authentication required' },
@@ -48,13 +49,6 @@ function requireProfessional(session: Awaited<ReturnType<typeof getVerifiedSessi
       { status: 403 }
     )
   }
-  return null
-}
-
-export async function GET() {
-  const session = await getVerifiedSession()
-  const authError = requireProfessional(session)
-  if (authError || !session) return authError
 
   try {
     const background = await getProfessionalBackgroundByUid(session.id)
@@ -80,8 +74,18 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   const session = await getVerifiedSession()
-  const authError = requireProfessional(session)
-  if (authError || !session) return authError
+  if (!session) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Authentication required' },
+      { status: 401 }
+    )
+  }
+  if (session.role !== 'professional') {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'This section is only available to professional accounts' },
+      { status: 403 }
+    )
+  }
 
   try {
     const parsed = backgroundSchema.safeParse(await request.json())
