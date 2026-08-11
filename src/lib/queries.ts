@@ -23,6 +23,7 @@ interface UserRow extends RowDataPacket {
   bio: string | null
   hasBusinessAccount: number
   role: UserRole | 'vendor' | null
+  can_switch_client_recruiter: number
   verified: number
   suspended: number
   dateJoined: string
@@ -280,6 +281,7 @@ function userRowToAuthUser(row: UserRow): AuthUser {
     firstName: parts[0] || '',
     lastName: parts.slice(1).join(' ') || '',
     role: resolveRole(row),
+    canSwitchClientRecruiter: row.can_switch_client_recruiter === 1,
     phone: row.phoneNumber || undefined,
     city: row.state || undefined,
     lga: row.lga || undefined,
@@ -1278,6 +1280,47 @@ export async function createRecruiterProfile(data: {
 
 export async function getRecruiterProfileByUid(uid: string): Promise<RecruiterProfileRow | null> {
   return queryOne<RecruiterProfileRow[]>('SELECT * FROM recruiter_profiles WHERE uid = ?', [uid])
+}
+
+export async function upsertRecruiterProfile(data: {
+  uid: string
+  companyName: string
+  companySize: string
+  industryCategory: string
+  recruitmentFunction: string
+  position: string
+  companyWebsite?: string
+}): Promise<void> {
+  await execute(
+    `INSERT INTO recruiter_profiles
+      (uid, company_name, company_size, industry_category, recruitment_function,
+       position, company_website, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+     ON DUPLICATE KEY UPDATE
+       company_name = VALUES(company_name),
+       company_size = VALUES(company_size),
+       industry_category = VALUES(industry_category),
+       recruitment_function = VALUES(recruitment_function),
+       position = VALUES(position),
+       company_website = VALUES(company_website),
+       updated_at = NOW()`,
+    [
+      data.uid,
+      data.companyName,
+      data.companySize,
+      data.industryCategory,
+      data.recruitmentFunction,
+      data.position,
+      data.companyWebsite || null,
+    ]
+  )
+}
+
+export async function updateUserRole(uid: string, role: 'client' | 'recruiter'): Promise<void> {
+  await execute(
+    'UPDATE users SET role = ? WHERE uid = ? AND can_switch_client_recruiter = 1 AND deleted = 0',
+    [role, uid]
+  )
 }
 
 // ─── FCM Tokens ──────────────────────────────────────────────────────────

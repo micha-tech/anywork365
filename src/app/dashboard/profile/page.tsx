@@ -15,6 +15,7 @@ import {
 } from '@/types'
 import { useCurrentUser, getInitialsFromUser, notifyCurrentUserChanged } from '@/hooks/useCurrentUser'
 import { getLocalGovernments } from '@/lib/nigeria-locations'
+import { DualClientRecruiterAccount } from '@/components/profile/DualClientRecruiterAccount'
 
 const MAX_AVATAR_DIMENSION = 512
 const MAX_SOURCE_IMAGE_BYTES = 15 * 1024 * 1024
@@ -585,6 +586,8 @@ export default function ProfilePage() {
         <h1 className="font-display text-xl sm:text-2xl font-semibold">My Profile</h1>
         <p className="text-sm text-slate-500 mt-1">Manage your personal information</p>
       </div>
+
+      {user && <DualClientRecruiterAccount user={user} />}
 
       {user?.role === 'professional' && (
         <section className="mb-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

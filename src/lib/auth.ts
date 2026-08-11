@@ -45,6 +45,7 @@ export async function getUserFromFirebase(uid: string): Promise<AuthUser | null>
       firstName: parts[0] || '',
       lastName: parts.slice(1).join(' ') || '',
       role,
+      canSwitchClientRecruiter: user.can_switch_client_recruiter === 1,
       phone: user.phoneNumber,
       city: user.state || '',
       lga: user.lga || undefined,
