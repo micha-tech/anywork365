@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getSafeInternalRedirect } from '@/lib/auth-redirect'
 
 /**
  * Lightweight JWT expiry check for the __session cookie.
@@ -49,10 +50,8 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAuthPage && sessionOk) {
-    const dest = request.nextUrl.searchParams.get('redirect') || '/home'
-    const url = request.nextUrl.clone()
-    url.pathname = dest
-    return NextResponse.redirect(url)
+    const dest = getSafeInternalRedirect(request.nextUrl.searchParams.get('redirect')) || '/home'
+    return NextResponse.redirect(new URL(dest, request.url))
   }
 
   return NextResponse.next()

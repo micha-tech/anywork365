@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { sendVerificationEmail, reloadUser, confirmEmailVerification } from '@/lib/firebase/auth'
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { getBrowserAuthRedirect, withAuthRedirect } from '@/lib/auth-redirect'
 
 type VerificationLinkState = 'idle' | 'applying' | 'verified' | 'error'
 
@@ -59,15 +60,18 @@ export default function VerifyEmailPage() {
   const [linkState, setLinkState] = useState<VerificationLinkState>('idle')
   const [linkError, setLinkError] = useState<string | null>(null)
   const [initialEmailError, setInitialEmailError] = useState<string | null>(null)
+  const [authRedirect] = useState<string | null>(() => getBrowserAuthRedirect())
   const appliedCodeRef = useRef<string | null>(null)
 
-  const destination = user?.role === 'artisan'
+  const defaultDestination = user?.role === 'artisan'
     ? '/dashboard'
     : user?.role === 'professional'
       ? '/professionals'
       : user?.role === 'recruiter'
         ? '/dashboard/jobs'
         : '/artisans'
+  const destination = authRedirect || defaultDestination
+  const verificationPagePath = withAuthRedirect('/verify-email', authRedirect)
 
   const refreshSession = useCallback(async () => {
     const fbAuth = getFirebaseAuth()
@@ -102,14 +106,14 @@ export default function VerifyEmailPage() {
 
     if (emailError) {
       setInitialEmailError(emailError)
-      window.history.replaceState(null, '', '/verify-email')
+      window.history.replaceState(null, '', verificationPagePath)
     }
 
     if (code) {
       setVerificationCode(code)
       setLinkState('applying')
     }
-  }, [])
+  }, [verificationPagePath])
 
   useEffect(() => {
     if (!verificationCode || appliedCodeRef.current === verificationCode) return
@@ -122,7 +126,7 @@ export default function VerifyEmailPage() {
 
     async function applyVerificationCode() {
       const { error } = await confirmEmailVerification(code)
-      window.history.replaceState(null, '', '/verify-email')
+      window.history.replaceState(null, '', verificationPagePath)
       setVerificationCode(null)
 
       if (error) {
@@ -148,14 +152,14 @@ export default function VerifyEmailPage() {
     }
 
     void applyVerificationCode()
-  }, [destination, verificationCode, refreshSession, router])
+  }, [destination, verificationCode, refreshSession, router, verificationPagePath])
 
   useEffect(() => {
     if (!loading && !user && !verificationCode && linkState !== 'applying' && linkState !== 'verified') {
-      router.push('/login')
+      router.push(withAuthRedirect('/login', authRedirect))
       return
     }
-  }, [user, loading, verificationCode, linkState, router])
+  }, [user, loading, verificationCode, linkState, router, authRedirect])
 
   useEffect(() => {
     if (!polling || verificationCode) return
@@ -237,7 +241,7 @@ export default function VerifyEmailPage() {
           <div className="space-y-3">
             {linkState === 'verified' && !user ? (
               <button
-                onClick={() => router.push('/login')}
+                onClick={() => router.push(withAuthRedirect('/login', authRedirect))}
                 className="btn-primary w-full py-3 text-base justify-center"
               >
                 Log in to continue

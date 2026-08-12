@@ -18,6 +18,7 @@ import {
 import { getFirebaseAuth } from './client'
 import { toAuthErrorMessage } from '@/lib/errors'
 import type { AuthUser, UserRole } from '@/types'
+import { getBrowserAuthRedirect, withAuthRedirect } from '@/lib/auth-redirect'
 
 export type VerificationTier = 'basic' | 'verified' | 'premium'
 
@@ -52,10 +53,12 @@ function normalizeEmail(email: string): string {
 function getEmailVerificationActionSettings(): ActionCodeSettings | undefined {
   if (typeof window === 'undefined') return undefined
 
+  const verificationPath = withAuthRedirect('/verify-email', getBrowserAuthRedirect())
+
   return {
     // Use the domain that is actually serving the signup page. This prevents a
     // stale deployment variable from producing an unauthorized continue URL.
-    url: `${window.location.origin}/verify-email`,
+    url: `${window.location.origin}${verificationPath}`,
     handleCodeInApp: false,
   }
 }

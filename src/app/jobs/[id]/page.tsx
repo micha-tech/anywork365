@@ -8,6 +8,10 @@ import { Modal } from '@/components/ui/Modal'
 import { JobApplicationForm } from '@/components/jobs/JobApplicationForm'
 import { formatCurrency, timeAgo } from '@/lib/utils'
 import type { Job } from '@/types'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { withAuthRedirect } from '@/lib/auth-redirect'
+
+type ApplicationGate = 'signed-out' | 'unverified' | 'wrong-role' | null
 
 export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -15,6 +19,9 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(true)
   const [applyOpen, setApplyOpen] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [applicationGate, setApplicationGate] = useState<ApplicationGate>(null)
+  const { user, loading: userLoading } = useCurrentUser()
+  const applicationReturnPath = `/jobs/${id}?apply=1`
 
   useEffect(() => {
     fetch(`/api/jobs/${id}`)
@@ -25,6 +32,47 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       .catch(() => console.error('Failed to load job', id))
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (userLoading || typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('apply') !== '1') return
+
+    params.delete('apply')
+    const nextSearch = params.toString()
+    window.history.replaceState(null, '', `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}`)
+    openApplication()
+    // This should run once when auth has resolved on the return visit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoading])
+
+  useEffect(() => {
+    if (!user || !user.emailVerified || (user.role !== 'artisan' && user.role !== 'professional')) return
+    fetch(`/api/jobs/${id}/apply`, { cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((body) => {
+        if (body?.success && body.data?.hasApplied) setSubmitted(true)
+      })
+      .catch(() => undefined)
+  }, [id, user])
+
+  function openApplication() {
+    if (userLoading) return
+    if (!user) {
+      setApplicationGate('signed-out')
+      return
+    }
+    if (!user.emailVerified) {
+      setApplicationGate('unverified')
+      return
+    }
+    if (user.role !== 'artisan' && user.role !== 'professional') {
+      setApplicationGate('wrong-role')
+      return
+    }
+    setApplicationGate(null)
+    setApplyOpen(true)
+  }
 
   if (!loading && !job) notFound()
   if (loading || !job) return <div className="max-w-4xl mx-auto px-4 py-10"><div className="animate-pulse h-40 bg-gray-100 rounded-2xl" /></div>
@@ -46,11 +94,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           <p className="text-xl font-semibold text-brand-500">{formatCurrency(job.budget)}</p>
         </div>
         <button
-          onClick={() => setApplyOpen(true)}
-          disabled={submitted}
+          onClick={openApplication}
+          disabled={submitted || userLoading}
           className="btn-primary px-6 py-2.5 flex-shrink-0"
         >
-          {submitted ? 'Applied ✓' : 'Apply Now'}
+          {submitted ? 'Applied ✓' : userLoading ? 'Checking...' : 'Apply Now'}
         </button>
       </div>
 
@@ -118,11 +166,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
               ))}
             </div>
             <button
-              onClick={() => setApplyOpen(true)}
-              disabled={submitted}
+              onClick={openApplication}
+              disabled={submitted || userLoading}
               className="btn-primary w-full py-3 justify-center"
             >
-              {submitted ? 'Applied ✓' : 'Apply for this job'}
+              {submitted ? 'Applied ✓' : userLoading ? 'Checking account...' : 'Apply for this job'}
             </button>
             <button className="btn-ghost w-full py-2.5 justify-center mt-2">Save job</button>
           </div>
@@ -147,11 +195,67 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         <JobApplicationForm
           jobId={job.id}
           onCancel={() => setApplyOpen(false)}
+          onAccessRequired={(reason) => {
+            setApplyOpen(false)
+            setApplicationGate(reason)
+          }}
           onSubmitted={() => {
             setSubmitted(true)
             setApplyOpen(false)
           }}
         />
+      </Modal>
+
+      <Modal
+        open={applicationGate !== null}
+        onClose={() => setApplicationGate(null)}
+        title={applicationGate === 'signed-out'
+          ? 'Sign in before you apply'
+          : applicationGate === 'unverified'
+            ? 'Verify your email first'
+            : 'Applicant account required'}
+        size="sm"
+      >
+        <div className="space-y-5">
+          {applicationGate === 'signed-out' && (
+            <>
+              <p className="text-sm leading-6 text-slate-600">
+                Sign in before completing the application form. We&apos;ll bring you straight back to this job when you&apos;re done.
+              </p>
+              <div className="space-y-3">
+                <Link href={withAuthRedirect('/login', applicationReturnPath)} className="btn-primary flex w-full justify-center py-3">
+                  Log in and continue
+                </Link>
+                <Link href={withAuthRedirect('/signup/professional', applicationReturnPath)} className="btn-secondary flex w-full justify-center py-3">
+                  Create a professional account
+                </Link>
+              </div>
+              <p className="text-center text-xs text-slate-500">Artisan accounts can also apply after logging in.</p>
+            </>
+          )}
+
+          {applicationGate === 'unverified' && (
+            <>
+              <p className="text-sm leading-6 text-slate-600">
+                Confirm <strong className="font-semibold text-slate-900">{user?.email}</strong> before applying. After verification, you&apos;ll return to this job automatically.
+              </p>
+              <Link href={withAuthRedirect('/verify-email', applicationReturnPath)} className="btn-primary flex w-full justify-center py-3">
+                Verify email and continue
+              </Link>
+            </>
+          )}
+
+          {applicationGate === 'wrong-role' && (
+            <>
+              <p className="text-sm leading-6 text-slate-600">
+                Job applications are available to artisan and professional accounts. You are currently signed in with a <strong className="font-semibold capitalize text-slate-900">{user?.role}</strong> account.
+              </p>
+              <button type="button" onClick={() => setApplicationGate(null)} className="btn-secondary w-full justify-center py-3">
+                Return to job
+              </button>
+            </>
+          )}
+        </div>
       </Modal>
     </div>
   )

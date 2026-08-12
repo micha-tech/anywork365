@@ -23,10 +23,12 @@ export function JobApplicationForm({
   jobId,
   onSubmitted,
   onCancel,
+  onAccessRequired,
 }: {
   jobId: string
   onSubmitted: () => void
   onCancel: () => void
+  onAccessRequired: (reason: 'signed-out' | 'unverified' | 'wrong-role') => void
 }) {
   const { user } = useCurrentUser()
   const [firstName, setFirstName] = useState('')
@@ -56,6 +58,16 @@ export function JobApplicationForm({
       const response = await fetch(`/api/jobs/${jobId}/apply`, { method: 'POST', body: form })
       const body = await response.json()
       if (!response.ok) {
+        if (response.status === 401) {
+          toast.info('Your session expired. Log in and we’ll bring you back to this job.')
+          onAccessRequired('signed-out')
+          return
+        }
+        if (response.status === 403) {
+          const reason = String(body.error || '').toLowerCase().includes('verify') ? 'unverified' : 'wrong-role'
+          onAccessRequired(reason)
+          return
+        }
         toast.error(body.error || 'Could not submit your application')
         return
       }
