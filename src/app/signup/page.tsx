@@ -6,6 +6,7 @@ import { BrandWordmark } from '@/components/layout/BrandLogo'
 import { AuthDivider } from '@/components/auth/GoogleAuthButton'
 import { isGoogleUser, onAuthChange, signOut as signOutFirebase } from '@/lib/firebase/auth'
 import { getGoogleProfile } from '@/lib/google-auth'
+import { getBrowserAuthRedirect, withAuthRedirect } from '@/lib/auth-redirect'
 
 const accountTypes = [
   {
@@ -40,8 +41,10 @@ const accountTypes = [
 
 export default function SignupPage() {
   const [googleEmail, setGoogleEmail] = useState('')
+  const [authRedirect, setAuthRedirect] = useState<string | null>(null)
 
   useEffect(() => {
+    setAuthRedirect(getBrowserAuthRedirect())
     try {
       return onAuthChange((user) => {
         if (
@@ -102,7 +105,7 @@ export default function SignupPage() {
                 {accountTypes.map(({ href, title, description, icon: Icon, accent }) => (
                   <Link
                     key={href}
-                    href={href}
+                    href={withAuthRedirect(href, authRedirect)}
                     className="group flex min-h-[82px] items-center gap-4 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_15px_34px_rgba(15,79,74,0.11)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 sm:p-4"
                   >
                     <span className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl transition-colors duration-200 sm:h-14 sm:w-14 ${accent}`}>
@@ -121,7 +124,7 @@ export default function SignupPage() {
 
               <p className="mt-7 text-center text-sm text-slate-500">
                 Already have an account?{' '}
-                <Link href="/login" className="font-bold text-brand-600 hover:text-brand-700 hover:underline">
+                <Link href={withAuthRedirect('/login', authRedirect)} className="font-bold text-brand-600 hover:text-brand-700 hover:underline">
                   Log in
                 </Link>
               </p>

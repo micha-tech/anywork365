@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 import { getStorage } from 'firebase-admin/storage'
 import { NextRequest, NextResponse } from 'next/server'
-import { getVerifiedSession } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { firebaseAdminApp } from '@/lib/firebase/admin'
 import {
   createApplication,
@@ -34,9 +34,12 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getVerifiedSession()
+  const session = await getSession()
   if (!session) {
     return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Authentication required' }, { status: 401 })
+  }
+  if (!session.emailVerified) {
+    return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Verify your email before applying' }, { status: 403 })
   }
   const { id } = await params
   const vacancyId = Number(id)
@@ -47,9 +50,12 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getVerifiedSession()
+  const session = await getSession()
   if (!session) {
-    return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Log in with a verified account to apply' }, { status: 401 })
+    return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Your session has expired. Log in to continue your application.' }, { status: 401 })
+  }
+  if (!session.emailVerified) {
+    return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Verify your email before applying' }, { status: 403 })
   }
   if (session.role !== 'artisan' && session.role !== 'professional') {
     return NextResponse.json<ApiResponse<null>>(

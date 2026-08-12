@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
+import { AuthRedirectLink } from './AuthRedirectLink'
 
 type RegistrationShellProps = {
   role: string
@@ -50,29 +51,29 @@ export function RegistrationShell({
     <div className="min-h-dvh bg-[#f5f8f7]">
       <header className="flex min-h-[68px] items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
         <BrandWordmark priority className="w-[190px] max-w-[calc(100vw-6.5rem)]" />
-        <Link href="/login" className="inline-flex min-h-[44px] flex-shrink-0 items-center px-1 text-sm font-semibold text-brand-700">
+        <AuthRedirectLink href="/login" className="inline-flex min-h-[44px] flex-shrink-0 items-center px-1 text-sm font-semibold text-brand-700">
           Log in
-        </Link>
+        </AuthRedirectLink>
       </header>
 
       <main className="mx-auto w-full max-w-7xl lg:px-6 lg:py-8">
         <div className="flex min-h-[48px] items-center px-4 lg:hidden">
-          <Link href="/signup" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-slate-600">
+          <AuthRedirectLink href="/signup" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-slate-600">
             <span aria-hidden="true">←</span>
             Account types
-          </Link>
+          </AuthRedirectLink>
         </div>
 
         <div className="mb-5 hidden min-h-[52px] items-center justify-between gap-6 lg:flex">
           <BrandWordmark priority className="w-[250px]" />
           <div className="flex items-center gap-6">
-            <Link href="/signup" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand-600">
+            <AuthRedirectLink href="/signup" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand-600">
               <span aria-hidden="true">←</span>
               Change account type
-            </Link>
-            <Link href="/login" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800">
+            </AuthRedirectLink>
+            <AuthRedirectLink href="/login" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800">
               Already have an account?&nbsp;<span className="underline underline-offset-4">Log in</span>
-            </Link>
+            </AuthRedirectLink>
           </div>
         </div>
 

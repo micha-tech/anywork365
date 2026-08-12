@@ -18,6 +18,7 @@ type SupportUserRow = RowDataPacket & {
   profileImage: string
   role: string
   category: string
+  businessCategory: string | null
   dateJoined: string
   businessName: string | null
   businessContact: string | null
@@ -181,7 +182,7 @@ function missingSteps(user: SupportUserRow): string[] {
 
   if (user.role === 'artisan') {
     add(user.businessName, 'Business name')
-    add(user.category, 'Service category')
+    add(user.businessCategory, 'Service category')
     add(user.businessContact, 'Business contact')
     add(user.businessDescription, 'Business description')
     add(user.businessLocation, 'Business location')
@@ -252,7 +253,7 @@ export async function GET(request: NextRequest) {
           NULLIF(rp.industry_category, ''),
           'General'
         ) AS category,
-        b.businessName, b.businessContact, b.description AS businessDescription,
+        b.businessName, b.category AS businessCategory, b.businessContact, b.description AS businessDescription,
         b.location AS businessLocation, b.state AS businessState,
         pp.industry_category AS industryCategory,
         pp.professional_service_category AS professionalServiceCategory,

@@ -14,6 +14,7 @@ import { getPostLoginPath } from '@/lib/auth-routing'
 import { toErrorMessage } from '@/lib/utils'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
 import { AuthDivider, GoogleAuthButton } from '@/components/auth/GoogleAuthButton'
+import { getBrowserAuthRedirect, withAuthRedirect } from '@/lib/auth-redirect'
 
 export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
@@ -79,11 +80,11 @@ export default function LoginPage() {
       }
 
       if (!result.user.emailVerified) {
-        window.location.href = '/verify-email'
+        window.location.href = withAuthRedirect('/verify-email', getBrowserAuthRedirect())
         return
       }
 
-      window.location.href = getPostLoginPath(body.data?.role)
+      window.location.href = getBrowserAuthRedirect() || getPostLoginPath(body.data?.role)
     } catch (err: unknown) {
       toast.error(toErrorMessage(err))
     }
@@ -104,11 +105,11 @@ export default function LoginPage() {
       if (result.needsProfile) {
         sessionStorage.setItem('anywork365_google_signup', '1')
         toast.success('Google connected. Choose your account type to finish signing up.')
-        window.location.href = '/signup'
+        window.location.href = withAuthRedirect('/signup', getBrowserAuthRedirect())
         return
       }
 
-      window.location.href = getPostLoginPath(result.user?.role)
+      window.location.href = getBrowserAuthRedirect() || getPostLoginPath(result.user?.role)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'We couldn’t sign you in with Google.')
     } finally {

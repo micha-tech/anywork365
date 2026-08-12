@@ -21,6 +21,7 @@ import { toErrorMessage } from '@/lib/utils'
 import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
 import { AuthDivider, GoogleAuthButton } from './GoogleAuthButton'
 import { RegistrationFormHeader, RegistrationLegalCopy } from './RegistrationShell'
+import { getBrowserAuthRedirect, withAuthRedirect } from '@/lib/auth-redirect'
 
 type ActiveRegistrationFormProps = {
   accountType: 'client' | 'artisan'
@@ -82,7 +83,7 @@ export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormPr
 
       const result = await exchangeGoogleUser(user)
       if (!result.needsProfile) {
-        window.location.href = getPostLoginPath(result.user?.role)
+        window.location.href = getBrowserAuthRedirect() || getPostLoginPath(result.user?.role)
         return
       }
 
@@ -156,19 +157,21 @@ export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormPr
 
       if (googleUser) {
         sessionStorage.removeItem('anywork365_google_signup')
-        window.location.href = getPostLoginPath(body.data?.role)
+        window.location.href = getBrowserAuthRedirect() || getPostLoginPath(body.data?.role)
         return
       }
 
       if (firebaseUser.emailVerified) {
-        window.location.href = getPostLoginPath(body.data?.role)
+        window.location.href = getBrowserAuthRedirect() || getPostLoginPath(body.data?.role)
         return
       }
 
       const { error: verificationEmailError } = await sendVerificationEmail()
+      const verificationPath = withAuthRedirect('/verify-email', getBrowserAuthRedirect())
+      const separator = verificationPath.includes('?') ? '&' : '?'
       window.location.href = verificationEmailError
-        ? `/verify-email?emailStatus=failed&reason=${encodeURIComponent(verificationEmailError)}`
-        : '/verify-email'
+        ? `${verificationPath}${separator}emailStatus=failed&reason=${encodeURIComponent(verificationEmailError)}`
+        : verificationPath
     } catch {
       toast.error('An unexpected error occurred. Please try again.')
     }
