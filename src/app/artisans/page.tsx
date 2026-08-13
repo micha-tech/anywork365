@@ -75,9 +75,13 @@ export default async function ArtisansPage({
             </div>
             {hasMore && (
               <div className="mt-8 flex justify-center">
-                <a href={`/artisans?${new URLSearchParams({ ...(category ? { category } : {}), ...(state ? { state } : {}), ...(lga ? { lga } : {}), ...(search ? { search } : {}), page: String(currentPage + 1) }).toString()}`} className="btn-outline px-8 py-3">
+                <Link
+                  href={`/artisans?${new URLSearchParams({ ...(category ? { category } : {}), ...(state ? { state } : {}), ...(lga ? { lga } : {}), ...(search ? { search } : {}), page: String(currentPage + 1) }).toString()}`}
+                  scroll={false}
+                  className="btn-outline px-8 py-3"
+                >
                   Load more ({totalCount - currentPage * PAGE_SIZE} remaining)
-                </a>
+                </Link>
               </div>
             )}
           </>

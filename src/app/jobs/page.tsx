@@ -74,9 +74,9 @@ export default async function JobsPage({ searchParams }: Props) {
             </div>
             {hasMore && (
               <div className="flex justify-center mt-6 sm:mt-8">
-                <a href={loadMoreHref} className="btn-outline w-full max-w-sm px-5 py-3 sm:w-auto sm:px-8">
+                <Link href={loadMoreHref} scroll={false} className="btn-outline w-full max-w-sm px-5 py-3 sm:w-auto sm:px-8">
                   Load More ({totalCount - currentPage * PAGE_SIZE} remaining)
-                </a>
+                </Link>
               </div>
             )}
           </>
