@@ -582,9 +582,16 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div className="mb-5 sm:mb-7">
-        <h1 className="font-display text-xl sm:text-2xl font-semibold">My Profile</h1>
-        <p className="text-sm text-slate-500 mt-1">Manage your personal information</p>
+      <div className="mb-5 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-xl sm:text-2xl font-semibold">My Profile</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage your personal information</p>
+        </div>
+        {(user?.role === 'artisan' || user?.role === 'professional') && (
+          <Link href="/profile/setup" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-brand-200 bg-brand-50 px-4 text-sm font-semibold text-brand-700 transition-colors hover:border-brand-300 hover:bg-brand-100">
+            Guided profile setup
+          </Link>
+        )}
       </div>
 
       {user && <DualClientRecruiterAccount user={user} />}

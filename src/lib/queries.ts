@@ -1244,6 +1244,31 @@ export async function updateProfessionalBackground(uid: string, data: {
   )
 }
 
+export async function updateProfessionalProfile(uid: string, data: {
+  industryCategory: string
+  professionalServiceCategory: string
+  jobTitle: string
+  qualification: string
+  yearsExperience: number
+  linkedinOrPortfolioUrl?: string
+}): Promise<void> {
+  await execute(
+    `UPDATE professional_profiles
+     SET industry_category = ?, professional_service_category = ?, job_title = ?,
+         qualification = ?, years_experience = ?, linkedin_or_portfolio_url = ?, updated_at = NOW()
+     WHERE uid = ?`,
+    [
+      data.industryCategory,
+      data.professionalServiceCategory,
+      data.jobTitle,
+      data.qualification,
+      data.yearsExperience,
+      data.linkedinOrPortfolioUrl || null,
+      uid,
+    ]
+  )
+}
+
 export async function updateProfessionalCoverImage(uid: string, coverImageUrl: string | null): Promise<void> {
   await execute(
     'UPDATE professional_profiles SET cover_image_url = ?, updated_at = NOW() WHERE uid = ?',

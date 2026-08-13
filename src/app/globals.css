@@ -113,6 +113,12 @@
 
 /* ─── Button press effect ────────────────────────────── */
 @layer utilities {
+  @keyframes setupStepIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-setup-step { animation: setupStepIn 0.28s ease-out both; }
+
   .btn-press {
     transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -308,6 +314,21 @@ html.page-exit .fixed.inset-0 {
 }
 @keyframes onboardingExit {
   to { opacity: 0; transform: scale(1.04); }
+}
+
+@keyframes setupStepEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-setup-step {
+  animation: setupStepEnter 280ms ease-out both;
 }
 
 }

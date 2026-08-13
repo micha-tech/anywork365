@@ -8,3 +8,8 @@ export function getPostLoginPath(role?: UserRole | null): string {
   if (role === 'recruiter') return '/dashboard/jobs'
   return '/artisans'
 }
+
+export function getPostSignupPath(role?: UserRole | null): string {
+  if (role === 'artisan' || role === 'professional') return '/profile/setup'
+  return getPostLoginPath(role)
+}
