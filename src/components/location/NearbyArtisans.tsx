@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Avatar, VerifiedBusinessBadge } from '@/components/ui'
 import { BUSINESS_CATEGORY_GROUPS } from '@/types'
 import { getCurrentLocation, LocationAccessError } from '@/lib/client-geolocation'
+import { getInitials } from '@/lib/utils'
 
 type NearbyArtisan = {
   id: string
@@ -15,6 +17,7 @@ type NearbyArtisan = {
   isVerified: boolean
   avatarUrl?: string
   location: string
+  yearsOfExperience?: number
   distanceKm: number
   updatedAt: string
 }
@@ -122,31 +125,105 @@ export function NearbyArtisans() {
 }
 
 function NearbyCard({ artisan }: { artisan: NearbyArtisan }) {
+  const displayName = artisan.businessName.trim() || artisan.name.trim()
+  const ownerParts = artisan.name.trim().split(/\s+/)
+  const initials = getInitials(ownerParts[0] || displayName, ownerParts.slice(1).join(' '))
+  const showOwnerName = artisan.businessName.trim().toLowerCase() !== artisan.name.trim().toLowerCase()
+  const reviews = Number(artisan.reviewCount || 0)
+  const rating = Number(artisan.rating || 0)
+
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center gap-3 p-4">
-        <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-full bg-brand-50">
-          {artisan.avatarUrl ? <img src={artisan.avatarUrl} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center font-bold text-brand-600">{artisan.name.charAt(0)}</div>}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <h2 className="truncate font-bold text-slate-900">{artisan.name}</h2>
-            {artisan.isVerified && <span className="text-brand-500" title="Verified">●</span>}
-          </div>
-          <p className="truncate text-xs text-slate-500">{artisan.category}</p>
-        </div>
-        <div className="rounded-lg bg-brand-50 px-2.5 py-1.5 text-right">
-          <p className="text-sm font-extrabold text-brand-700">{artisan.distanceKm} km</p>
-          <p className="text-[10px] text-brand-600">away</p>
-        </div>
+    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-lg">
+      <div className="relative h-20 bg-[linear-gradient(120deg,#0F4F4A_0%,#1F6F68_72%,#D8A928_180%)] sm:h-24">
+        <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_80%_10%,white_0,transparent_36%)]" />
+        <span className="absolute right-4 top-4 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
+          {artisan.distanceKm} km away
+        </span>
       </div>
-      <div className="border-t border-slate-100 px-4 py-3">
-        <p className="flex items-center gap-1.5 text-sm text-slate-600"><span aria-hidden="true">⌖</span>{artisan.location}</p>
-        <div className="mt-2 flex items-center justify-between">
-          <p className="text-xs text-slate-500">★ {artisan.rating.toFixed(1)} ({artisan.reviewCount})</p>
-          <Link href={`/artisans/${artisan.id}`} className="text-sm font-bold text-brand-600">View profile →</Link>
+
+      <div className="relative flex flex-1 flex-col px-4 pb-4 sm:px-5 sm:pb-5">
+        <div className="-mt-9 mb-3 flex items-end justify-between gap-3 sm:-mt-10">
+          <div className="relative rounded-full bg-white p-1 shadow-sm">
+            <Avatar
+              src={artisan.avatarUrl}
+              initials={initials}
+              size="xl"
+              colorIndex={artisan.id.length}
+              className="h-16 w-16 border border-slate-100 text-xl sm:h-[72px] sm:w-[72px]"
+            />
+            {artisan.isVerified && (
+              <VerifiedBusinessBadge label={false} className="absolute bottom-1 right-0 border-2 border-white shadow-sm" />
+            )}
+          </div>
+          <span className="mb-1 max-w-[58%] truncate rounded-full border border-brand-100 bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700">
+            {artisan.category || 'Artisan services'}
+          </span>
+        </div>
+
+        <Link href={`/artisans/${artisan.id}`} className="inline-block max-w-full">
+          <h2 className="truncate font-display text-lg font-bold text-slate-950 transition-colors group-hover:text-brand-500 sm:text-xl">
+            {displayName}
+          </h2>
+        </Link>
+        {showOwnerName && <p className="mt-0.5 truncate text-xs text-slate-500">Run by {artisan.name}</p>}
+
+        <p className="mt-3 flex min-w-0 items-center gap-1.5 text-sm text-slate-600">
+          <LocationIcon />
+          <span className="truncate">{artisan.location}</span>
+        </p>
+
+        <div className="my-4 grid grid-cols-2 divide-x divide-slate-200 rounded-xl border border-slate-100 bg-slate-50/80 py-2.5">
+          <div className="flex min-w-0 items-center justify-center gap-1.5 px-2 text-sm">
+            <StarIcon />
+            {reviews > 0 ? (
+              <>
+                <span className="font-bold text-slate-900">{rating.toFixed(1)}</span>
+                <span className="truncate text-xs text-slate-500">({reviews})</span>
+              </>
+            ) : (
+              <span className="font-semibold text-slate-600">New</span>
+            )}
+          </div>
+          <div className="flex min-w-0 items-center justify-center px-2 text-sm">
+            <span className="truncate font-bold text-slate-900">
+              {artisan.yearsOfExperience !== undefined
+                ? `${artisan.yearsOfExperience} yr${artisan.yearsOfExperience === 1 ? '' : 's'} experience`
+                : 'Experience not listed'}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-auto border-t border-slate-100 pt-4">
+          <Link href={`/artisans/${artisan.id}`} className="btn-primary w-full justify-between px-4 py-2.5 text-sm">
+            <span>View profile</span>
+            <ArrowIcon />
+          </Link>
         </div>
       </div>
     </article>
+  )
+}
+
+function LocationIcon() {
+  return (
+    <svg className="h-4 w-4 flex-shrink-0 text-brand-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fillRule="evenodd" d="M9.69 18.933 10 19l.31-.067C12.83 17.72 17 13.983 17 9A7 7 0 1 0 3 9c0 4.983 4.17 8.72 6.69 9.933ZM10 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+    </svg>
+  )
+}
+
+function StarIcon() {
+  return (
+    <svg className="h-4 w-4 flex-shrink-0 text-amber-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29a1 1 0 0 0 .95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03a1 1 0 0 0-.36 1.12l1.07 3.29c.3.92-.76 1.69-1.54 1.12l-2.8-2.03a1 1 0 0 0-1.18 0l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 0 0 .95-.69l1.07-3.29Z" />
+    </svg>
+  )
+}
+
+function ArrowIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 5 7 7-7 7" />
+    </svg>
   )
 }
