@@ -1,9 +1,8 @@
 import { listProfessionalProfiles } from '@/lib/queries'
-import { getAvatarUrl } from '@/lib/avatar'
-import { Avatar, Badge, EmptyState } from '@/components/ui'
+import { EmptyState } from '@/components/ui'
+import { ProfessionalCard } from '@/components/professionals/ProfessionalCard'
 import { INDUSTRY_CATEGORIES } from '@/lib/registration-options'
 import { NIGERIAN_STATE_NAMES } from '@/types'
-import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,45 +48,9 @@ export default async function ProfessionalsPage({
           <>
             <p className="mb-4 text-sm text-slate-500">{allProfessionals.length.toLocaleString()} professionals found</p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {professionals.map((professional, index) => {
-                const names = professional.full_name.trim().split(/\s+/)
-                const initials = `${names[0]?.[0] || ''}${names[1]?.[0] || names[0]?.[1] || ''}`.toUpperCase()
-                return (
-                  <article key={professional.uid} className="card group relative flex h-full flex-col p-5 transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md">
-                    <Link
-                      href={`/professionals/${encodeURIComponent(professional.uid)}`}
-                      className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                      aria-label={`View ${professional.full_name}'s professional profile`}
-                    />
-                    <div className="flex items-start gap-3">
-                      <Avatar src={getAvatarUrl(professional.profile_image)} initials={initials} size="lg" colorIndex={index} />
-                      <div className="min-w-0">
-                        <h2 className="truncate font-display text-lg font-semibold text-slate-900">{professional.full_name}</h2>
-                        <p className="text-sm font-medium text-brand-600">{professional.job_title}</p>
-                        <p className="mt-0.5 text-xs text-slate-500">{[professional.lga, professional.state].filter(Boolean).join(', ')}</p>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge variant="green">{professional.professional_service_category}</Badge>
-                      <Badge variant="gray">{professional.years_experience} years experience</Badge>
-                    </div>
-                    <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{professional.industry_category}</p>
-                    {professional.bio && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{professional.bio}</p>}
-                    <div className="mt-auto border-t border-slate-100 pt-4 text-sm">
-                      <p className="text-slate-600"><span className="font-semibold">Education:</span> {professional.qualification}</p>
-                      {professional.linkedin_or_portfolio_url && (
-                        <a href={professional.linkedin_or_portfolio_url} target="_blank" rel="noreferrer" className="relative z-20 mt-3 inline-flex font-semibold text-brand-600 hover:text-brand-700">View LinkedIn or portfolio →</a>
-                      )}
-                      <Link
-                        href={`/professionals/${encodeURIComponent(professional.uid)}`}
-                        className="relative z-20 mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition-colors group-hover:bg-brand-600"
-                      >
-                        View profile
-                      </Link>
-                    </div>
-                  </article>
-                )
-              })}
+              {professionals.map((professional, index) => (
+                <ProfessionalCard key={professional.uid} professional={professional} index={index} />
+              ))}
             </div>
             {hasMore && (
               <div className="mt-8 flex justify-center">
