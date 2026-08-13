@@ -11,7 +11,7 @@ export function MobileBottomNav() {
   const isVendor = user?.role === 'artisan'
   const isAdmin = user?.role === 'admin'
   const isSupport = user?.role === 'support'
-  const hideOnPaths = pathname === '/login' || pathname.startsWith('/signup') || pathname === '/onboarding' || pathname === '/verify-email' || pathname.startsWith('/support')
+  const hideOnPaths = pathname === '/login' || pathname.startsWith('/signup') || pathname === '/onboarding' || pathname === '/verify-email' || pathname.startsWith('/profile/setup') || pathname.startsWith('/support')
 
   if (loading || !user || hideOnPaths) return null
 

@@ -16,7 +16,7 @@ import {
   signUp,
 } from '@/lib/firebase/auth'
 import { exchangeGoogleUser, getGoogleProfile } from '@/lib/google-auth'
-import { getPostLoginPath } from '@/lib/auth-routing'
+import { getPostLoginPath, getPostSignupPath } from '@/lib/auth-routing'
 import { toErrorMessage } from '@/lib/utils'
 import { BUSINESS_CATEGORY_GROUPS, NIGERIAN_STATE_NAMES } from '@/types'
 import { AuthDivider, GoogleAuthButton } from './GoogleAuthButton'
@@ -157,17 +157,20 @@ export function ActiveRegistrationForm({ accountType }: ActiveRegistrationFormPr
 
       if (googleUser) {
         sessionStorage.removeItem('anywork365_google_signup')
-        window.location.href = getBrowserAuthRedirect() || getPostLoginPath(body.data?.role)
+        window.location.href = getBrowserAuthRedirect() || getPostSignupPath(body.data?.role)
         return
       }
 
       if (firebaseUser.emailVerified) {
-        window.location.href = getBrowserAuthRedirect() || getPostLoginPath(body.data?.role)
+        window.location.href = getBrowserAuthRedirect() || getPostSignupPath(body.data?.role)
         return
       }
 
       const { error: verificationEmailError } = await sendVerificationEmail()
-      const verificationPath = withAuthRedirect('/verify-email', getBrowserAuthRedirect())
+      const verificationPath = withAuthRedirect(
+        '/verify-email',
+        getBrowserAuthRedirect() || getPostSignupPath(body.data?.role)
+      )
       const separator = verificationPath.includes('?') ? '&' : '?'
       window.location.href = verificationEmailError
         ? `${verificationPath}${separator}emailStatus=failed&reason=${encodeURIComponent(verificationEmailError)}`
