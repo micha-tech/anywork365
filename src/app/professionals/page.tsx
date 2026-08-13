@@ -2,6 +2,7 @@ import { listProfessionalProfiles } from '@/lib/queries'
 import { EmptyState } from '@/components/ui'
 import { ProfessionalCard } from '@/components/professionals/ProfessionalCard'
 import { ProfessionalDirectoryFilters } from '@/components/professionals/ProfessionalDirectoryFilters'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,7 +43,13 @@ export default async function ProfessionalsPage({
             </div>
             {hasMore && (
               <div className="mt-8 flex justify-center">
-                <a href={`/professionals?${new URLSearchParams({ ...(search ? { search } : {}), ...(industry ? { industry } : {}), ...(state ? { state } : {}), page: String(currentPage + 1) }).toString()}`} className="btn-outline px-8 py-3">Load more</a>
+                <Link
+                  href={`/professionals?${new URLSearchParams({ ...(search ? { search } : {}), ...(industry ? { industry } : {}), ...(state ? { state } : {}), page: String(currentPage + 1) }).toString()}`}
+                  scroll={false}
+                  className="btn-outline px-8 py-3"
+                >
+                  Load more
+                </Link>
               </div>
             )}
           </>
