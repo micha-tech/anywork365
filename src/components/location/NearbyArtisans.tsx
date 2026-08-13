@@ -84,7 +84,7 @@ export function NearbyArtisans() {
 
   return (
     <div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="border-y border-slate-200 py-4">
         <label htmlFor="nearby-category" className="label">What kind of artisan do you need?</label>
         <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
           <select id="nearby-category" value={category} onChange={(event) => setCategory(event.target.value)} className="input-field appearance-none">
@@ -109,12 +109,12 @@ export function NearbyArtisans() {
           {artisans.length ? (
             <>
               <p className="mb-4 text-sm font-medium text-slate-600">{artisans.length} artisan{artisans.length === 1 ? '' : 's'} within 50 km</p>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-x-8 lg:grid-cols-2">
                 {artisans.map((artisan) => <NearbyCard key={artisan.id} artisan={artisan} />)}
               </div>
             </>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
+            <div className="border-t border-slate-200 py-12 text-center">
               <p className="font-semibold text-slate-800">No artisans near you at the moment</p>
             </div>
           )}
@@ -133,72 +133,28 @@ function NearbyCard({ artisan }: { artisan: NearbyArtisan }) {
   const rating = Number(artisan.rating || 0)
 
   return (
-    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-lg">
-      <div className="relative h-20 bg-[linear-gradient(120deg,#0F4F4A_0%,#1F6F68_72%,#D8A928_180%)] sm:h-24">
-        <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_80%_10%,white_0,transparent_36%)]" />
-        <span className="absolute right-4 top-4 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
-          {artisan.distanceKm} km away
-        </span>
+    <article className="group flex min-w-0 gap-4 border-t border-slate-200 py-6 sm:gap-5">
+      <div className="relative h-fit flex-shrink-0">
+        <Avatar src={artisan.avatarUrl} initials={initials} size="xl" colorIndex={artisan.id.length} className="h-16 w-16 text-xl sm:h-[72px] sm:w-[72px]" />
+        {artisan.isVerified && <VerifiedBusinessBadge label={false} size="sm" className="absolute bottom-0 right-0 border-2 border-white" />}
       </div>
-
-      <div className="relative flex flex-1 flex-col px-4 pb-4 sm:px-5 sm:pb-5">
-        <div className="-mt-9 mb-3 flex items-end justify-between gap-3 sm:-mt-10">
-          <div className="relative rounded-full bg-white p-1 shadow-sm">
-            <Avatar
-              src={artisan.avatarUrl}
-              initials={initials}
-              size="xl"
-              colorIndex={artisan.id.length}
-              className="h-16 w-16 border border-slate-100 text-xl sm:h-[72px] sm:w-[72px]"
-            />
-            {artisan.isVerified && (
-              <VerifiedBusinessBadge label={false} className="absolute bottom-1 right-0 border-2 border-white shadow-sm" />
-            )}
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <Link href={`/artisans/${artisan.id}`} className="inline-block max-w-full">
+              <h2 className="truncate font-display text-base font-bold text-slate-950 transition-colors group-hover:text-brand-600 sm:text-lg">{displayName}</h2>
+            </Link>
+            <p className="mt-0.5 truncate text-sm font-medium text-brand-600">{artisan.category || 'Artisan services'}</p>
           </div>
-          <span className="mb-1 max-w-[58%] truncate rounded-full border border-brand-100 bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700">
-            {artisan.category || 'Artisan services'}
-          </span>
+          <strong className="flex-shrink-0 text-sm text-brand-700">{artisan.distanceKm} km away</strong>
         </div>
-
-        <Link href={`/artisans/${artisan.id}`} className="inline-block max-w-full">
-          <h2 className="truncate font-display text-lg font-bold text-slate-950 transition-colors group-hover:text-brand-500 sm:text-xl">
-            {displayName}
-          </h2>
-        </Link>
-        {showOwnerName && <p className="mt-0.5 truncate text-xs text-slate-500">Run by {artisan.name}</p>}
-
-        <p className="mt-3 flex min-w-0 items-center gap-1.5 text-sm text-slate-600">
-          <LocationIcon />
-          <span className="truncate">{artisan.location}</span>
-        </p>
-
-        <div className="my-4 grid grid-cols-2 divide-x divide-slate-200 rounded-xl border border-slate-100 bg-slate-50/80 py-2.5">
-          <div className="flex min-w-0 items-center justify-center gap-1.5 px-2 text-sm">
-            <StarIcon />
-            {reviews > 0 ? (
-              <>
-                <span className="font-bold text-slate-900">{rating.toFixed(1)}</span>
-                <span className="truncate text-xs text-slate-500">({reviews})</span>
-              </>
-            ) : (
-              <span className="font-semibold text-slate-600">New</span>
-            )}
-          </div>
-          <div className="flex min-w-0 items-center justify-center px-2 text-sm">
-            <span className="truncate font-bold text-slate-900">
-              {artisan.yearsOfExperience !== undefined
-                ? `${artisan.yearsOfExperience} yr${artisan.yearsOfExperience === 1 ? '' : 's'} experience`
-                : 'Experience not listed'}
-            </span>
-          </div>
+        {showOwnerName && <p className="mt-1 truncate text-xs text-slate-500">Run by {artisan.name}</p>}
+        <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-600"><LocationIcon /><span className="truncate">{artisan.location}</span></p>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+          <span>{reviews > 0 ? `★ ${rating.toFixed(1)} · ${reviews} review${reviews === 1 ? '' : 's'}` : 'New on Anywork365'}</span>
+          {artisan.yearsOfExperience !== undefined && <span>{artisan.yearsOfExperience} year{artisan.yearsOfExperience === 1 ? '' : 's'} experience</span>}
         </div>
-
-        <div className="mt-auto border-t border-slate-100 pt-4">
-          <Link href={`/artisans/${artisan.id}`} className="btn-primary w-full justify-between px-4 py-2.5 text-sm">
-            <span>View profile</span>
-            <ArrowIcon />
-          </Link>
-        </div>
+        <Link href={`/artisans/${artisan.id}`} className="mt-4 inline-flex min-h-10 items-center text-sm font-semibold text-brand-600 hover:text-brand-700">View profile</Link>
       </div>
     </article>
   )
@@ -208,22 +164,6 @@ function LocationIcon() {
   return (
     <svg className="h-4 w-4 flex-shrink-0 text-brand-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path fillRule="evenodd" d="M9.69 18.933 10 19l.31-.067C12.83 17.72 17 13.983 17 9A7 7 0 1 0 3 9c0 4.983 4.17 8.72 6.69 9.933ZM10 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
-    </svg>
-  )
-}
-
-function StarIcon() {
-  return (
-    <svg className="h-4 w-4 flex-shrink-0 text-amber-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29a1 1 0 0 0 .95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03a1 1 0 0 0-.36 1.12l1.07 3.29c.3.92-.76 1.69-1.54 1.12l-2.8-2.03a1 1 0 0 0-1.18 0l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 0 0 .95-.69l1.07-3.29Z" />
-    </svg>
-  )
-}
-
-function ArrowIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 5 7 7-7 7" />
     </svg>
   )
 }

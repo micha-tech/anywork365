@@ -17,7 +17,7 @@ export function MobileBottomNav() {
 
   if (isAdmin || isSupport) {
     return (
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl pb-safe md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-xl pb-safe md:hidden">
         <div className="flex items-center justify-center px-2 h-16">
           <Link
             href={isSupport ? '/support' : '/admin'}
@@ -113,7 +113,7 @@ export function MobileBottomNav() {
 
   return (
     /* Visible only on mobile */
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl pb-safe md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-xl pb-safe md:hidden">
       <div className="grid h-16 grid-cols-5 items-end px-1.5">
         {TABS.map((tab) => {
           const active = tab.href === '/dashboard'

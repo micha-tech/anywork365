@@ -13,14 +13,6 @@ const CATEGORIES = [
   'Auto Mechanics',
   'Plumbing Services',
   'Tailoring & Fashion Design',
-  'Legal Consultancy',
-  'Freight Forwarding / Clearing Agents',
-  'Home Tutors',
-  'Logistics / Transportation Services',
-  'Technical Engineering Services',
-  'Digital Printing Services',
-  'Tax / Accounting Consultancy',
-  'Quantity Surveying',
 ]
 
 const PAGE_SIZE = 12
@@ -38,22 +30,21 @@ export default async function ArtisansPage({
   const hasMore = totalCount > currentPage * PAGE_SIZE
 
   return (
-    <div className="bg-surface-base">
-      <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#FAFBFC_100%)] px-4 py-5 sm:px-6 sm:py-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <main className="min-h-screen bg-white">
+      <div className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
+        <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">Artisans</h1>
-            <p className="mt-2 text-sm text-slate-600">{totalCount.toLocaleString()} artisan{totalCount === 1 ? '' : 's'} listed</p>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">Artisans</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">Find skilled artisans and service providers for the work you need.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/nearby" className="btn-primary px-4 py-2 text-sm">Artisans near me</Link>
-          </div>
-        </div>
-      </div>
+          <Link href="/nearby" className="btn-outline w-fit px-4 py-2 text-sm">Near me</Link>
+        </header>
 
-      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8">
+        <div className="mt-8 sm:mt-10">
         <ProfessionalFilters category={category} state={state} lga={lga} search={search} />
-        <div className="-mx-3 mb-5 flex gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:mb-8 sm:flex-wrap sm:px-0">
+        </div>
+
+        <nav aria-label="Quick artisan categories" className="-mx-4 flex gap-6 overflow-x-auto border-b border-slate-200 px-4 pb-3 sm:mx-0 sm:px-0">
           {CATEGORIES.map((item) => (
             <a
               key={item}
@@ -63,21 +54,23 @@ export default async function ArtisansPage({
                 ...(lga ? { lga } : {}),
                 ...(search ? { search } : {}),
               }).toString()}`}
-              className={`flex min-h-[38px] flex-shrink-0 items-center rounded-lg border px-3 py-2 text-sm font-medium ${
+              className={`relative flex min-h-10 flex-shrink-0 items-center text-sm font-medium transition-colors after:absolute after:inset-x-0 after:-bottom-3 after:h-0.5 ${
                 category === item || (item === 'All' && !category)
-                  ? 'border-brand-500 bg-brand-50 text-brand-600'
-                  : 'border-slate-200 bg-white text-slate-500 hover:border-brand-500 hover:text-brand-500'
+                  ? 'text-brand-600 after:bg-brand-500'
+                  : 'text-slate-500 after:bg-transparent hover:text-brand-600'
               }`}
             >
               {item}
             </a>
           ))}
-        </div>
+        </nav>
 
         {vendors.length > 0 ? (
           <>
-            <p className="mb-4 text-sm text-slate-500">{totalCount.toLocaleString()} artisans found</p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+            <div className="flex items-center justify-between py-6">
+              <p className="text-sm font-medium text-slate-700">{totalCount.toLocaleString()} artisan{totalCount === 1 ? '' : 's'} found</p>
+            </div>
+            <div className="grid grid-cols-1 gap-x-8 lg:grid-cols-2">
               {vendors.map((artisan, index) => <ProCard key={artisan.id} pro={artisan} index={index} />)}
             </div>
             {hasMore && (
@@ -92,6 +85,6 @@ export default async function ArtisansPage({
           <EmptyState icon="search" title="No artisans found" description="Try adjusting your filters or search terms" />
         )}
       </div>
-    </div>
+    </main>
   )
 }
