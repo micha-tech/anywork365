@@ -1,8 +1,7 @@
 import { listProfessionalProfiles } from '@/lib/queries'
 import { EmptyState } from '@/components/ui'
 import { ProfessionalCard } from '@/components/professionals/ProfessionalCard'
-import { INDUSTRY_CATEGORIES } from '@/lib/registration-options'
-import { NIGERIAN_STATE_NAMES } from '@/types'
+import { ProfessionalDirectoryFilters } from '@/components/professionals/ProfessionalDirectoryFilters'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,34 +19,23 @@ export default async function ProfessionalsPage({
   const hasMore = allProfessionals.length > professionals.length
 
   return (
-    <div className="bg-surface-base">
-      <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#FAFBFC_100%)] px-4 py-5 sm:px-6 sm:py-10">
-        <div className="mx-auto max-w-7xl">
-          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">Professionals</h1>
-          <p className="mt-2 text-sm text-slate-600">Explore qualified professionals across industries and specialist services.</p>
-        </div>
-      </div>
+    <main className="min-h-screen bg-white">
+      <div className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
+        <header>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">Professionals</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">Discover professionals across industries, roles and specialist services.</p>
+        </header>
 
-      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8">
-        <form method="GET" className="mb-6 grid gap-2 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <input name="search" defaultValue={search} className="input-field" placeholder="Name, job title, or specialty" />
-          <select name="industry" defaultValue={industry} className="input-field appearance-none">
-            <option value="">All industries</option>
-            {INDUSTRY_CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
-          </select>
-          <select name="state" defaultValue={state} className="input-field appearance-none">
-            <option value="">All states</option>
-            {NIGERIAN_STATE_NAMES.map((item) => <option key={item} value={item}>{item}</option>)}
-          </select>
-          <button type="submit" className="btn-primary px-5">Search</button>
-        </form>
+        <ProfessionalDirectoryFilters search={search} industry={industry} state={state} />
 
         {professionals.length === 0 ? (
           <EmptyState icon="search" title="No professionals found" description="Try changing your search or filters." />
         ) : (
           <>
-            <p className="mb-4 text-sm text-slate-500">{allProfessionals.length.toLocaleString()} professionals found</p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex items-center justify-between py-6">
+              <p className="text-sm font-medium text-slate-700">{allProfessionals.length.toLocaleString()} professional{allProfessionals.length === 1 ? '' : 's'} found</p>
+            </div>
+            <div className="grid grid-cols-1 gap-x-8 lg:grid-cols-2">
               {professionals.map((professional, index) => (
                 <ProfessionalCard key={professional.uid} professional={professional} index={index} />
               ))}
@@ -60,6 +48,6 @@ export default async function ProfessionalsPage({
           </>
         )}
       </div>
-    </div>
+    </main>
   )
 }

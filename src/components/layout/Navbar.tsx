@@ -130,7 +130,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="navbar sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl">
+      <header className="navbar sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 h-16">
 
@@ -142,10 +142,10 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-150',
+                    'relative px-3.5 py-5 text-sm font-medium transition-colors duration-150 after:absolute after:inset-x-3.5 after:bottom-0 after:h-0.5 after:origin-left after:bg-brand-500 after:transition-transform',
                     pathname.startsWith(link.href)
-                      ? 'bg-brand-50 text-brand-600 font-semibold shadow-[inset_0_0_0_1px_rgba(15,79,74,0.06)]'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-brand-600'
+                      ? 'font-semibold text-brand-600 after:scale-x-100'
+                      : 'text-slate-600 after:scale-x-0 hover:text-brand-600'
                   )}
                 >
                   {link.label}
@@ -285,7 +285,7 @@ export function Navbar() {
       {menuOpen && (
         <div className="fixed inset-0 z-40 md:hidden" style={{ top: '64px' }}>
           <div className="absolute inset-0 bg-slate-950/30 backdrop-blur-[2px]" onClick={() => setMenuOpen(false)} />
-          <div className="relative rounded-b-3xl border-b border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.14)]">
+          <div className="relative border-b border-slate-200 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.10)]">
             <nav className="flex flex-col gap-1 px-4 py-4">
               {navLinks.map((link) => (
                 <Link

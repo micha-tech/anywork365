@@ -44,7 +44,7 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
   }, [id])
 
   if (!loading && !pro) notFound()
-  if (loading || !pro) return <div className="max-w-4xl mx-auto px-4 py-10"><div className="animate-pulse h-40 bg-gray-100 rounded-2xl" /></div>
+  if (loading || !pro) return <div className="mx-auto max-w-6xl px-4 py-10"><div className="h-40 animate-pulse bg-slate-100" /></div>
 
   const initials    = getInitials(pro.firstName, pro.lastName)
   const ownerName = `${pro.firstName} ${pro.lastName}`.trim()
@@ -186,9 +186,9 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
   const colorIndex = 0
 
   return (
-    <div className="max-w-4xl mx-auto px-3 pb-40 pt-4 sm:px-6 sm:py-10">
-      <Link href="/artisans" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-500 mb-5">
-        ← Back to Artisans
+    <main className="mx-auto max-w-6xl bg-white px-4 pb-40 pt-6 sm:px-6 sm:pt-10 lg:pb-16">
+      <Link href="/artisans" className="mb-7 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-600">
+        ← Back to artisans
       </Link>
 
       <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur pb-safe">
@@ -214,32 +214,31 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-5">
-          <div className="card p-4 sm:p-6">
-            <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-16">
+        <div className="min-w-0">
+          <header className="border-b border-slate-200 pb-8">
+            <div className="flex min-w-0 items-start gap-4 sm:gap-5">
               <div className="relative flex-shrink-0">
-                <Avatar src={pro.avatarUrl} initials={initials} size="lg" colorIndex={colorIndex} className="mb-4 h-12 w-12 text-base sm:h-14 sm:w-14 sm:text-lg" />
+                <Avatar src={pro.avatarUrl} initials={initials} size="xl" colorIndex={colorIndex} className="h-20 w-20 text-2xl sm:h-24 sm:w-24" />
                 {pro.isVerified && (
-                  <VerifiedBusinessBadge label={false} className="absolute -bottom-2 left-8 border-2 border-white shadow-sm" />
+                  <VerifiedBusinessBadge label={false} className="absolute bottom-0 right-0 border-2 border-white" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <h1 className="min-w-0 break-words font-display text-lg font-semibold leading-snug sm:text-xl">
+                <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+                  <h1 className="min-w-0 break-words font-display text-2xl font-bold leading-tight text-slate-950 sm:text-4xl">
                     {displayName}
                   </h1>
-                  {pro.isVerified && <VerifiedBusinessBadge size="sm" />}
                 </div>
-                <p className="text-sm text-slate-500 mt-0.5">
+                <p className="mt-2 text-sm text-slate-600 sm:text-base">
                   {[pro.businessName ? ownerName : null, pro.skills?.[0], pro.city].filter(Boolean).join(' · ')}
                 </p>
-                {pro.rating && (
+                {Number(pro.reviewCount || 0) > 0 && pro.rating !== undefined && (
                   <div className="mt-2">
                     <Stars rating={pro.rating} count={pro.reviewCount} />
                   </div>
                 )}
-                <div className="mt-3 flex min-w-0 flex-wrap gap-1.5">
+                <div className="mt-4 flex min-w-0 flex-wrap gap-2">
                   {pro.skills?.map((skill) => (
                     <Badge key={skill} variant="green" className="max-w-full truncate">{skill}</Badge>
                   ))}
@@ -247,18 +246,19 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
-            {pro.bio && (
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <h2 className="font-medium text-sm mb-2">About</h2>
-                <p className="text-sm text-slate-500 leading-relaxed">{pro.bio}</p>
-              </div>
-            )}
-          </div>
+          </header>
+
+          <section className="border-b border-slate-200 py-8 sm:py-10">
+            <h2 className="font-display text-xl font-semibold text-slate-950">About</h2>
+            <p className="mt-4 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-slate-600 sm:text-base">
+              {pro.bio || `${displayName} provides ${pro.skills?.[0]?.toLowerCase() || 'artisan services'} in ${pro.city || 'Nigeria'}.`}
+            </p>
+          </section>
 
           {pro.portfolio && pro.portfolio.length > 0 && (
-            <section className="card p-4 sm:p-6">
-              <h2 className="font-medium text-base mb-4">Portfolio</h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <section className="border-b border-slate-200 py-8 sm:py-10">
+              <h2 className="font-display text-xl font-semibold text-slate-950">Portfolio</h2>
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {pro.portfolio.map((item) => (
                   <article key={item.id} className="overflow-hidden rounded-lg border border-slate-200">
                     {item.imageUrl && (
@@ -287,12 +287,12 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
             </section>
           )}
 
-          <div className="card p-4 sm:p-6">
-            <h2 className="font-medium text-base mb-4">
+          <section className="py-8 sm:py-10">
+            <h2 className="font-display text-xl font-semibold text-slate-950">
               Reviews{' '}
               <span className="text-slate-500 font-normal text-sm">({pro.reviewCount})</span>
             </h2>
-            <div className="divide-y divide-slate-200">
+            <div className="mt-4 divide-y divide-slate-200 border-t border-slate-200">
               {reviews.length > 0 ? reviews.map((r: any, i: number) => (
                 <div key={i} className="py-4">
                   <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
@@ -301,32 +301,32 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
               )) : (
-                <p className="text-sm text-slate-500 py-4">No reviews yet</p>
+                <p className="py-5 text-sm text-slate-500">No reviews yet.</p>
               )}
             </div>
-          </div>
+          </section>
         </div>
 
-        <div className="hidden sm:flex flex-col gap-5">
-          <div className="card">
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-4">
+        <aside className="hidden lg:block">
+          <div className="sticky top-24 rounded-lg border border-slate-200 bg-slate-50/60 p-5">
+            <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Hire {displayName}
             </p>
-            <div className="space-y-2 text-sm mb-5">
+            <dl className="mb-6 space-y-4 text-sm">
               {[
                 { label: 'Location', value: [pro.lga, pro.city].filter(Boolean).join(', ') },
                 ...(pro.yearsOfExperience !== undefined
                   ? [{ label: 'Experience', value: `${pro.yearsOfExperience} year${pro.yearsOfExperience === 1 ? '' : 's'}` }]
                   : []),
-                { label: 'Rating', value: pro.rating !== undefined ? `${pro.rating.toFixed(1)} / 5.0` : 'Not rated' },
+                { label: 'Rating', value: Number(pro.reviewCount || 0) > 0 && pro.rating !== undefined ? `${pro.rating.toFixed(1)} / 5.0` : 'Not rated' },
                 { label: 'Reviews', value: String(pro.reviewCount ?? 0) },
               ].map((r) => (
-                <div key={r.label} className="flex justify-between">
-                  <span className="text-slate-500">{r.label}</span>
-                  <span className="font-medium text-right">{r.value}</span>
+                <div key={r.label}>
+                  <dt className="text-xs text-slate-500">{r.label}</dt>
+                  <dd className="mt-0.5 font-semibold text-slate-800">{r.value || 'Not provided'}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
             <button
               onClick={() => setBookOpen(true)}
               disabled={booked}
@@ -389,17 +389,11 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
                 </button>
               </div>
             )}
+            {pro.isVerified && (
+              <p className="mt-5 border-t border-slate-200 pt-4 text-xs leading-5 text-slate-600">Identity and business credentials verified by Anywork365.</p>
+            )}
           </div>
-
-          {pro.isVerified && (
-            <div className="card-sm border-green-200 bg-green-50">
-              <div className="mb-2">
-                <VerifiedBusinessBadge />
-              </div>
-              <p className="text-xs text-green-700">Identity and business credentials verified by Anywork365</p>
-            </div>
-          )}
-        </div>
+        </aside>
       </div>
 
       <Modal open={bookOpen} onClose={() => setBookOpen(false)} title={`Book ${displayName}`}>
@@ -446,6 +440,6 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </form>
       </Modal>
-    </div>
+    </main>
   )
 }

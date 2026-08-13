@@ -45,13 +45,13 @@ export default async function ProfessionalProfilePage({
     .filter((item) => item && typeof item.jobTitle === 'string' && typeof item.employer === 'string')
 
   return (
-    <main className="min-h-screen bg-slate-100 px-3 py-4 sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-5xl">
-        <Link href="/professionals" className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700">
+    <main className="min-h-screen bg-white px-4 pb-16 pt-6 sm:px-6 sm:pt-10">
+      <div className="mx-auto max-w-6xl">
+        <Link href="/professionals" className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-brand-700">
           <span aria-hidden="true">←</span> Back to professionals
         </Link>
 
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <header className="overflow-hidden border-b border-slate-200 bg-white">
           <div className="relative h-28 overflow-hidden bg-[linear-gradient(120deg,#064e3b_0%,#0f766e_50%,#2dd4bf_100%)] sm:h-44">
             {coverUrl && (
               <Image
@@ -66,7 +66,7 @@ export default async function ProfessionalProfilePage({
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
           </div>
-          <div className="relative px-5 pb-6 sm:px-8 sm:pb-8">
+          <div className="relative pb-8 sm:pb-10">
             <div className="-mt-12 sm:-mt-16">
               <Avatar
                 src={getAvatarUrl(professional.profile_image)}
@@ -78,7 +78,7 @@ export default async function ProfessionalProfilePage({
 
             <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
-                <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{professional.full_name}</h1>
+                <h1 className="font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{professional.full_name}</h1>
                 <p className="mt-1 max-w-3xl text-base font-medium leading-6 text-slate-700 sm:text-lg">{headline}</p>
                 <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
                   <LocationIcon /> {location}
@@ -101,10 +101,10 @@ export default async function ProfessionalProfilePage({
               )}
             </div>
           </div>
-        </section>
+        </header>
 
-        <div className="mt-4 grid items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.75fr)]">
-          <div className="space-y-4">
+        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-16">
+          <div>
             <ProfileSection title="About">
               <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600 sm:text-base">
                 {professional.bio || `${professional.full_name} is a ${professional.job_title.toLowerCase()} specialising in ${professional.professional_service_category.toLowerCase()}.`}
@@ -208,17 +208,15 @@ export default async function ProfessionalProfilePage({
             )}
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-24">
-            <ProfileSection title="Expertise">
+          <aside className="pt-8 lg:sticky lg:top-24 lg:pt-10">
+            <section className="rounded-lg border border-slate-200 bg-slate-50/60 p-5">
+              <h2 className="font-display text-lg font-semibold text-slate-950">Profile overview</h2>
+              <h3 className="mt-6 text-xs font-bold uppercase tracking-wide text-slate-500">Expertise</h3>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="green">{professional.professional_service_category}</Badge>
                 <Badge variant="gray">{professional.industry_category}</Badge>
-                <Badge variant="gray">{professional.job_title}</Badge>
               </div>
-            </ProfileSection>
-
-            <ProfileSection title="Profile details">
-              <dl className="space-y-4 text-sm">
+              <dl className="mt-6 space-y-5 text-sm">
                 <ProfileDetail label="Current role" value={professional.job_title} />
                 <ProfileDetail label="Industry" value={professional.industry_category} />
                 <ProfileDetail label="Specialty" value={professional.professional_service_category} />
@@ -226,7 +224,7 @@ export default async function ProfessionalProfilePage({
                 <ProfileDetail label="Experience" value={`${professional.years_experience} years`} />
                 {professional.school_name && <ProfileDetail label="School" value={professional.school_name} />}
               </dl>
-            </ProfileSection>
+            </section>
           </aside>
         </div>
       </div>
@@ -236,9 +234,9 @@ export default async function ProfessionalProfilePage({
 
 function ProfileSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="font-display text-lg font-semibold text-slate-900 sm:text-xl">{title}</h2>
-      <div className="mt-4">{children}</div>
+    <section className="border-b border-slate-200 py-8 last:border-b-0 sm:py-10">
+      <h2 className="font-display text-xl font-semibold text-slate-950">{title}</h2>
+      <div className="mt-5">{children}</div>
     </section>
   )
 }
