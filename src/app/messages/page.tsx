@@ -143,7 +143,7 @@ function ChatPageContent() {
   }
 
   return (
-    <div className="min-h-[calc(100dvh-64px)] flex bg-[#ECE5DD]">
+    <div className="flex h-[calc(100dvh-144px)] md:h-[calc(100dvh-64px)] bg-[#ECE5DD] overflow-hidden">
       {/* Conversations List - hide on mobile when a conversation is selected */}
       <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-[400px] bg-white flex-col`}>
         <div className="p-4 bg-[#F0F2F5] border-b border-gray-200">
@@ -355,7 +355,7 @@ function ChatPageContent() {
 export default function ChatPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-[calc(100dvh-64px)] flex items-center justify-center bg-[#ECE5DD]">
+      <div className="flex h-[calc(100dvh-144px)] md:h-[calc(100dvh-64px)] items-center justify-center bg-[#ECE5DD]">
         <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
