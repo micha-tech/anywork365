@@ -1,0 +1,1223 @@
+===== FUNDING INTENTS (wallet_funding_intents) =====
+{
+  "internal_reference": "wallet-fund-87a3ae0c-8f0c-4581-adcc-db6a0607fb79",
+  "provider_reference": "wallet-fund-87a3ae0c-8f0c-4581-adcc-db6a0607fb79",
+  "client_uid": "ahqFZExbA1RZwG6eBFJXKI3LEw43",
+  "email": "demo.client@anywork365.com",
+  "status": "failed",
+  "requested_kobo": 100000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 100000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-9b9cce4f-b329-4d46-93d0-1e649153d77e",
+  "provider_reference": "wallet-fund-9b9cce4f-b329-4d46-93d0-1e649153d77e",
+  "client_uid": "LF4sr95uw1VU6JMGVIsTDfAWEjm2",
+  "email": "assetetcon.files@gmail.com",
+  "status": "succeeded",
+  "requested_kobo": 10000,
+  "charged_kobo": 10000,
+  "credited_kobo": 10000,
+  "fee_kobo": 150,
+  "receipt": "AW365-FUND-0000000002",
+  "ledger_tx": 1,
+  "provider_tx_id": "6404905863",
+  "paid_at": "2026-07-29T18:58:43.000Z",
+  "confirmed_at": "2026-07-29T18:03:46.000Z",
+  "ps_status": "success",
+  "ps_amount_kobo": 10000,
+  "db_amount_kobo": 10000,
+  "amount_match": true,
+  "ps_fees": 150
+}
+{
+  "internal_reference": "wallet-fund-6021ff94-d4fc-41ff-9192-086d24a4f408",
+  "provider_reference": "wallet-fund-6021ff94-d4fc-41ff-9192-086d24a4f408",
+  "client_uid": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+  "email": "chimachinonso86@gmail.com",
+  "status": "failed",
+  "requested_kobo": 100000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 100000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-37617e7b-df03-4385-8102-96c09f5e1d03",
+  "provider_reference": "wallet-fund-37617e7b-df03-4385-8102-96c09f5e1d03",
+  "client_uid": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+  "email": "chimachinonso86@gmail.com",
+  "status": "failed",
+  "requested_kobo": 100000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 100000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-2e10570c-9e46-4d34-aed7-66ada044c94e",
+  "provider_reference": "wallet-fund-2e10570c-9e46-4d34-aed7-66ada044c94e",
+  "client_uid": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+  "email": "chimachinonso86@gmail.com",
+  "status": "succeeded",
+  "requested_kobo": 100000,
+  "charged_kobo": 100000,
+  "credited_kobo": 100000,
+  "fee_kobo": 1500,
+  "receipt": "AW365-FUND-0000000005",
+  "ledger_tx": 2,
+  "provider_tx_id": "6406908750",
+  "paid_at": "2026-07-30T09:43:51.000Z",
+  "confirmed_at": "2026-07-30T09:45:52.000Z",
+  "ps_status": "success",
+  "ps_amount_kobo": 100000,
+  "db_amount_kobo": 100000,
+  "amount_match": true,
+  "ps_fees": 1500
+}
+{
+  "internal_reference": "wallet-fund-62eae6c5-46cc-4217-b032-e26558b387e5",
+  "provider_reference": "wallet-fund-62eae6c5-46cc-4217-b032-e26558b387e5",
+  "client_uid": "Hqw1ClkL8dVern4OIiIPEM1uguY2",
+  "email": "olawoyinolayinka20@yahoo.co.uk",
+  "status": "failed",
+  "requested_kobo": 10000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "failed",
+  "ps_amount_kobo": 10000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-15790006-2883-47a1-9870-74ade50c9d35",
+  "provider_reference": "wallet-fund-15790006-2883-47a1-9870-74ade50c9d35",
+  "client_uid": "Hqw1ClkL8dVern4OIiIPEM1uguY2",
+  "email": "olawoyinolayinka20@yahoo.co.uk",
+  "status": "failed",
+  "requested_kobo": 10000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 10000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-a3a7dc8e-036e-43c6-be43-42e6825c7f34",
+  "provider_reference": "wallet-fund-a3a7dc8e-036e-43c6-be43-42e6825c7f34",
+  "client_uid": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+  "email": "assetmatrixenergy3@gmail.com",
+  "status": "succeeded",
+  "requested_kobo": 100000,
+  "charged_kobo": 100000,
+  "credited_kobo": 100000,
+  "fee_kobo": 1500,
+  "receipt": "AW365-FUND-0000000008",
+  "ledger_tx": 10,
+  "provider_tx_id": "6414595467",
+  "paid_at": "2026-08-01T14:18:49.000Z",
+  "confirmed_at": "2026-08-01T14:20:08.000Z",
+  "ps_status": "success",
+  "ps_amount_kobo": 100000,
+  "db_amount_kobo": 100000,
+  "amount_match": true,
+  "ps_fees": 1500
+}
+{
+  "internal_reference": "wallet-fund-63d904dd-4bcc-4a99-ab1c-a043c442d17e",
+  "provider_reference": "wallet-fund-63d904dd-4bcc-4a99-ab1c-a043c442d17e",
+  "client_uid": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+  "email": "assetmatrixenergy3@gmail.com",
+  "status": "succeeded",
+  "requested_kobo": 100000,
+  "charged_kobo": 100000,
+  "credited_kobo": 100000,
+  "fee_kobo": 1500,
+  "receipt": "AW365-FUND-0000000009",
+  "ledger_tx": 12,
+  "provider_tx_id": "6420526949",
+  "paid_at": "2026-08-03T11:31:18.000Z",
+  "confirmed_at": "2026-08-03T10:35:01.000Z",
+  "ps_status": "success",
+  "ps_amount_kobo": 100000,
+  "db_amount_kobo": 100000,
+  "amount_match": true,
+  "ps_fees": 1500
+}
+{
+  "internal_reference": "wallet-fund-1e687cd2-415a-4d9a-beae-0eb8e5decb28",
+  "provider_reference": "wallet-fund-1e687cd2-415a-4d9a-beae-0eb8e5decb28",
+  "client_uid": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+  "email": "vethanconcepts@gmail.com",
+  "status": "succeeded",
+  "requested_kobo": 200000,
+  "charged_kobo": 200000,
+  "credited_kobo": 200000,
+  "fee_kobo": 3000,
+  "receipt": "AW365-FUND-0000000010",
+  "ledger_tx": 14,
+  "provider_tx_id": "6435245626",
+  "paid_at": "2026-08-07T16:47:14.000Z",
+  "confirmed_at": "2026-08-07T16:50:29.000Z",
+  "ps_status": "success",
+  "ps_amount_kobo": 200000,
+  "db_amount_kobo": 200000,
+  "amount_match": true,
+  "ps_fees": 3000
+}
+{
+  "internal_reference": "wallet-fund-2b733964-7bfd-41e5-b141-3c10127d2cad",
+  "provider_reference": "wallet-fund-2b733964-7bfd-41e5-b141-3c10127d2cad",
+  "client_uid": "1yqg0c9FgfPzHJHQQCpxJXjV8ZU2",
+  "email": "nwalichima3@gmail.com",
+  "status": "failed",
+  "requested_kobo": 5000000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 5000000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-67ca5138-2ea1-4b70-8087-e0a2ec87bb46",
+  "provider_reference": "wallet-fund-67ca5138-2ea1-4b70-8087-e0a2ec87bb46",
+  "client_uid": "1yqg0c9FgfPzHJHQQCpxJXjV8ZU2",
+  "email": "nwalichima3@gmail.com",
+  "status": "succeeded",
+  "requested_kobo": 10000,
+  "charged_kobo": 10000,
+  "credited_kobo": 10000,
+  "fee_kobo": 150,
+  "receipt": "AW365-FUND-0000000012",
+  "ledger_tx": 16,
+  "provider_tx_id": "6439046705",
+  "paid_at": "2026-08-08T19:59:13.000Z",
+  "confirmed_at": "2026-08-08T20:01:22.000Z",
+  "ps_status": "success",
+  "ps_amount_kobo": 10000,
+  "db_amount_kobo": 10000,
+  "amount_match": true,
+  "ps_fees": 150
+}
+{
+  "internal_reference": "wallet-fund-6fbf2eff-6dbd-422b-9b50-51a1eb3391fe",
+  "provider_reference": "wallet-fund-6fbf2eff-6dbd-422b-9b50-51a1eb3391fe",
+  "client_uid": "1yqg0c9FgfPzHJHQQCpxJXjV8ZU2",
+  "email": "nwalichima3@gmail.com",
+  "status": "failed",
+  "requested_kobo": 10000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 10000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-47f09ca0-5aff-42f4-a147-de5a74447900",
+  "provider_reference": "wallet-fund-47f09ca0-5aff-42f4-a147-de5a74447900",
+  "client_uid": "1yqg0c9FgfPzHJHQQCpxJXjV8ZU2",
+  "email": "nwalichima3@gmail.com",
+  "status": "failed",
+  "requested_kobo": 10000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 10000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-e3e081fe-894c-4b82-8fe0-9c3f6663d210",
+  "provider_reference": "wallet-fund-e3e081fe-894c-4b82-8fe0-9c3f6663d210",
+  "client_uid": "1yqg0c9FgfPzHJHQQCpxJXjV8ZU2",
+  "email": "nwalichima3@gmail.com",
+  "status": "failed",
+  "requested_kobo": 10000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 10000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+{
+  "internal_reference": "wallet-fund-1e079e3d-6f93-4650-b22e-3fec7beab92b",
+  "provider_reference": "wallet-fund-1e079e3d-6f93-4650-b22e-3fec7beab92b",
+  "client_uid": "1yqg0c9FgfPzHJHQQCpxJXjV8ZU2",
+  "email": "nwalichima3@gmail.com",
+  "status": "failed",
+  "requested_kobo": 10000,
+  "charged_kobo": 0,
+  "credited_kobo": 0,
+  "fee_kobo": 0,
+  "receipt": null,
+  "ledger_tx": null,
+  "provider_tx_id": null,
+  "paid_at": null,
+  "confirmed_at": null,
+  "ps_status": "abandoned",
+  "ps_amount_kobo": 10000,
+  "db_amount_kobo": 0,
+  "amount_match": false,
+  "ps_fees": null
+}
+
+===== LEDGER TRANSACTIONS (money_transactions + money_entries) =====
+{
+  "id": 1,
+  "reference": "wallet-funding-confirmed-16c6caa2-8d95-4706-953c-0",
+  "idempotency_key": "paystack-wallet-funding:6404905863",
+  "transaction_type": "wallet_funding_confirmed",
+  "status": "success",
+  "amount_kobo": 10000,
+  "user_uid": "LF4sr95uw1VU6JMGVIsTDfAWEjm2",
+  "booking_id": null,
+  "external_reference": "wallet-fund-9b9cce4f-b329-4d46-93d0-1e649153d77e",
+  "metadata": {
+    "actor": {
+      "id": "verified-funding-recovery",
+      "type": "system"
+    },
+    "paidAt": "2026-07-29T18:58:43.000Z",
+    "description": "Verified Paystack wallet funding",
+    "requestHash": "3090b3b6ec1d0d865afd8898c35d3acfc30ee7b66dae2407ef290a32d1fbb675",
+    "chargedMinor": "10000",
+    "creditedMinor": "10000",
+    "paymentMethod": "bank",
+    "receiptNumber": "AW365-FUND-0000000002",
+    "gatewayResponse": "Approved",
+    "feeRecoveryMinor": "0",
+    "providerFeeMinor": "150",
+    "providerTransactionId": "6404905863",
+    "walletFundingIntentId": 2
+  },
+  "created_at": "2026-07-29T18:03:43.000Z",
+  "entries": [
+    {
+      "account": 8,
+      "purpose": "external_payment_clearing",
+      "owner_type": "system",
+      "owner_id": "anywork365-financial-system",
+      "delta_kobo": -10000
+    },
+    {
+      "account": 9,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "LF4sr95uw1VU6JMGVIsTDfAWEjm2",
+      "delta_kobo": 10000
+    },
+    {
+      "account": 10,
+      "purpose": "platform_payment_processing_expense",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": 150
+    },
+    {
+      "account": 11,
+      "purpose": "platform_paystack_clearing",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": -150
+    }
+  ]
+}
+{
+  "id": 2,
+  "reference": "wallet-funding-confirmed-5773b315-7c36-435f-9890-6",
+  "idempotency_key": "paystack-wallet-funding:6406908750",
+  "transaction_type": "wallet_funding_confirmed",
+  "status": "success",
+  "amount_kobo": 100000,
+  "user_uid": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+  "booking_id": null,
+  "external_reference": "wallet-fund-2e10570c-9e46-4d34-aed7-66ada044c94e",
+  "metadata": {
+    "actor": {
+      "id": "wallet-funding-reconciler",
+      "type": "system"
+    },
+    "paidAt": "2026-07-30T10:43:51.000Z",
+    "description": "Verified Paystack wallet funding",
+    "requestHash": "3d47aae2b9ec000b5c1dcd0ec2c07d32ff9581012dcca6c72566a6aa94ff7c70",
+    "chargedMinor": "100000",
+    "creditedMinor": "100000",
+    "paymentMethod": "bank_transfer",
+    "receiptNumber": "AW365-FUND-0000000005",
+    "gatewayResponse": "Approved",
+    "feeRecoveryMinor": "0",
+    "providerFeeMinor": "1500",
+    "providerTransactionId": "6406908750",
+    "walletFundingIntentId": 5
+  },
+  "created_at": "2026-07-30T09:45:50.000Z",
+  "entries": [
+    {
+      "account": 8,
+      "purpose": "external_payment_clearing",
+      "owner_type": "system",
+      "owner_id": "anywork365-financial-system",
+      "delta_kobo": -100000
+    },
+    {
+      "account": 10,
+      "purpose": "platform_payment_processing_expense",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": 1500
+    },
+    {
+      "account": 11,
+      "purpose": "platform_paystack_clearing",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": -1500
+    },
+    {
+      "account": 16,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+      "delta_kobo": 100000
+    }
+  ]
+}
+{
+  "id": 3,
+  "reference": "job-wallet-funds-locked-01965c33-6b19-42ae-af68-0e",
+  "idempotency_key": "job-wallet-lock:59",
+  "transaction_type": "job_wallet_funds_locked",
+  "status": "success",
+  "amount_kobo": 100000,
+  "user_uid": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+  "booking_id": 59,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+      "type": "user"
+    },
+    "feeMinor": "5000",
+    "jobFundId": 3,
+    "artisanUid": "9uA3b585QHZypwMdSk02RskONXy2",
+    "description": "Wallet funds locked for booking #59",
+    "requestHash": "9da34d5ec5649eef86b24d9c5561f19dbdf8210093e477ffa026cc77995d9a2c",
+    "fundingSource": "verified_client_wallet"
+  },
+  "created_at": "2026-07-30T09:54:13.000Z",
+  "entries": [
+    {
+      "account": 16,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+      "delta_kobo": -100000
+    },
+    {
+      "account": 19,
+      "purpose": "client_locked_job_funds",
+      "owner_type": "booking",
+      "owner_id": "59",
+      "delta_kobo": 100000
+    }
+  ]
+}
+{
+  "id": 4,
+  "reference": "job-funds-released-a36a86ad-cb09-4561-8562-475e1ce",
+  "idempotency_key": "job-release:3",
+  "transaction_type": "job_funds_released",
+  "status": "success",
+  "amount_kobo": 100000,
+  "user_uid": "9uA3b585QHZypwMdSk02RskONXy2",
+  "booking_id": 59,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "FyU7iwOd5rQrhzxmXg4rUPNPTT32",
+      "type": "user"
+    },
+    "feeMinor": "5000",
+    "jobFundId": 3,
+    "description": "Booking #59 earnings entered the safety hold",
+    "requestHash": "e59e05a4ab90cd45fada9fd755a3e4b8e543613eec7f4ce2b957878f1486a7e7",
+    "earningsMinor": "95000"
+  },
+  "created_at": "2026-07-30T09:57:49.000Z",
+  "entries": [
+    {
+      "account": 19,
+      "purpose": "client_locked_job_funds",
+      "owner_type": "booking",
+      "owner_id": "59",
+      "delta_kobo": -100000
+    },
+    {
+      "account": 22,
+      "purpose": "artisan_pending_earnings",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": 95000
+    },
+    {
+      "account": 26,
+      "purpose": "platform_commission_revenue",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": 5000
+    }
+  ]
+}
+{
+  "id": 5,
+  "reference": "earnings-hold-released-7fe1ed87-5426-4d15-9903-de6",
+  "idempotency_key": "earnings-hold-release:1",
+  "transaction_type": "earnings_hold_released",
+  "status": "success",
+  "amount_kobo": 95000,
+  "user_uid": "9uA3b585QHZypwMdSk02RskONXy2",
+  "booking_id": null,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "earnings-release-worker",
+      "type": "worker"
+    },
+    "jobFundId": 3,
+    "description": "Marketplace earnings became withdrawable",
+    "requestHash": "2b50c582f437317f329b307005f1e01eb91a25a7fcdf84931c267bfb01fc6ee3",
+    "earningsHoldId": 1
+  },
+  "created_at": "2026-07-30T13:01:06.000Z",
+  "entries": [
+    {
+      "account": 22,
+      "purpose": "artisan_pending_earnings",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": -95000
+    },
+    {
+      "account": 23,
+      "purpose": "artisan_available_earnings",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": 95000
+    }
+  ]
+}
+{
+  "id": 6,
+  "reference": "withdrawal-reserved-4e1b9b35-61f5-4d68-9ef2-f9491e",
+  "idempotency_key": "withdrawal:2bfad0058e98efe11927d1b081f0d084ca3b8b6f0e62a4d56adc6d96ab289ac9",
+  "transaction_type": "withdrawal_reserved",
+  "status": "success",
+  "amount_kobo": 95000,
+  "user_uid": "9uA3b585QHZypwMdSk02RskONXy2",
+  "booking_id": null,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "type": "user"
+    },
+    "description": "Artisan withdrawal reserved for provider submission",
+    "recipientId": 1,
+    "requestHash": "a054d6928355932bb36c780f099133ed83cd8b0fc4eb3d56ecb2160c851c2dfb",
+    "controlledTestException": {
+      "expiresAt": "2026-07-31T15:45:00+01:00"
+    }
+  },
+  "created_at": "2026-07-30T13:43:33.000Z",
+  "entries": [
+    {
+      "account": 23,
+      "purpose": "artisan_available_earnings",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": -95000
+    },
+    {
+      "account": 33,
+      "purpose": "artisan_withdrawal_pending",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": 95000
+    }
+  ]
+}
+{
+  "id": 7,
+  "reference": "withdrawal-returned-a8205013-5a24-4910-bb2f-0231a6",
+  "idempotency_key": "withdrawal-cancelled:1",
+  "transaction_type": "withdrawal_returned",
+  "status": "success",
+  "amount_kobo": 95000,
+  "user_uid": "9uA3b585QHZypwMdSk02RskONXy2",
+  "booking_id": null,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "controlled-test-authorizer",
+      "type": "owner"
+    },
+    "description": "Unsubmitted withdrawal returned to available earnings",
+    "requestHash": "c0fe5beb013de6513f17034480143379e05a1c215273b121ed16fefb33a1dd49",
+    "withdrawalId": 1,
+    "providerFailure": "Your balance is not enough to fulfil this request",
+    "cancellationReason": "Owner requested return to available earnings after conclusive Paystack insufficient-balance rejection",
+    "providerTransferCreated": false
+  },
+  "created_at": "2026-07-30T14:02:23.000Z",
+  "entries": [
+    {
+      "account": 23,
+      "purpose": "artisan_available_earnings",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": 95000
+    },
+    {
+      "account": 33,
+      "purpose": "artisan_withdrawal_pending",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": -95000
+    }
+  ]
+}
+{
+  "id": 8,
+  "reference": "withdrawal-reserved-6c435ee7-054a-4023-895a-f1f49e",
+  "idempotency_key": "withdrawal:9e97027e87f2bdd1d2690aa228ca8e48834b1361677d320874c217aec610bd58",
+  "transaction_type": "withdrawal_reserved",
+  "status": "success",
+  "amount_kobo": 90000,
+  "user_uid": "9uA3b585QHZypwMdSk02RskONXy2",
+  "booking_id": null,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "type": "user"
+    },
+    "description": "Artisan withdrawal reserved for provider submission",
+    "recipientId": 2,
+    "requestHash": "bbb49e57a921bcc9b5b6649c62fee644a72acb1742a324a0d33648eba8ef9871",
+    "controlledTestException": {
+      "expiresAt": "2026-07-31T15:45:00+01:00"
+    }
+  },
+  "created_at": "2026-07-30T14:04:08.000Z",
+  "entries": [
+    {
+      "account": 23,
+      "purpose": "artisan_available_earnings",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": -90000
+    },
+    {
+      "account": 33,
+      "purpose": "artisan_withdrawal_pending",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": 90000
+    }
+  ]
+}
+{
+  "id": 9,
+  "reference": "withdrawal-returned-7fc48730-9242-48da-bc30-274f4f",
+  "idempotency_key": "withdrawal-cancelled:2",
+  "transaction_type": "withdrawal_returned",
+  "status": "success",
+  "amount_kobo": 90000,
+  "user_uid": "9uA3b585QHZypwMdSk02RskONXy2",
+  "booking_id": null,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "controlled-test-authorizer",
+      "type": "owner"
+    },
+    "description": "Unsubmitted withdrawal returned to available earnings",
+    "requestHash": "d30002d2b5907af43ca3b58c311347c94e5c0bacfcba57d3806c6012c24f8c94",
+    "withdrawalId": 2,
+    "providerFailure": "Your balance is not enough to fulfil this request",
+    "cancellationReason": "Owner requested return to available earnings after conclusive Paystack insufficient-balance rejection",
+    "providerTransferCreated": false
+  },
+  "created_at": "2026-07-30T14:13:12.000Z",
+  "entries": [
+    {
+      "account": 23,
+      "purpose": "artisan_available_earnings",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": 90000
+    },
+    {
+      "account": 33,
+      "purpose": "artisan_withdrawal_pending",
+      "owner_type": "artisan",
+      "owner_id": "9uA3b585QHZypwMdSk02RskONXy2",
+      "delta_kobo": -90000
+    }
+  ]
+}
+{
+  "id": 10,
+  "reference": "wallet-funding-confirmed-4bb3e490-44ab-4114-b785-e",
+  "idempotency_key": "paystack-wallet-funding:6414595467",
+  "transaction_type": "wallet_funding_confirmed",
+  "status": "success",
+  "amount_kobo": 100000,
+  "user_uid": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+  "booking_id": null,
+  "external_reference": "wallet-fund-a3a7dc8e-036e-43c6-be43-42e6825c7f34",
+  "metadata": {
+    "actor": {
+      "id": "wallet-funding-reconciler",
+      "type": "system"
+    },
+    "paidAt": "2026-08-01T15:18:49.000Z",
+    "description": "Verified Paystack wallet funding",
+    "requestHash": "42d797a54e2a05d5283773e49b07690069a23855c7fa5c00ef3ec885f13a559d",
+    "chargedMinor": "100000",
+    "creditedMinor": "100000",
+    "paymentMethod": "bank_transfer",
+    "receiptNumber": "AW365-FUND-0000000008",
+    "gatewayResponse": "Approved",
+    "feeRecoveryMinor": "0",
+    "providerFeeMinor": "1500",
+    "providerTransactionId": "6414595467",
+    "walletFundingIntentId": 8
+  },
+  "created_at": "2026-08-01T14:20:07.000Z",
+  "entries": [
+    {
+      "account": 8,
+      "purpose": "external_payment_clearing",
+      "owner_type": "system",
+      "owner_id": "anywork365-financial-system",
+      "delta_kobo": -100000
+    },
+    {
+      "account": 10,
+      "purpose": "platform_payment_processing_expense",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": 1500
+    },
+    {
+      "account": 11,
+      "purpose": "platform_paystack_clearing",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": -1500
+    },
+    {
+      "account": 44,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+      "delta_kobo": 100000
+    }
+  ]
+}
+{
+  "id": 11,
+  "reference": "job-wallet-funds-locked-24e5ea4b-e6f7-4e46-89b0-ab",
+  "idempotency_key": "job-wallet-lock:63",
+  "transaction_type": "job_wallet_funds_locked",
+  "status": "success",
+  "amount_kobo": 100000,
+  "user_uid": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+  "booking_id": 63,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+      "type": "user"
+    },
+    "feeMinor": "5000",
+    "jobFundId": 7,
+    "artisanUid": "QSfINkI82xYG0rFF24ZixoSGm9L2",
+    "description": "Wallet funds locked for booking #63",
+    "requestHash": "cec75c5deb623f32ac094d115f7a384074ebd566f7df26029e410d6572705e87",
+    "fundingSource": "verified_client_wallet"
+  },
+  "created_at": "2026-08-01T14:25:35.000Z",
+  "entries": [
+    {
+      "account": 44,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+      "delta_kobo": -100000
+    },
+    {
+      "account": 50,
+      "purpose": "client_locked_job_funds",
+      "owner_type": "booking",
+      "owner_id": "63",
+      "delta_kobo": 100000
+    }
+  ]
+}
+{
+  "id": 12,
+  "reference": "wallet-funding-confirmed-bec1f94d-7250-4aca-86e5-8",
+  "idempotency_key": "paystack-wallet-funding:6420526949",
+  "transaction_type": "wallet_funding_confirmed",
+  "status": "success",
+  "amount_kobo": 100000,
+  "user_uid": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+  "booking_id": null,
+  "external_reference": "wallet-fund-63d904dd-4bcc-4a99-ab1c-a043c442d17e",
+  "metadata": {
+    "actor": {
+      "id": "wallet-funding-reconciler",
+      "type": "system"
+    },
+    "paidAt": "2026-08-03T11:31:18.000Z",
+    "description": "Verified Paystack wallet funding",
+    "requestHash": "30eb18e45b9064fddc9514bfedb51e6ab0e886d01497e490dd13ed226976988b",
+    "chargedMinor": "100000",
+    "creditedMinor": "100000",
+    "paymentMethod": "bank_transfer",
+    "receiptNumber": "AW365-FUND-0000000009",
+    "gatewayResponse": "Approved",
+    "feeRecoveryMinor": "0",
+    "providerFeeMinor": "1500",
+    "providerTransactionId": "6420526949",
+    "walletFundingIntentId": 9
+  },
+  "created_at": "2026-08-03T10:34:58.000Z",
+  "entries": [
+    {
+      "account": 8,
+      "purpose": "external_payment_clearing",
+      "owner_type": "system",
+      "owner_id": "anywork365-financial-system",
+      "delta_kobo": -100000
+    },
+    {
+      "account": 10,
+      "purpose": "platform_payment_processing_expense",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": 1500
+    },
+    {
+      "account": 11,
+      "purpose": "platform_paystack_clearing",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": -1500
+    },
+    {
+      "account": 44,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+      "delta_kobo": 100000
+    }
+  ]
+}
+{
+  "id": 13,
+  "reference": "job-wallet-funds-locked-5d8e9986-7d99-4c4c-9c7b-fe",
+  "idempotency_key": "job-wallet-lock:65",
+  "transaction_type": "job_wallet_funds_locked",
+  "status": "success",
+  "amount_kobo": 100000,
+  "user_uid": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+  "booking_id": 65,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+      "type": "user"
+    },
+    "feeMinor": "5000",
+    "jobFundId": 9,
+    "artisanUid": "9uA3b585QHZypwMdSk02RskONXy2",
+    "description": "Wallet funds locked for booking #65",
+    "requestHash": "ca84b6a46b0fe1a5b1c394f99ca63ff3168f1348289190c0d1c65fd07d790039",
+    "fundingSource": "verified_client_wallet"
+  },
+  "created_at": "2026-08-03T10:36:33.000Z",
+  "entries": [
+    {
+      "account": 44,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "TARCh1XatdOjwPRqeeCGiL4kSvE3",
+      "delta_kobo": -100000
+    },
+    {
+      "account": 60,
+      "purpose": "client_locked_job_funds",
+      "owner_type": "booking",
+      "owner_id": "65",
+      "delta_kobo": 100000
+    }
+  ]
+}
+{
+  "id": 14,
+  "reference": "wallet-funding-confirmed-63932f22-d353-4374-98fc-e",
+  "idempotency_key": "paystack-wallet-funding:6435245626",
+  "transaction_type": "wallet_funding_confirmed",
+  "status": "success",
+  "amount_kobo": 200000,
+  "user_uid": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+  "booking_id": null,
+  "external_reference": "wallet-fund-1e687cd2-415a-4d9a-beae-0eb8e5decb28",
+  "metadata": {
+    "actor": {
+      "id": "wallet-funding-reconciler",
+      "type": "system"
+    },
+    "paidAt": "2026-08-07T17:47:14.000Z",
+    "description": "Verified Paystack wallet funding",
+    "requestHash": "8e69a03cd8b508fcecb3352d180163330df38ce0fab070917dbcf53f1525934c",
+    "chargedMinor": "200000",
+    "creditedMinor": "200000",
+    "paymentMethod": "bank_transfer",
+    "receiptNumber": "AW365-FUND-0000000010",
+    "gatewayResponse": "Approved",
+    "feeRecoveryMinor": "0",
+    "providerFeeMinor": "3000",
+    "providerTransactionId": "6435245626",
+    "walletFundingIntentId": 10
+  },
+  "created_at": "2026-08-07T16:50:27.000Z",
+  "entries": [
+    {
+      "account": 8,
+      "purpose": "external_payment_clearing",
+      "owner_type": "system",
+      "owner_id": "anywork365-financial-system",
+      "delta_kobo": -200000
+    },
+    {
+      "account": 10,
+      "purpose": "platform_payment_processing_expense",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": 3000
+    },
+    {
+      "account": 11,
+      "purpose": "platform_paystack_clearing",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": -3000
+    },
+    {
+      "account": 70,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+      "delta_kobo": 200000
+    }
+  ]
+}
+{
+  "id": 15,
+  "reference": "job-wallet-funds-locked-8497365a-80a1-4ec5-b2c5-9b",
+  "idempotency_key": "job-wallet-lock:68",
+  "transaction_type": "job_wallet_funds_locked",
+  "status": "success",
+  "amount_kobo": 200000,
+  "user_uid": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+  "booking_id": 68,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+      "type": "user"
+    },
+    "feeMinor": "10000",
+    "jobFundId": 12,
+    "artisanUid": "ZJdiw9i2eVfgnXceRK1bNdegriq2",
+    "description": "Wallet funds locked for booking #68",
+    "requestHash": "cc49abe08a36ff781cf6ea10a5adc6c7fc18ad67c3aae0a6b4709afd57ee9406",
+    "fundingSource": "verified_client_wallet"
+  },
+  "created_at": "2026-08-07T17:01:53.000Z",
+  "entries": [
+    {
+      "account": 70,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+      "delta_kobo": -200000
+    },
+    {
+      "account": 73,
+      "purpose": "client_locked_job_funds",
+      "owner_type": "booking",
+      "owner_id": "68",
+      "delta_kobo": 200000
+    }
+  ]
+}
+{
+  "id": 16,
+  "reference": "wallet-funding-confirmed-4bbe6386-0a41-4755-ba47-4",
+  "idempotency_key": "paystack-wallet-funding:6439046705",
+  "transaction_type": "wallet_funding_confirmed",
+  "status": "success",
+  "amount_kobo": 10000,
+  "user_uid": "1yqg0c9FgfPzHJHQQCpxJXjV8ZU2",
+  "booking_id": null,
+  "external_reference": "wallet-fund-67ca5138-2ea1-4b70-8087-e0a2ec87bb46",
+  "metadata": {
+    "actor": {
+      "id": "wallet-funding-reconciler",
+      "type": "system"
+    },
+    "paidAt": "2026-08-08T20:59:13.000Z",
+    "description": "Verified Paystack wallet funding",
+    "requestHash": "5036bf59139142549f98008ffb73bb6a609011655cc782aaf1827ee1eb98652d",
+    "chargedMinor": "10000",
+    "creditedMinor": "10000",
+    "paymentMethod": "bank",
+    "receiptNumber": "AW365-FUND-0000000012",
+    "gatewayResponse": "Approved",
+    "feeRecoveryMinor": "0",
+    "providerFeeMinor": "150",
+    "providerTransactionId": "6439046705",
+    "walletFundingIntentId": 12
+  },
+  "created_at": "2026-08-08T20:01:20.000Z",
+  "entries": [
+    {
+      "account": 8,
+      "purpose": "external_payment_clearing",
+      "owner_type": "system",
+      "owner_id": "anywork365-financial-system",
+      "delta_kobo": -10000
+    },
+    {
+      "account": 10,
+      "purpose": "platform_payment_processing_expense",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": 150
+    },
+    {
+      "account": 11,
+      "purpose": "platform_paystack_clearing",
+      "owner_type": "platform",
+      "owner_id": "anywork365",
+      "delta_kobo": -150
+    },
+    {
+      "account": 77,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "1yqg0c9FgfPzHJHQQCpxJXjV8ZU2",
+      "delta_kobo": 10000
+    }
+  ]
+}
+{
+  "id": 17,
+  "reference": "job-wallet-funds-returned-23105caf-0253-4a96-91e7-",
+  "idempotency_key": "job-wallet-return:12",
+  "transaction_type": "job_wallet_funds_returned",
+  "status": "success",
+  "amount_kobo": 200000,
+  "user_uid": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+  "booking_id": 68,
+  "external_reference": null,
+  "metadata": {
+    "actor": {
+      "id": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+      "type": "user"
+    },
+    "reason": "Booking cancelled before completion",
+    "jobFundId": 12,
+    "description": "Booking #68 funds returned to client wallet",
+    "requestHash": "bf79c2d6cba4709118cd737c7741de21a7f0b7eb23114b51b1f0796ae8109037",
+    "originalFundingTransactionId": 15
+  },
+  "created_at": "2026-08-18T15:35:24.000Z",
+  "entries": [
+    {
+      "account": 70,
+      "purpose": "client_available",
+      "owner_type": "client",
+      "owner_id": "kUze0QgeYiR1CGQk5FvUGtcMKJG2",
+      "delta_kobo": 200000
+    },
+    {
+      "account": 73,
+      "purpose": "client_locked_job_funds",
+      "owner_type": "booking",
+      "owner_id": "68",
+      "delta_kobo": -200000
+    }
+  ]
+}
+
+===== ACCOUNT BALANCES (money_accounts) =====
+{"id":23,"owner_type":"artisan","owner_id":"9uA3b585QHZypwMdSk02RskONXy2","purpose":"artisan_available_earnings","currency":"NGN","balance_kobo":95000,"status":"active","classification":"LIABILITY"}
+{"id":22,"owner_type":"artisan","owner_id":"9uA3b585QHZypwMdSk02RskONXy2","purpose":"artisan_pending_earnings","currency":"NGN","balance_kobo":0,"status":"active","classification":"LIABILITY"}
+{"id":33,"owner_type":"artisan","owner_id":"9uA3b585QHZypwMdSk02RskONXy2","purpose":"artisan_withdrawal_pending","currency":"NGN","balance_kobo":0,"status":"active","classification":"LIABILITY"}
+{"id":77,"owner_type":"client","owner_id":"1yqg0c9FgfPzHJHQQCpxJXjV8ZU2","purpose":"client_available","currency":"NGN","balance_kobo":10000,"status":"active","classification":"LIABILITY"}
+{"id":70,"owner_type":"client","owner_id":"kUze0QgeYiR1CGQk5FvUGtcMKJG2","purpose":"client_available","currency":"NGN","balance_kobo":200000,"status":"active","classification":"LIABILITY"}
+{"id":44,"owner_type":"client","owner_id":"TARCh1XatdOjwPRqeeCGiL4kSvE3","purpose":"client_available","currency":"NGN","balance_kobo":0,"status":"active","classification":"LIABILITY"}
+{"id":16,"owner_type":"client","owner_id":"FyU7iwOd5rQrhzxmXg4rUPNPTT32","purpose":"client_available","currency":"NGN","balance_kobo":0,"status":"active","classification":"LIABILITY"}
+{"id":9,"owner_type":"client","owner_id":"LF4sr95uw1VU6JMGVIsTDfAWEjm2","purpose":"client_available","currency":"NGN","balance_kobo":10000,"status":"active","classification":"LIABILITY"}
+{"id":19,"owner_type":"booking","owner_id":"59","purpose":"client_locked_job_funds","currency":"NGN","balance_kobo":0,"status":"active","classification":"LIABILITY"}
+{"id":50,"owner_type":"booking","owner_id":"63","purpose":"client_locked_job_funds","currency":"NGN","balance_kobo":100000,"status":"active","classification":"LIABILITY"}
+{"id":60,"owner_type":"booking","owner_id":"65","purpose":"client_locked_job_funds","currency":"NGN","balance_kobo":100000,"status":"active","classification":"LIABILITY"}
+{"id":73,"owner_type":"booking","owner_id":"68","purpose":"client_locked_job_funds","currency":"NGN","balance_kobo":0,"status":"active","classification":"LIABILITY"}
+{"id":8,"owner_type":"system","owner_id":"anywork365-financial-system","purpose":"external_payment_clearing","currency":"NGN","balance_kobo":-520000,"status":"active","classification":"CLEARING"}
+{"id":4,"owner_type":"platform","owner_id":"anywork365","purpose":"fees","currency":"NGN","balance_kobo":0,"status":"active","classification":null}
+{"id":3,"owner_type":"platform","owner_id":"anywork365","purpose":"legacy_import","currency":"NGN","balance_kobo":0,"status":"active","classification":null}
+{"id":26,"owner_type":"platform","owner_id":"anywork365","purpose":"platform_commission_revenue","currency":"NGN","balance_kobo":5000,"status":"active","classification":"REVENUE"}
+{"id":10,"owner_type":"platform","owner_id":"anywork365","purpose":"platform_payment_processing_expense","currency":"NGN","balance_kobo":7800,"status":"active","classification":"EXPENSE"}
+{"id":11,"owner_type":"platform","owner_id":"anywork365","purpose":"platform_paystack_clearing","currency":"NGN","balance_kobo":-7800,"status":"active","classification":"CLEARING"}
+
+===== JOB FUNDS (job_funds) =====
+{"booking_id":59,"client_uid":"FyU7iwOd5rQrhzxmXg4rUPNPTT32","artisan_uid":"9uA3b585QHZypwMdSk02RskONXy2","status":"released","expected_kobo":100000,"funded":100000,"locked":0,"released":100000,"refunded":0,"platform_fee_kobo":5000,"funded_tx":3,"release_tx":4,"created_at":"2026-07-30T09:54:12.000Z"}
+{"booking_id":63,"client_uid":"TARCh1XatdOjwPRqeeCGiL4kSvE3","artisan_uid":"QSfINkI82xYG0rFF24ZixoSGm9L2","status":"locked","expected_kobo":100000,"funded":100000,"locked":100000,"released":0,"refunded":0,"platform_fee_kobo":5000,"funded_tx":11,"release_tx":null,"created_at":"2026-08-01T14:25:34.000Z"}
+{"booking_id":65,"client_uid":"TARCh1XatdOjwPRqeeCGiL4kSvE3","artisan_uid":"9uA3b585QHZypwMdSk02RskONXy2","status":"locked","expected_kobo":100000,"funded":100000,"locked":100000,"released":0,"refunded":0,"platform_fee_kobo":5000,"funded_tx":13,"release_tx":null,"created_at":"2026-08-03T10:36:32.000Z"}
+{"booking_id":68,"client_uid":"kUze0QgeYiR1CGQk5FvUGtcMKJG2","artisan_uid":"ZJdiw9i2eVfgnXceRK1bNdegriq2","status":"cancelled","expected_kobo":200000,"funded":200000,"locked":0,"released":0,"refunded":0,"platform_fee_kobo":10000,"funded_tx":15,"release_tx":null,"created_at":"2026-08-07T17:01:52.000Z"}
+
+===== WITHDRAWALS (marketplace_withdrawal_requests) =====
+{
+  "internal_reference": "withdrawal-98dbe1a0-190f-47a0-af41-857ba3393051",
+  "provider_reference": null,
+  "artisan_uid": "9uA3b585QHZypwMdSk02RskONXy2",
+  "amount_kobo": 95000,
+  "fee_kobo": 0,
+  "net_kobo": 95000,
+  "status": "cancelled",
+  "risk_status": "review",
+  "recipient_id": 1,
+  "reserve_tx": 6,
+  "terminal_tx": 7,
+  "failure_reason": "Your balance is not enough to fulfil this request | Owner requested return to available earnings after conclusive Paystack insufficient-balance rejection",
+  "requested_at": "2026-07-30T13:43:34.000Z",
+  "completed_at": null,
+  "ps": {
+    "ps_error": null
+  }
+}
+{
+  "internal_reference": "withdrawal-4d73f356-4da0-47e4-b7dd-2b42b83d8ebc",
+  "provider_reference": null,
+  "artisan_uid": "9uA3b585QHZypwMdSk02RskONXy2",
+  "amount_kobo": 90000,
+  "fee_kobo": 0,
+  "net_kobo": 90000,
+  "status": "cancelled",
+  "risk_status": "review",
+  "recipient_id": 2,
+  "reserve_tx": 8,
+  "terminal_tx": 9,
+  "failure_reason": "Your balance is not enough to fulfil this request | Owner requested return to available earnings after conclusive Paystack insufficient-balance rejection",
+  "requested_at": "2026-07-30T14:04:09.000Z",
+  "completed_at": null,
+  "ps": {
+    "ps_error": null
+  }
+}
+
+===== PAYMENT INTENTS (marketplace_payment_intents) =====
+
+===== EARNINGS HOLDS / REFUNDS / DISPUTES =====
+earnings_hold {"job_fund_id":3,"artisan_uid":"9uA3b585QHZypwMdSk02RskONXy2","amount_kobo":95000,"status":"released","reason":"Marketplace completion safety hold | Controlled withdrawal test exception","release_after":"2026-07-30T13:00:40.000Z","release_tx":5}
+
+===== LEGACY TABLES (wallets, wallet_ledger, wallet_transactions, withdrawals) =====
+wallets count= 4
+{"id":34,"user_id":116,"email":"demo.client@anywork365.com","currency":"NGN","wallet_type":"user","status":"active","created_at":"2026-07-28T18:36:26.000Z","updated_at":null}
+{"id":35,"user_id":96,"email":"hr@etconanalytical.com","currency":"NGN","wallet_type":"user","status":"active","created_at":"2026-07-28T18:36:27.000Z","updated_at":null}
+{"id":36,"user_id":237,"email":"olawoyinolayinka20@yahoo.co.uk","currency":"NGN","wallet_type":"user","status":"active","created_at":"2026-07-29T14:55:00.000Z","updated_at":null}
+{"id":37,"user_id":239,"email":"info@webjaradigital.com","currency":"NGN","wallet_type":"user","status":"active","created_at":"2026-07-29T14:55:00.000Z","updated_at":null}
+wallet_ledger count= 0
+wallet_transactions count= 0
+withdrawals count= 0
