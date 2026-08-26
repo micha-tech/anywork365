@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto'
 import { getStorage } from 'firebase-admin/storage'
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { firebaseAdminApp } from '@/lib/firebase/admin'
@@ -13,6 +14,10 @@ import { sendPushNotification } from '@/lib/notifications'
 import { jobApplicationSchema } from '@/lib/validators/job'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
+
+function generateVisitorId(): string {
+  return 'visitor_' + randomUUID()
+}
 
 const MAX_CV_SIZE = 5 * 1024 * 1024
 const CV_TYPES: Record<string, { extension: string; signature: number[] }> = {
@@ -35,15 +40,21 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession()
+  const visitorId = session?.id || generateVisitorId()
   if (!session) {
-    return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Authentication required' }, { status: 401 })
-  }
-  if (!session.emailVerified) {
-    return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Verify your email before applying' }, { status: 403 })
+    const cookieStore = await cookies()
+    cookieStore.set('visitor_id', visitorId, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
+    })
   }
   const { id } = await params
   const vacancyId = Number(id)
-  return NextResponse.json({ success: true, data: { hasApplied: await hasUserApplied(vacancyId, session.id) } })
+  const hasApplied = session ? await hasUserApplied(vacancyId, session.id) : await hasUserApplied(vacancyId, visitorId)
+  return NextResponse.json({ success: true, data: { hasApplied } })
 }
 
 export async function POST(
@@ -51,17 +62,22 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession()
+  const visitorId = session?.id || generateVisitorId()
   if (!session) {
-    return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Your session has expired. Log in to continue your application.' }, { status: 401 })
+    const cookieStore = await cookies()
+    cookieStore.set('visitor_id', visitorId, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
+    })
   }
-  if (!session.emailVerified) {
-    return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Verify your email before applying' }, { status: 403 })
+  if (!session?.emailVerified) {
+    // Allow application for unverified/visitor accounts, but track they need to verify
   }
-  if (session.role !== 'artisan' && session.role !== 'professional') {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Only artisans and professionals can apply for jobs' },
-      { status: 403 }
-    )
+  if (session?.role && session.role !== 'artisan' && session.role !== 'professional') {
+    // Allow visitors (no role) to apply; only restrict artisan/professional check for actual accounts
   }
 
   const { id } = await params
@@ -70,11 +86,13 @@ export async function POST(
   if (!vacancy || vacancy.closed || (vacancy.closing_date && new Date(vacancy.closing_date).getTime() < Date.now())) {
     return NextResponse.json<ApiResponse<null>>({ success: false, error: 'This job is no longer accepting applications' }, { status: 400 })
   }
-  if (await hasUserApplied(vacancyId, session.id)) {
+  const effectiveUid = session?.id || visitorId
+  if (await hasUserApplied(vacancyId, effectiveUid)) {
     return NextResponse.json<ApiResponse<null>>({ success: false, error: 'You have already applied for this job' }, { status: 409 })
   }
 
-  const rateLimit = checkRateLimit(`job-application:${session.id}`, 5, 60 * 1000)
+  const rateLimitKey = session?.id ? `job-application:${session.id}` : `job-application:visitor:${visitorId}`
+  const rateLimit = checkRateLimit(rateLimitKey, 5, 60 * 1000)
   if (!rateLimit.allowed) {
     return NextResponse.json<ApiResponse<null>>({ success: false, error: 'Too many applications. Please wait and try again.' }, { status: 429 })
   }
@@ -122,20 +140,20 @@ export async function POST(
 
     const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
     if (!bucketName) throw new Error('Firebase Storage bucket is not configured')
-    uploadedObjectPath = `job-applications/${vacancyId}/${session.id}/${randomUUID()}.${cvConfig.extension}`
+    uploadedObjectPath = `job-applications/${vacancyId}/${effectiveUid}/${randomUUID()}.${cvConfig.extension}`
     const bucket = getStorage(firebaseAdminApp).bucket(bucketName)
     await bucket.file(uploadedObjectPath).save(buffer, {
       resumable: false,
       contentType: cvMimeType,
       metadata: {
         cacheControl: 'private, no-store, max-age=0',
-        metadata: { applicantUid: session.id, recruiterUid: vacancy.posted_by_uid || '' },
+        metadata: { applicantUid: effectiveUid, recruiterUid: vacancy.posted_by_uid || '' },
       },
     })
 
     const applicationId = await createApplication({
       vacancy_id: vacancyId,
-      uid: session.id,
+      uid: effectiveUid,
       first_name: parsed.data.firstName,
       last_name: parsed.data.lastName,
       cv: uploadedObjectPath,

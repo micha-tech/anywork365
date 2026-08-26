@@ -34,7 +34,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   }, [id])
 
   useEffect(() => {
-    if (userLoading || typeof window === 'undefined') return
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     if (params.get('apply') !== '1') return
 
@@ -42,12 +43,17 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     const nextSearch = params.toString()
     window.history.replaceState(null, '', `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}`)
     openApplication()
-    // This should run once when auth has resolved on the return visit.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoading])
 
+  const getVisitorId = (): string | null => {
+    if (typeof document === 'undefined') return null
+    return document.cookie.replace(/(?:(?:^|.*)\visitor_id\s*\=\s*([^;]*).*$)|^.*$/, '$1') || null
+  }
+
   useEffect(() => {
-    if (!user || !user.emailVerified || (user.role !== 'artisan' && user.role !== 'professional')) return
+    if (typeof window === 'undefined') return
+    const visitorId = getVisitorId()
+    const uid = user?.id || visitorId
     fetch(`/api/jobs/${id}/apply`, { cache: 'no-store' })
       .then((response) => response.ok ? response.json() : null)
       .then((body) => {
@@ -59,15 +65,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   function openApplication() {
     if (userLoading) return
     if (!user) {
-      setApplicationGate('signed-out')
+      setApplyOpen(true)
       return
     }
     if (!user.emailVerified) {
       setApplicationGate('unverified')
-      return
-    }
-    if (user.role !== 'artisan' && user.role !== 'professional') {
-      setApplicationGate('wrong-role')
       return
     }
     setApplicationGate(null)
@@ -98,7 +100,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           disabled={submitted || userLoading}
           className="btn-primary px-6 py-2.5 flex-shrink-0"
         >
-          {submitted ? 'Applied ✓' : userLoading ? 'Checking...' : 'Apply Now'}
+          {submitted ? (
+          <>
+            <p className="text-sm text-slate-600">Application submitted successfully!</p>
+            <p className="text-sm text-slate-500 mt-1">Recruiter has been notified. <a href="/signup/professional" className="font-medium text-brand-600 underline">Create an account</a> to save your application and get updates.</p>
+          </>
+        ) : userLoading ? 'Checking...' : 'Apply Now'}
         </button>
       </div>
 
@@ -170,7 +177,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
               disabled={submitted || userLoading}
               className="btn-primary w-full py-3 justify-center"
             >
-              {submitted ? 'Applied ✓' : userLoading ? 'Checking account...' : 'Apply for this job'}
+              {submitted ? (
+          <>
+            <p className="text-sm text-slate-600">Application submitted successfully!</p>
+            <p className="text-sm text-slate-500 mt-1">Recruiter has been notified. <a href="/signup/professional" className="font-medium text-brand-600 underline">Create an account</a> to save your application and get updates.</p>
+          </>
+        ) : userLoading ? 'Checking account...' : 'Apply for this job'}
             </button>
             <button className="btn-ghost w-full py-2.5 justify-center mt-2">Save job</button>
           </div>
@@ -199,10 +211,14 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             setApplyOpen(false)
             setApplicationGate(reason)
           }}
-          onSubmitted={() => {
-            setSubmitted(true)
-            setApplyOpen(false)
-          }}
+onSubmitted={() => {
+    setSubmitted(true)
+    setApplyOpen(false)
+    // Prompt visitor to create account after successful application
+    setTimeout(() => {
+      // Show account creation prompt - will be handled by UI state
+    }, 100)
+  }}
         />
       </Modal>
 
