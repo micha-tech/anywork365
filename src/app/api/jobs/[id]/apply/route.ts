@@ -112,8 +112,8 @@ export async function POST(
     const parsed = jobApplicationSchema.safeParse({
       firstName: String(form.get('firstName') || ''),
       lastName: String(form.get('lastName') || ''),
-      coverLetter: String(form.get('coverLetter') || ''),
-      education: String(form.get('education') || ''),
+      coverLetter: form.get('coverLetter') ? String(form.get('coverLetter') || '').substring(0, 2000) : null,
+      education: String(form.get('education') || '').substring(0, 3000),
       workExperience,
     })
     if (!parsed.success) {
@@ -159,7 +159,7 @@ export async function POST(
       cv: uploadedObjectPath,
       cv_original_name: cv.name.slice(0, 255),
       cv_mime_type: cvMimeType,
-      cover_letter: parsed.data.coverLetter,
+      cover_letter: parsed.data.coverLetter ?? null,
       education: parsed.data.education,
       work_experience: parsed.data.workExperience,
     })

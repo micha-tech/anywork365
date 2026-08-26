@@ -94,9 +94,9 @@ export function JobApplicationForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="application-cover-letter">Cover letter *</label>
-        <textarea id="application-cover-letter" name="coverLetter" className="input-field min-h-40 resize-y" required minLength={100} maxLength={5000} placeholder="Explain why your skills and experience make you a strong fit for this role." />
-        <p className="mt-1 text-xs text-slate-500">Minimum 100 characters.</p>
+        <label className="label" htmlFor="application-cover-letter">Cover letter</label>
+        <textarea id="application-cover-letter" name="coverLetter" className="input-field min-h-40 resize-y" minLength={0} maxLength={5000} placeholder="Explain why your skills and experience make you a strong fit for this role (optional)." />
+        <p className="mt-1 text-xs text-slate-500">Optional. Minimum 100 characters if provided.</p>
       </div>
 
       <div>
