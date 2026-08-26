@@ -36,9 +36,7 @@ export const jobPostSchema = z.object({
 export const jobApplicationSchema = z.object({
   firstName: z.string().trim().min(2, 'First name is required').max(80),
   lastName: z.string().trim().min(2, 'Last name is required').max(80),
-  coverLetter: z.string().trim()
-    .min(100, 'Please write at least 100 characters in your cover letter')
-    .max(5000, 'Cover letter is too long'),
+  coverLetter: z.string().trim().optional(),
   education: z.string().trim().min(10, 'Please provide your education').max(3000),
   workExperience: z.array(z.object({
     jobTitle: z.string().trim().min(2, 'Job title is required').max(160),

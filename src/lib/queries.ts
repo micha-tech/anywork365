@@ -802,7 +802,7 @@ export async function createApplication(data: {
   cv: string
   cv_original_name: string
   cv_mime_type: string
-  cover_letter: string
+  cover_letter: string | null
   education: string
   work_experience: unknown[]
 }): Promise<number> {
