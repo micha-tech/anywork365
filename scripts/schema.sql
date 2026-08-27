@@ -190,6 +190,9 @@ CREATE TABLE IF NOT EXISTS bookings (
   jobStatus              VARCHAR(50) NOT NULL DEFAULT '',
   dateBooked             DATETIME DEFAULT CURRENT_TIMESTAMP,
   reasonForCancellation  VARCHAR(500) NOT NULL DEFAULT '',
+  cancelledByUid         VARCHAR(128) DEFAULT NULL,
+  cancelledAt            DATETIME DEFAULT NULL,
+  refundStatus           ENUM('not_required', 'pending', 'processing', 'completed', 'failed') NOT NULL DEFAULT 'not_required',
   INDEX idx_bookings_clientUID (clientUID),
   INDEX idx_bookings_businessId (businessId),
   INDEX idx_bookings_bookingStatus (bookingStatus),
@@ -206,6 +209,8 @@ CREATE TABLE IF NOT EXISTS booking_quotes (
   estimated_duration VARCHAR(120) DEFAULT NULL,
   proposed_start_date DATE DEFAULT NULL,
   status ENUM('pending', 'accepted', 'rejected', 'superseded', 'withdrawn') NOT NULL DEFAULT 'pending',
+  rejection_reason ENUM('price', 'scope', 'timeline', 'materials', 'inspection', 'other') DEFAULT NULL,
+  rejection_note TEXT DEFAULT NULL,
   responded_at DATETIME DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -214,6 +219,35 @@ CREATE TABLE IF NOT EXISTS booking_quotes (
   INDEX idx_booking_quotes_artisan_status (artisan_uid, status),
   CONSTRAINT fk_booking_quotes_booking
     FOREIGN KEY (booking_id) REFERENCES bookings (bookingId) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS booking_payment_accounts (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  booking_id INT NOT NULL,
+  quote_id BIGINT UNSIGNED NOT NULL,
+  marketplace_payment_intent_id BIGINT UNSIGNED DEFAULT NULL,
+  client_uid VARCHAR(128) NOT NULL,
+  provider VARCHAR(30) NOT NULL DEFAULT 'paystack',
+  provider_reference VARCHAR(100) NOT NULL,
+  amount_kobo BIGINT UNSIGNED NOT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'NGN',
+  bank_name VARCHAR(120) NOT NULL,
+  bank_slug VARCHAR(120) DEFAULT NULL,
+  account_name VARCHAR(160) NOT NULL,
+  account_number VARCHAR(30) NOT NULL,
+  status ENUM('active', 'paid', 'expired', 'cancelled', 'rejected', 'failed') NOT NULL DEFAULT 'active',
+  expires_at DATETIME NOT NULL,
+  paid_at DATETIME DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_booking_payment_provider_reference (provider, provider_reference),
+  INDEX idx_booking_payment_booking_status (booking_id, status),
+  INDEX idx_booking_payment_client_created (client_uid, created_at),
+  CONSTRAINT fk_booking_payment_booking
+    FOREIGN KEY (booking_id) REFERENCES bookings (bookingId) ON DELETE CASCADE,
+  CONSTRAINT fk_booking_payment_quote
+    FOREIGN KEY (quote_id) REFERENCES booking_quotes (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS reviews (

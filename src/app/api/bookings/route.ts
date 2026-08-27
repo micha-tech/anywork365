@@ -11,9 +11,9 @@ import {
 } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
 import { sendPushNotification } from '@/lib/notifications'
-import { getConnection } from '@/lib/db'
+import { getConnection, query } from '@/lib/db'
 import type { ApiResponse } from '@/types'
-import type { ResultSetHeader } from 'mysql2/promise'
+import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise'
 
 export const runtime = 'nodejs'
 
@@ -36,6 +36,9 @@ type BookingResponse = {
   createdAt: string
   meetingPoint: string
   reasonForCancellation: string
+  cancelledByUid: string | null
+  cancelledAt: string | null
+  refundStatus: string
   quotes: Array<{
     id: number
     amount: number
@@ -43,10 +46,22 @@ type BookingResponse = {
     estimatedDuration: string | null
     proposedStartDate: string | null
     status: string
+    rejectionReason: string | null
+    rejectionNote: string | null
     respondedAt: string | null
     createdAt: string
     updatedAt: string
   }>
+  payment: {
+    reference: string
+    amount: number
+    bankName: string
+    bankSlug: string | null
+    accountName: string
+    accountNumber: string
+    status: string
+    expiresAt: string
+  } | null
 }
 
 export async function GET() {
@@ -90,7 +105,11 @@ export async function GET() {
         createdAt: r.dateBooked,
         meetingPoint: r.meetingPoint,
         reasonForCancellation: r.reasonForCancellation,
+        cancelledByUid: r.cancelledByUid,
+        cancelledAt: r.cancelledAt,
+        refundStatus: r.refundStatus,
         quotes: [],
+        payment: null,
       }))
     }
   } else {
@@ -113,7 +132,11 @@ export async function GET() {
       createdAt: r.dateBooked,
       meetingPoint: r.meetingPoint,
       reasonForCancellation: r.reasonForCancellation,
+      cancelledByUid: r.cancelledByUid,
+      cancelledAt: r.cancelledAt,
+      refundStatus: r.refundStatus,
       quotes: [],
+      payment: null,
     }))
   }
 
@@ -128,6 +151,8 @@ export async function GET() {
       estimatedDuration: quote.estimated_duration,
       proposedStartDate: quote.proposed_start_date,
       status: quote.status,
+      rejectionReason: quote.rejection_reason,
+      rejectionNote: quote.rejection_note,
       respondedAt: quote.responded_at,
       createdAt: quote.created_at,
       updatedAt: quote.updated_at,
@@ -138,6 +163,52 @@ export async function GET() {
     ...booking,
     quotes: quotesByBooking.get(booking.id) ?? [],
   }))
+
+  if (bookings.length > 0) {
+    const placeholders = bookings.map(() => '?').join(', ')
+    const paymentRows = await query<(RowDataPacket & {
+      booking_id: number
+      provider_reference: string
+      amount_kobo: string | number
+      bank_name: string
+      bank_slug: string | null
+      account_name: string
+      account_number: string
+      status: string
+      expires_at: string
+    })[]>(
+      `SELECT bpa.booking_id, bpa.provider_reference, bpa.amount_kobo,
+              bpa.bank_name, bpa.bank_slug, bpa.account_name, bpa.account_number,
+              CASE WHEN bpa.status = 'active' AND bpa.expires_at <= NOW()
+                   THEN 'expired' ELSE bpa.status END AS status,
+              bpa.expires_at
+       FROM booking_payment_accounts bpa
+       JOIN (
+         SELECT booking_id, MAX(id) AS latest_id
+         FROM booking_payment_accounts
+         WHERE booking_id IN (${placeholders})
+         GROUP BY booking_id
+       ) latest ON latest.latest_id = bpa.id`,
+      bookings.map((booking) => booking.id)
+    )
+    const payments = new Map(paymentRows.map((payment) => [payment.booking_id, payment]))
+    bookings = bookings.map((booking) => {
+      const payment = payments.get(booking.id)
+      return {
+        ...booking,
+        payment: payment ? {
+          reference: payment.provider_reference,
+          amount: Number(payment.amount_kobo) / 100,
+          bankName: payment.bank_name,
+          bankSlug: payment.bank_slug,
+          accountName: payment.account_name,
+          accountNumber: payment.account_number,
+          status: payment.status,
+          expiresAt: payment.expires_at,
+        } : null,
+      }
+    })
+  }
 
   return NextResponse.json<ApiResponse<BookingResponse[]>>(
     { success: true, data: bookings },
@@ -284,5 +355,6 @@ function mapStatus(db: string): string {
   if (db === 'Closed') return 'completed'
   if (db === 'Confirmed') return 'confirmed'
   if (db === 'Cancelled') return 'cancelled'
+  if (db === 'Awaiting Payment') return 'awaiting_payment'
   return 'pending'
 }

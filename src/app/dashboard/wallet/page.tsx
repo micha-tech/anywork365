@@ -17,6 +17,7 @@ type FinanceWallet = Wallet & {
   platformFees?: number
   totalFunded?: number
   totalSpent?: number
+  totalPaid?: number
 }
 
 type FinanceTransaction = WalletTransaction & {
@@ -39,8 +40,8 @@ const TX_META: Record<string, { label: string; color: string; sign: string }> = 
   credit: { label: 'Credit', color: 'text-green-600', sign: '+' },
   earning: { label: 'Earnings', color: 'text-green-600', sign: '+' },
   debit: { label: 'Withdrawal', color: 'text-amber-600', sign: '-' },
-  job_payment: { label: 'Job Payment', color: 'text-blue-600', sign: '' },
-  escrow_lock: { label: 'Job Funds Locked', color: 'text-amber-600', sign: '-' },
+  job_payment: { label: 'Payment Secured', color: 'text-blue-600', sign: '' },
+  escrow_lock: { label: 'Payment Secured', color: 'text-amber-600', sign: '-' },
   escrow_release: { label: 'Job Funds Released', color: 'text-green-600', sign: '+' },
   refund: { label: 'Refund', color: 'text-blue-600', sign: '+' },
 }
@@ -316,18 +317,18 @@ function WalletPageContent() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-brand-500 text-white rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-white/70">
-              {isArtisan ? 'Available Earnings' : 'Wallet Balance'}
+              {isArtisan ? 'Available Earnings' : 'Available Credit'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 break-words">
               {formatCurrency(wallet?.availableBalance ?? 0)}
             </p>
             <p className="text-xs text-white/60">
-              {isArtisan ? 'Ready to withdraw' : 'Verified funds available for bookings'}
+              {isArtisan ? 'Ready to withdraw' : 'Ledger credit available for future bookings'}
             </p>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-              {isArtisan ? 'Pending Earnings' : 'Locked Job Funds'}
+              {isArtisan ? 'Pending Earnings' : 'Secured Payments'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-amber-600 break-words">
               {formatCurrency(wallet?.escrowBalance ?? 0)}
@@ -340,10 +341,10 @@ function WalletPageContent() {
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-              {isArtisan ? 'Total Earned' : 'Total Funded'}
+              {isArtisan ? 'Total Earned' : 'Total Payments'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-slate-900 break-words">
-              {formatCurrency(isArtisan ? wallet?.totalEarned ?? 0 : wallet?.totalFunded ?? 0)}
+              {formatCurrency(isArtisan ? wallet?.totalEarned ?? 0 : wallet?.totalPaid ?? 0)}
             </p>
             <p className="text-xs text-slate-500">All time</p>
           </div>
@@ -363,7 +364,7 @@ function WalletPageContent() {
                 ['Refund Pending', wallet.refundPendingBalance ?? 0],
                 ['Refundable', wallet.refundableBalance ?? 0],
                 ['Total Spent', wallet.totalSpent ?? 0],
-                ['Locked for Jobs', wallet.escrowBalance ?? 0],
+                ['Secured for Bookings', wallet.escrowBalance ?? 0],
               ]
           ).map(([label, value]) => (
             <div key={String(label)} className="rounded-xl border border-slate-200 bg-white px-3 py-3">

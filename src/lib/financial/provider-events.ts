@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'crypto'
 import type { RowDataPacket } from 'mysql2/promise'
 import { execute, getConnection } from '@/lib/db'
 import { getFinancialConfig } from './config'
-import { confirmExternalPayment } from './marketplace-service'
+import { confirmExternalPayment, markPayWithTransferRejected } from './marketplace-service'
 import {
   confirmWalletFunding,
   isWalletFundingReference,
@@ -161,6 +161,16 @@ async function dispatchProviderEvent(event: ProviderEventRow): Promise<'processe
     } else {
       await confirmExternalPayment(reference, { type: 'provider', id: 'paystack' })
     }
+    return 'processed'
+  }
+
+  if (event.event_type === 'bank.transfer.rejected') {
+    const reference = String(data.reference ?? '')
+    if (!reference) throw new Error('Rejected bank transfer event has no reference')
+    await markPayWithTransferRejected(
+      reference,
+      String(data.gateway_response ?? data.message ?? 'Bank transfer was rejected')
+    )
     return 'processed'
   }
 

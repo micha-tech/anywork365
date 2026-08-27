@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getVerifiedSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/wallet'
 import { getConnection } from '@/lib/db'
@@ -45,13 +46,31 @@ export async function PATCH(
     )
   }
 
-  const { action } = await req.json()
-  if (!['confirm', 'complete', 'cancel'].includes(action)) {
+  let requestBody: unknown
+  try {
+    requestBody = await req.json()
+  } catch {
+    requestBody = null
+  }
+  const parsedAction = z.object({
+    action: z.enum(['confirm', 'complete', 'cancel']),
+    reason: z.string().trim().max(500).optional(),
+  }).superRefine((value, context) => {
+    if (value.action === 'cancel' && (!value.reason || value.reason.length < 5)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['reason'],
+        message: 'Please provide a brief cancellation reason.',
+      })
+    }
+  }).safeParse(requestBody)
+  if (!parsedAction.success) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Invalid action. Must be confirm, complete, or cancel' },
+      { success: false, error: parsedAction.error.errors[0]?.message || 'Invalid booking action.' },
       { status: 400 }
     )
   }
+  const { action, reason } = parsedAction.data
 
   const conn = await getConnection()
   let connReleased = false
@@ -104,6 +123,14 @@ export async function PATCH(
       )
     }
 
+    if (action === 'confirm' && booking.bookingStatus === 'Awaiting Payment') {
+      await conn.rollback()
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'This booking will confirm automatically after the client payment is verified.' },
+        { status: 409 }
+      )
+    }
+
     // Older, already-funded requests can still be confirmed through this route.
     // New requests must go through the linked quote flow instead.
     if (action === 'confirm' && Number(booking.priceConfirmed) !== 1) {
@@ -132,11 +159,11 @@ export async function PATCH(
 
     if (
       action === 'cancel' &&
-      !['Pending', 'Awaiting Payment'].includes(booking.bookingStatus)
+      !['Pending', 'Awaiting Payment', 'Confirmed'].includes(booking.bookingStatus)
     ) {
       await conn.rollback()
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Only pending bookings can be cancelled' },
+        { success: false, error: 'This booking can no longer be cancelled. Use the dispute process if work has been completed.' },
         { status: 400 }
       )
     }
@@ -199,17 +226,26 @@ export async function PATCH(
       }
     }
 
-    if (action === 'cancel' && Number(booking.priceConfirmed) === 1) {
+    let refundStatus = booking.refundStatus || 'not_required'
+    if (action === 'cancel') {
       if (useMarketplaceFinance) {
-        await cancelOrRefundJobInTransaction(conn, {
-          bookingId,
-          requestedByUid: session.id,
-          reason: 'Booking cancelled before completion',
-          actor: { type: 'user', id: session.id },
-        })
-      } else if (useMoneyV2) {
+        const [fundRows] = await conn.query<mysql.RowDataPacket[]>(
+          'SELECT id FROM job_funds WHERE booking_id = ? FOR UPDATE',
+          [bookingId]
+        )
+        if (fundRows[0]) {
+          const refund = await cancelOrRefundJobInTransaction(conn, {
+            bookingId,
+            requestedByUid: session.id,
+            reason: reason || 'Booking cancelled before completion',
+            actor: { type: 'user', id: session.id },
+          })
+          refundStatus = refund.refundReference ? 'pending' : booking.bookingStatus === 'Confirmed' ? 'completed' : 'not_required'
+        }
+      } else if (useMoneyV2 && booking.bookingStatus === 'Confirmed') {
         await refundBookingFunds(conn, bookingId)
-      } else {
+        refundStatus = 'completed'
+      } else if (!useMoneyV2 && booking.bookingStatus === 'Confirmed') {
       const [clientRows] = await conn.query<mysql.RowDataPacket[]>('SELECT userId FROM users WHERE uid = ?', [booking.clientUID])
       if (clientRows.length > 0) {
         const [walletRows] = await conn.query<mysql.RowDataPacket[]>('SELECT id FROM wallets WHERE user_id = ?', [clientRows[0].userId])
@@ -219,13 +255,23 @@ export async function PATCH(
           await conn.execute('INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
             [walletRows[0].id, booking.amountAgreed, 'credit', balance + booking.amountAgreed, `Booking payment refunded for cancelled booking #${bookingId}`])
           await conn.execute("UPDATE wallet_escrow SET status = 'refunded', released_at = NOW() WHERE booking_id = ?", [bookingId])
+          refundStatus = 'completed'
         }
       }
       }
+      await conn.execute(
+        `UPDATE booking_payment_accounts
+         SET status = 'cancelled', updated_at = NOW()
+         WHERE booking_id = ? AND status = 'active'`,
+        [bookingId]
+      )
     }
 
     await conn.execute(
-      'UPDATE bookings SET bookingStatus = ?, vendorDecision = ?, clientDecision = ? WHERE bookingId = ?',
+      `UPDATE bookings
+       SET bookingStatus = ?, vendorDecision = ?, clientDecision = ?,
+           reasonForCancellation = ?, cancelledByUid = ?, cancelledAt = ?, refundStatus = ?
+       WHERE bookingId = ?`,
       [
         newStatus,
         action === 'confirm'
@@ -238,6 +284,10 @@ export async function PATCH(
           : action === 'cancel' && isClient
             ? 'Cancelled'
             : booking.clientDecision || '',
+        action === 'cancel' ? reason || '' : booking.reasonForCancellation || '',
+        action === 'cancel' ? session.id : booking.cancelledByUid || null,
+        action === 'cancel' ? new Date() : booking.cancelledAt || null,
+        action === 'cancel' ? refundStatus : booking.refundStatus || 'not_required',
         bookingId,
       ]
     )
@@ -253,7 +303,10 @@ export async function PATCH(
       ? { title: 'Booking Confirmed', body: `Booking #${bookingId} was accepted by the artisan.` }
       : action === 'complete'
         ? { title: 'Booking Completed', body: `Booking #${bookingId} was completed and payment was released.` }
-        : { title: 'Booking Cancelled', body: `Booking #${bookingId} was cancelled.` }
+        : {
+            title: 'Booking Cancelled',
+            body: `Booking #${bookingId} was cancelled. Reason: ${reason}${refundStatus === 'pending' ? ' A refund is being processed.' : refundStatus === 'completed' ? ' The payment was returned to the client ledger.' : ''}`,
+          }
 
     await Promise.allSettled([
       createDbNotification(recipientUid, notification.body),
@@ -263,14 +316,18 @@ export async function PATCH(
       }),
     ])
 
-    return NextResponse.json<ApiResponse<any>>(
+    return NextResponse.json<ApiResponse<unknown>>(
       {
         success: true,
         data: { id: bookingId, status: action === 'complete' ? 'completed' : action === 'cancel' ? 'cancelled' : 'confirmed' },
         message:
           action === 'confirm' ? 'Booking confirmed!' :
           action === 'complete' ? 'Job marked as complete. Payment released to artisan.' :
-          'Booking cancelled.',
+          refundStatus === 'pending'
+            ? 'Booking cancelled. Your refund is being processed.'
+            : refundStatus === 'completed'
+              ? 'Booking cancelled. The payment has been returned to your available credit.'
+              : 'Booking cancelled.',
       },
       { status: 200 }
     )

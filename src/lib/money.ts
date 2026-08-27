@@ -805,7 +805,7 @@ export async function finalizeWithdrawal(input: {
   }
 }
 
-export async function getMoneyWalletSnapshot(uid: string) {
+export async function getMoneyWalletSnapshot(uid: string, role: 'client' | 'artisan' = 'client') {
   const user = await getUserRowByUid(uid)
   if (!user) throw new Error('User not found')
 
@@ -821,9 +821,16 @@ export async function getMoneyWalletSnapshot(uid: string) {
 
   const escrowRows = await query<(RowDataPacket & { held_kobo: number | string })[]>(
     `SELECT COALESCE(SUM(amount_kobo), 0) AS held_kobo
-     FROM booking_escrows_v2 WHERE artisan_uid = ? AND status = 'held'`,
+     FROM booking_escrows_v2 WHERE ${role === 'artisan' ? 'artisan_uid' : 'client_uid'} = ? AND status = 'held'`,
     [uid]
   )
+  const totalPaidRows = role === 'client'
+    ? await query<(RowDataPacket & { paid_kobo: number | string })[]>(
+        `SELECT COALESCE(SUM(amount_kobo), 0) AS paid_kobo
+         FROM booking_escrows_v2 WHERE client_uid = ?`,
+        [uid]
+      )
+    : []
   const earningsRows = await query<(RowDataPacket & { earned_kobo: number | string })[]>(
     `SELECT COALESCE(SUM(me.delta_kobo), 0) AS earned_kobo
      FROM money_entries me
@@ -904,6 +911,7 @@ export async function getMoneyWalletSnapshot(uid: string) {
       reservedWithdrawalBalance: koboToNaira(Number(reserved?.balance_kobo || 0)),
       escrowBalance: koboToNaira(Number(escrowRows[0]?.held_kobo || 0)),
       totalEarned: koboToNaira(Number(earningsRows[0]?.earned_kobo || 0)),
+      totalPaid: koboToNaira(Number(totalPaidRows[0]?.paid_kobo || 0)),
       isVerified: Boolean(bankAccount?.recipient_code),
       paystackRecipientCode: bankAccount?.recipient_code || null,
       bankName: bankAccount?.bank_name || null,

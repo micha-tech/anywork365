@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise'
+import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise'
 import { getVerifiedSession } from '@/lib/auth'
 import { getConnection } from '@/lib/db'
 import { checkRateLimit } from '@/lib/wallet'
 import { createDbNotification } from '@/lib/queries'
 import { sendPushNotification } from '@/lib/notifications'
-import { holdBookingFunds, isMoneyV2Enabled, nairaToKobo } from '@/lib/money'
-import {
-  createWalletFundedJobInTransaction,
-  isMarketplaceFinanceEnabled,
-} from '@/lib/financial/marketplace-service'
-import { majorToMinor } from '@/lib/financial/money-value'
-import { FinancialError } from '@/lib/financial/errors'
 import type { ApiResponse } from '@/types'
 
 export const runtime = 'nodejs'
@@ -152,7 +145,7 @@ export async function POST(
     quoteId = result.insertId
     clientUid = booking.clientUID
     await conn.execute(
-      `UPDATE bookings SET vendorDecision = 'Quoted' WHERE bookingId = ?`,
+      `UPDATE bookings SET vendorDecision = 'Quoted', clientDecision = '' WHERE bookingId = ?`,
       [bookingId]
     )
     await conn.commit()
@@ -241,10 +234,19 @@ export async function PATCH(
   const parsed = z.object({
     quoteId: z.number().int().positive(),
     action: z.enum(['accept', 'reject']),
+    rejectionReason: z.enum(['price', 'scope', 'timeline', 'materials', 'inspection', 'other']).optional(),
+    rejectionNote: z.string().trim().max(1000, 'Feedback must be under 1000 characters.').optional(),
+  }).superRefine((value, context) => {
+    if (value.action === 'reject' && !value.rejectionReason) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['rejectionReason'], message: 'Choose what should be changed.' })
+    }
+    if (value.action === 'reject' && (!value.rejectionNote || value.rejectionNote.length < 5)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['rejectionNote'], message: 'Tell the artisan what should be changed.' })
+    }
   }).safeParse(body)
   if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Please choose whether to accept or reject this quote.' },
+      { success: false, error: parsed.error.errors[0]?.message || 'Please choose whether to accept or request changes.' },
       { status: 400 }
     )
   }
@@ -252,7 +254,6 @@ export async function PATCH(
   const conn = await getConnection()
   let artisanUid = ''
   let amount = 0
-  let fundingReference: string | null = null
   try {
     await conn.beginTransaction()
     const [rows] = await conn.execute<QuoteAccessRow[]>(
@@ -295,43 +296,16 @@ export async function PATCH(
     if (parsed.data.action === 'reject') {
       await conn.execute(
         `UPDATE booking_quotes
-         SET status = 'rejected', responded_at = NOW(), updated_at = NOW()
+         SET status = 'rejected', rejection_reason = ?, rejection_note = ?,
+             responded_at = NOW(), updated_at = NOW()
          WHERE id = ?`,
-        [quote.quoteId]
+        [parsed.data.rejectionReason ?? null, parsed.data.rejectionNote ?? null, quote.quoteId]
       )
       await conn.execute(
         `UPDATE bookings SET clientDecision = 'Quote rejected' WHERE bookingId = ?`,
         [bookingId]
       )
     } else {
-      const useMarketplaceFinance = isMarketplaceFinanceEnabled()
-      const useMoneyV2 = !useMarketplaceFinance && isMoneyV2Enabled()
-
-      if (useMarketplaceFinance) {
-        const funded = await createWalletFundedJobInTransaction(conn, {
-          bookingId,
-          clientUid: session.id,
-          artisanUid,
-          amountMinor: majorToMinor(String(amount)),
-          actor: { type: 'user', id: session.id },
-        })
-        fundingReference = funded.reference
-      } else if (useMoneyV2) {
-        await holdBookingFunds(conn, {
-          bookingId,
-          clientUid: session.id,
-          artisanUid,
-          amountKobo: nairaToKobo(amount),
-        })
-      } else {
-        await holdLegacyBookingFunds(conn, {
-          bookingId,
-          clientUid: session.id,
-          artisanUid,
-          amount,
-        })
-      }
-
       await conn.execute(
         `UPDATE booking_quotes
          SET status = 'accepted', responded_at = NOW(), updated_at = NOW()
@@ -346,7 +320,7 @@ export async function PATCH(
       )
       await conn.execute(
         `UPDATE bookings
-         SET amountAgreed = ?, priceConfirmed = 1, bookingStatus = 'Confirmed',
+         SET amountAgreed = ?, priceConfirmed = 1, bookingStatus = 'Awaiting Payment',
              clientDecision = 'Quote accepted', vendorDecision = 'Quoted'
          WHERE bookingId = ?`,
         [amount, bookingId]
@@ -357,19 +331,12 @@ export async function PATCH(
   } catch (error) {
     await conn.rollback().catch(() => {})
     console.error('[BOOKING QUOTE RESPONSE]', error)
-    const insufficient =
-      (error instanceof FinancialError && error.code === 'INSUFFICIENT_FUNDS') ||
-      (error instanceof Error && /insufficient/i.test(error.message))
     return NextResponse.json<ApiResponse<null>>(
       {
         success: false,
-        error: insufficient
-          ? 'Your wallet balance is too low to accept this quote. Fund your wallet, then try again.'
-          : error instanceof FinancialError
-            ? error.message
-            : 'We could not update this quote. Please try again.',
+        error: 'We could not update this quote. Please try again.',
       },
-      { status: insufficient ? 402 : error instanceof FinancialError ? error.httpStatus : 500 }
+      { status: 500 }
     )
   } finally {
     conn.release()
@@ -377,13 +344,13 @@ export async function PATCH(
 
   const accepted = parsed.data.action === 'accept'
   const notificationBody = accepted
-    ? `Your ₦${amount.toLocaleString()} quote for booking #${bookingId} was accepted and funded.`
-    : `Your quote for booking #${bookingId} was declined. You can review the request and send a revised quote.`
+    ? `Your ₦${amount.toLocaleString()} quote for booking #${bookingId} was accepted. The client is completing payment.`
+    : `The client requested changes to your quote for booking #${bookingId}: ${parsed.data.rejectionNote}`
   await Promise.allSettled([
     createDbNotification(artisanUid, notificationBody),
     sendPushNotification(
       artisanUid,
-      accepted ? 'Quote Accepted' : 'Quote Declined',
+      accepted ? 'Quote Accepted' : 'Quote Changes Requested',
       notificationBody,
       { type: 'booking', bookingId: String(bookingId) }
     ),
@@ -396,74 +363,12 @@ export async function PATCH(
         bookingId,
         quoteId: parsed.data.quoteId,
         quoteStatus: accepted ? 'accepted' : 'rejected',
-        bookingStatus: accepted ? 'confirmed' : 'pending',
-        fundingReference,
+        bookingStatus: accepted ? 'awaiting_payment' : 'pending',
       },
       message: accepted
-        ? 'Quote accepted. Payment is secured and the booking is confirmed.'
-        : 'Quote declined. The artisan can send you a revised quote.',
+        ? 'Quote accepted. Choose a payment method to confirm the booking.'
+        : 'Changes requested. The artisan can now revise the quote.',
     },
     { status: 200 }
   )
-}
-
-async function holdLegacyBookingFunds(
-  conn: PoolConnection,
-  input: { bookingId: number; clientUid: string; artisanUid: string; amount: number }
-) {
-  const clientWalletId = await ensureLegacyWallet(conn, input.clientUid)
-  const artisanWalletId = await ensureLegacyWallet(conn, input.artisanUid)
-
-  await conn.execute<RowDataPacket[]>('SELECT id FROM wallets WHERE id = ? FOR UPDATE', [clientWalletId])
-  const [balanceRows] = await conn.execute<RowDataPacket[]>(
-    `SELECT COALESCE(SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END), 0) AS balance
-     FROM wallet_ledger
-     WHERE wallet_id = ?`,
-    [clientWalletId]
-  )
-  const currentBalance = Number(balanceRows[0]?.balance ?? 0)
-  if (currentBalance < input.amount) {
-    throw new FinancialError('INSUFFICIENT_FUNDS', 'Available balance is insufficient', 402)
-  }
-
-  await conn.execute(
-    `INSERT INTO wallet_ledger (
-       wallet_id, amount, direction, balance_after, description, created_at
-     ) VALUES (?, ?, 'debit', ?, ?, NOW())`,
-    [
-      clientWalletId,
-      input.amount,
-      currentBalance - input.amount,
-      `Payment locked for booking #${input.bookingId}`,
-    ]
-  )
-  await conn.execute(
-    `INSERT INTO wallet_escrow (
-       booking_id, client_wallet_id, vendor_wallet_id, escrow_wallet_id,
-       amount, status, created_at
-     ) VALUES (?, ?, ?, (SELECT id FROM wallets WHERE wallet_type = 'escrow' LIMIT 1), ?, 'held', NOW())`,
-    [input.bookingId, clientWalletId, artisanWalletId, input.amount]
-  )
-}
-
-async function ensureLegacyWallet(conn: PoolConnection, uid: string): Promise<number> {
-  const [userRows] = await conn.execute<RowDataPacket[]>(
-    'SELECT userId, email FROM users WHERE uid = ? LIMIT 1',
-    [uid]
-  )
-  const user = userRows[0]
-  if (!user) throw new FinancialError('ACCOUNT_NOT_FOUND', 'Wallet account not found', 404)
-
-  const [walletRows] = await conn.execute<RowDataPacket[]>(
-    `SELECT id FROM wallets WHERE user_id = ? AND wallet_type = 'user' LIMIT 1`,
-    [user.userId]
-  )
-  if (walletRows[0]) return Number(walletRows[0].id)
-
-  const [result] = await conn.execute<ResultSetHeader>(
-    `INSERT INTO wallets (user_id, email, currency, wallet_type, status, created_at)
-     VALUES (?, ?, 'NGN', 'user', 'active', NOW())`,
-    [user.userId, user.email]
-  )
-  return result.insertId
 }

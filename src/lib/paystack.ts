@@ -68,6 +68,46 @@ export async function initializePayment({
   })
 }
 
+export async function createPayWithTransferCharge({
+  email,
+  amountKobo,
+  reference,
+  metadata,
+  accountExpiresAt,
+}: {
+  email: string
+  amountKobo: number
+  reference: string
+  metadata: Record<string, string>
+  accountExpiresAt: string
+}) {
+  if (!Number.isSafeInteger(amountKobo) || amountKobo <= 0) {
+    throw new Error('Paystack amount must be a positive integer in kobo')
+  }
+  return paystackRequest<{
+    status: boolean
+    data: {
+      reference: string
+      status: string
+      display_text: string
+      account_name: string
+      account_number: string
+      bank: { id: number; name: string; slug: string }
+      account_expires_at: string
+    }
+  }>('/charge', {
+    method: 'POST',
+    body: JSON.stringify({
+      email,
+      amount: String(amountKobo),
+      currency: 'NGN',
+      reference,
+      metadata,
+      bank_transfer: { account_expires_at: accountExpiresAt },
+    }),
+  })
+}
+
 export async function verifyPayment(reference: string) {
   return paystackRequest<{
     status: boolean
