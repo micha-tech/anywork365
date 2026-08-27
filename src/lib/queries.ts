@@ -2,7 +2,6 @@ import { query, queryOne, execute, type SqlValue } from './db'
 import type { RowDataPacket } from 'mysql2/promise'
 import type {
   User, AuthUser, UserRole, PortfolioItem,
-  Booking, BookingStatus,
 } from '@/types'
 import { getAvatarUrl } from '@/lib/avatar'
 
@@ -96,6 +95,9 @@ export interface BookingRow extends RowDataPacket {
   jobStatus: string
   dateBooked: string
   reasonForCancellation: string
+  cancelledByUid: string | null
+  cancelledAt: string | null
+  refundStatus: 'not_required' | 'pending' | 'processing' | 'completed' | 'failed'
 }
 
 export interface BookingQuoteRow extends RowDataPacket {
@@ -107,6 +109,8 @@ export interface BookingQuoteRow extends RowDataPacket {
   estimated_duration: string | null
   proposed_start_date: string | null
   status: 'pending' | 'accepted' | 'rejected' | 'superseded' | 'withdrawn'
+  rejection_reason: 'price' | 'scope' | 'timeline' | 'materials' | 'inspection' | 'other' | null
+  rejection_note: string | null
   responded_at: string | null
   created_at: string
   updated_at: string
@@ -324,12 +328,6 @@ function userRowToUser(row: UserRow): User {
     isVerified: row.verified === 1,
     createdAt: row.dateJoined,
   }
-}
-
-function mapBookingStatus(s: string): BookingStatus {
-  if (s === 'Closed') return 'completed'
-  if (s === 'Confirmed') return 'confirmed'
-  return 'pending'
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────
@@ -801,7 +799,8 @@ export async function getBookingQuotesByBookingIds(bookingIds: number[]): Promis
   const placeholders = bookingIds.map(() => '?').join(', ')
   return query<BookingQuoteRow[]>(
     `SELECT id, booking_id, artisan_uid, amount, scope, estimated_duration,
-            proposed_start_date, status, responded_at, created_at, updated_at
+            proposed_start_date, status, rejection_reason, rejection_note,
+            responded_at, created_at, updated_at
      FROM booking_quotes
      WHERE booking_id IN (${placeholders})
      ORDER BY created_at DESC, id DESC`,
@@ -918,6 +917,26 @@ export async function getHeldEscrowBalance(walletId: number): Promise<number> {
     `SELECT COALESCE(SUM(amount), 0) AS amount
      FROM wallet_escrow
      WHERE vendor_wallet_id = ? AND status = 'held'`,
+    [walletId]
+  )
+  return Number((rows[0] as { amount?: number } | undefined)?.amount ?? 0)
+}
+
+export async function getClientHeldEscrowBalance(walletId: number): Promise<number> {
+  const rows = await query<RowDataPacket[]>(
+    `SELECT COALESCE(SUM(amount), 0) AS amount
+     FROM wallet_escrow
+     WHERE client_wallet_id = ? AND status = 'held'`,
+    [walletId]
+  )
+  return Number((rows[0] as { amount?: number } | undefined)?.amount ?? 0)
+}
+
+export async function getClientTotalBookingPayments(walletId: number): Promise<number> {
+  const rows = await query<RowDataPacket[]>(
+    `SELECT COALESCE(SUM(amount), 0) AS amount
+     FROM wallet_escrow
+     WHERE client_wallet_id = ?`,
     [walletId]
   )
   return Number((rows[0] as { amount?: number } | undefined)?.amount ?? 0)

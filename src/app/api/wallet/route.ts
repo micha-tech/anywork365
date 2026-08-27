@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getVerifiedSession } from '@/lib/auth'
 import {
   getHeldEscrowBalance,
+  getClientHeldEscrowBalance,
+  getClientTotalBookingPayments,
   getTotalWalletEarnings,
   getUserRowByUid,
   getUserWithdrawals,
@@ -44,7 +46,7 @@ export async function GET() {
   }
 
   if (isMoneyV2Enabled()) {
-    const data = await getMoneyWalletSnapshot(session.id)
+    const data = await getMoneyWalletSnapshot(session.id, session.role as 'client' | 'artisan')
     return NextResponse.json(
       { success: true, data },
       { headers: { 'Cache-Control': 'private, no-cache' } }
@@ -67,10 +69,11 @@ export async function GET() {
     )
   }
 
-  const [balance, escrowBalance, totalEarned, ledger, accounts, withdrawals] = await Promise.all([
+  const [balance, escrowBalance, totalEarned, totalPaid, ledger, accounts, withdrawals] = await Promise.all([
     getWalletBalance(wallet.id),
-    session.role === 'artisan' ? getHeldEscrowBalance(wallet.id) : Promise.resolve(0),
+    session.role === 'artisan' ? getHeldEscrowBalance(wallet.id) : getClientHeldEscrowBalance(wallet.id),
     session.role === 'artisan' ? getTotalWalletEarnings(wallet.id) : Promise.resolve(0),
+    session.role === 'client' ? getClientTotalBookingPayments(wallet.id) : Promise.resolve(0),
     getWalletLedger(wallet.id),
     getWithdrawalAccounts(user.userId),
     getUserWithdrawals(user.userId),
@@ -128,6 +131,7 @@ export async function GET() {
         availableBalance: balance,
         escrowBalance,
         totalEarned,
+        totalPaid,
         isVerified: !!bankAccount,
         paystackRecipientCode: bankAccount?.recipient_code || null,
         bankName: bankAccount?.bank_name || null,

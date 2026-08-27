@@ -80,6 +80,14 @@ export async function handleRefundProviderEvent(input: {
        WHERE mpi.provider_reference = ? AND rr.status IN ('requested','approved','processing')`,
       [input.refundReference, input.transactionReference]
     )
+    await execute(
+      `UPDATE bookings b
+       JOIN job_funds jf ON jf.booking_id = b.bookingId
+       JOIN marketplace_payment_intents mpi ON mpi.job_fund_id = jf.id
+       SET b.refundStatus = 'processing'
+       WHERE mpi.provider_reference = ?`,
+      [input.transactionReference]
+    )
     return
   }
   if (input.eventType === 'refund.needs-attention') {
@@ -90,6 +98,14 @@ export async function handleRefundProviderEvent(input: {
            rr.provider_refund_reference = COALESCE(?, rr.provider_refund_reference)
        WHERE mpi.provider_reference = ? AND rr.status <> 'completed'`,
       [input.refundReference, input.transactionReference]
+    )
+    await execute(
+      `UPDATE bookings b
+       JOIN job_funds jf ON jf.booking_id = b.bookingId
+       JOIN marketplace_payment_intents mpi ON mpi.job_fund_id = jf.id
+       SET b.refundStatus = 'failed'
+       WHERE mpi.provider_reference = ?`,
+      [input.transactionReference]
     )
     return
   }
@@ -172,6 +188,10 @@ export async function handleRefundProviderEvent(input: {
        WHERE id = ?`,
       [processed ? 'refunded' : 'succeeded', refund.payment_intent_id]
     )
+    await conn.execute(
+      `UPDATE bookings SET refundStatus = ? WHERE bookingId = ?`,
+      [processed ? 'completed' : 'failed', refund.booking_id]
+    )
     await conn.commit()
   } catch (error) {
     await conn.rollback().catch(() => undefined)
@@ -191,7 +211,10 @@ async function claimRefund(refundId?: number): Promise<RefundRow | null> {
               mpi.provider_transaction_id, mpi.provider_reference
        FROM refund_requests rr
        JOIN job_funds jf ON jf.id = rr.job_fund_id
-       JOIN marketplace_payment_intents mpi ON mpi.job_fund_id = jf.id
+       JOIN marketplace_payment_intents mpi
+         ON mpi.job_fund_id = jf.id
+        AND mpi.status IN ('succeeded','partially_refunded')
+        AND mpi.provider_transaction_id IS NOT NULL
        WHERE rr.status = 'requested' ${idClause}
        ORDER BY rr.id LIMIT 1 FOR UPDATE SKIP LOCKED`,
       refundId ? [refundId] : []

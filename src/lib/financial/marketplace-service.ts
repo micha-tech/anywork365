@@ -14,6 +14,7 @@ import {
 import { paymentRail, type PaystackGateway } from './paystack-gateway'
 import type { PaymentRail, PaymentVerificationResult } from './payment-rail'
 import { assertTransition, jobFundsTransitions, paymentIntentTransitions } from './state-machines'
+import { createPayWithTransferCharge } from '@/lib/paystack'
 
 type FeeRuleRow = RowDataPacket & {
   id: number
@@ -62,6 +63,16 @@ export type WalletFundedJob = {
   reference: string
   amountMinor: number
   platformFeeMinor: number
+}
+
+export type PayWithTransferAccount = {
+  reference: string
+  amountMinor: number
+  bankName: string
+  bankSlug: string
+  accountName: string
+  accountNumber: string
+  expiresAt: string
 }
 
 const ledger = new LedgerService()
@@ -292,6 +303,154 @@ export async function initializeJobPayment(
   }
 }
 
+export async function createJobPaymentRetryInTransaction(
+  conn: PoolConnection,
+  input: {
+    bookingId: number
+    clientUid: string
+    customerEmail: string
+    actor: LedgerActor
+  }
+): Promise<JobFundingInitialization> {
+  const [fundRows] = await conn.execute<JobFundRow[]>(
+    `SELECT * FROM job_funds WHERE booking_id = ? FOR UPDATE`,
+    [input.bookingId]
+  )
+  const jobFund = fundRows[0]
+  if (!jobFund) throw new FinancialError('NOT_FOUND', 'Booking payment record was not found', 404)
+  if (jobFund.client_uid !== input.clientUid) {
+    throw new FinancialError('NOT_AUTHORIZED', 'This payment belongs to another client', 403)
+  }
+  if (!['awaiting_funding', 'funding_pending'].includes(jobFund.status)) {
+    throw new FinancialError('INVALID_STATE', `Payment cannot be restarted from ${jobFund.status}`, 409)
+  }
+
+  const reference = financialReference('job-pwt')
+  const [intentResult] = await conn.execute<ResultSetHeader>(
+    `INSERT INTO marketplace_payment_intents (
+       internal_reference, provider, booking_id, job_fund_id, client_uid,
+       customer_email, amount_kobo, currency, status, purpose, metadata
+     ) VALUES (?, 'paystack', ?, ?, ?, ?, ?, 'NGN', 'created', 'booking_funding', ?)`,
+    [
+      reference,
+      input.bookingId,
+      jobFund.id,
+      input.clientUid,
+      input.customerEmail.toLowerCase(),
+      String(jobFund.expected_amount_kobo),
+      JSON.stringify({ bookingId: input.bookingId, actor: input.actor, retry: true }),
+    ]
+  )
+
+  return {
+    intentId: intentResult.insertId,
+    jobFundId: jobFund.id,
+    reference,
+    amountMinor: toSafeDatabaseInteger(minorFromDatabase(jobFund.expected_amount_kobo)),
+  }
+}
+
+export async function initializeJobPayWithTransfer(
+  input: JobFundingInitialization & {
+    quoteId: number
+    customerEmail: string
+    clientUid: string
+    bookingId: number
+  }
+): Promise<PayWithTransferAccount> {
+  const expiryMinutes = Math.min(
+    480,
+    Math.max(15, Number.parseInt(process.env.PWT_ACCOUNT_EXPIRY_MINUTES || '60', 10) || 60)
+  )
+  const requestedExpiry = new Date(Date.now() + expiryMinutes * 60_000).toISOString()
+
+  try {
+    const provider = await createPayWithTransferCharge({
+      email: input.customerEmail,
+      amountKobo: input.amountMinor,
+      reference: input.reference,
+      accountExpiresAt: requestedExpiry,
+      metadata: {
+        type: 'booking_funding',
+        bookingId: String(input.bookingId),
+        quoteId: String(input.quoteId),
+        clientUid: input.clientUid,
+        paymentIntentId: String(input.intentId),
+      },
+    })
+
+    if (provider.data.status !== 'pending_bank_transfer') {
+      throw new FinancialError('PROVIDER_UNAVAILABLE', 'Paystack did not return bank transfer details', 502)
+    }
+
+    const conn = await getConnection()
+    try {
+      await conn.beginTransaction()
+      const [intentRows] = await conn.execute<PaymentIntentRow[]>(
+        `SELECT * FROM marketplace_payment_intents WHERE id = ? FOR UPDATE`,
+        [input.intentId]
+      )
+      const intent = intentRows[0]
+      if (!intent) throw new FinancialError('NOT_FOUND', 'Payment intent was not found', 404)
+      if (intent.status !== 'created') {
+        throw new FinancialError('INVALID_STATE', `Payment cannot be initialized from ${intent.status}`, 409)
+      }
+
+      await conn.execute(
+        `INSERT INTO booking_payment_accounts (
+           booking_id, quote_id, marketplace_payment_intent_id, client_uid,
+           provider, provider_reference, amount_kobo, currency, bank_name,
+           bank_slug, account_name, account_number, status, expires_at
+         ) VALUES (?, ?, ?, ?, 'paystack', ?, ?, 'NGN', ?, ?, ?, ?, 'active', ?)`,
+        [
+          input.bookingId,
+          input.quoteId,
+          input.intentId,
+          input.clientUid,
+          provider.data.reference,
+          input.amountMinor,
+          provider.data.bank.name,
+          provider.data.bank.slug,
+          provider.data.account_name,
+          provider.data.account_number,
+          new Date(provider.data.account_expires_at),
+        ]
+      )
+      await conn.execute(
+        `UPDATE marketplace_payment_intents
+         SET provider_reference = ?, payment_method = 'bank_transfer', status = 'initialized',
+             initialized_at = NOW(), updated_at = NOW()
+         WHERE id = ?`,
+        [provider.data.reference, input.intentId]
+      )
+      await conn.execute(
+        `UPDATE job_funds SET status = 'funding_pending', updated_at = NOW()
+         WHERE id = ? AND status = 'awaiting_funding'`,
+        [input.jobFundId]
+      )
+      await conn.commit()
+    } catch (error) {
+      await conn.rollback().catch(() => undefined)
+      throw error
+    } finally {
+      conn.release()
+    }
+
+    return {
+      reference: provider.data.reference,
+      amountMinor: input.amountMinor,
+      bankName: provider.data.bank.name,
+      bankSlug: provider.data.bank.slug,
+      accountName: provider.data.account_name,
+      accountNumber: provider.data.account_number,
+      expiresAt: provider.data.account_expires_at,
+    }
+  } catch (error) {
+    await markPaymentInitializationFailed(input.intentId, safeError(error)).catch(() => undefined)
+    throw error
+  }
+}
+
 export async function confirmExternalPayment(
   reference: string,
   actor: LedgerActor,
@@ -358,6 +517,9 @@ export async function confirmExternalPayment(
         paymentIntentId: intent.id,
         providerTransactionId: verified.providerTransactionId,
         paymentMethod: verified.paymentMethod,
+        providerFeeMinor: String(verified.providerFeeMinor),
+        chargedMinor: String(verified.requestedAmountMinor),
+        description: `Payment secured for booking #${intent.booking_id}`,
       },
       outbox: {
         eventType: refundAfterCollection ? 'payment.refund_required' : 'job.funded',
@@ -389,6 +551,18 @@ export async function confirmExternalPayment(
        WHERE id = ?`,
       [posted.id, jobFund.id]
     )
+    await conn.execute(
+      `UPDATE booking_payment_accounts
+       SET status = 'paid', paid_at = COALESCE(?, NOW()), updated_at = NOW()
+       WHERE provider = ? AND provider_reference = ?`,
+      [verified.paidAt ? new Date(verified.paidAt) : null, verified.provider, verified.reference]
+    )
+    await conn.execute(
+      `UPDATE booking_payment_accounts
+       SET status = 'cancelled', updated_at = NOW()
+       WHERE booking_id = ? AND provider_reference <> ? AND status = 'active'`,
+      [intent.booking_id, verified.reference]
+    )
     if (refundAfterCollection) {
       await requestJobRefundInTransaction(conn, {
         bookingId: intent.booking_id,
@@ -396,14 +570,67 @@ export async function confirmExternalPayment(
         reason: 'Payment completed after booking cancellation was requested',
         actor: { type: 'system', id: 'late-payment-refund' },
       })
-    } else {
       await conn.execute(
-        `UPDATE bookings SET bookingStatus = 'Pending' WHERE bookingId = ?`,
+        `UPDATE bookings SET refundStatus = 'pending' WHERE bookingId = ?`,
         [intent.booking_id]
+      )
+    } else {
+      const [acceptedQuoteRows] = await conn.execute<(RowDataPacket & { accepted: number })[]>(
+        `SELECT COUNT(*) AS accepted
+         FROM booking_quotes
+         WHERE booking_id = ? AND status = 'accepted'`,
+        [intent.booking_id]
+      )
+      await conn.execute(
+        `UPDATE bookings SET bookingStatus = ? WHERE bookingId = ?`,
+        [Number(acceptedQuoteRows[0]?.accepted ?? 0) > 0 ? 'Confirmed' : 'Pending', intent.booking_id]
       )
     }
     await conn.commit()
     return { bookingId: intent.booking_id, credited: !posted.idempotentReplay }
+  } catch (error) {
+    await conn.rollback().catch(() => undefined)
+    throw error
+  } finally {
+    conn.release()
+  }
+}
+
+export async function markPayWithTransferRejected(
+  reference: string,
+  reason: string
+): Promise<void> {
+  const conn = await getConnection()
+  try {
+    await conn.beginTransaction()
+    const [intentRows] = await conn.execute<PaymentIntentRow[]>(
+      `SELECT * FROM marketplace_payment_intents
+       WHERE internal_reference = ? OR (provider = 'paystack' AND provider_reference = ?)
+       LIMIT 1 FOR UPDATE`,
+      [reference, reference]
+    )
+    const intent = intentRows[0]
+    if (!intent) {
+      await conn.commit()
+      return
+    }
+    if (['succeeded', 'refunded', 'partially_refunded', 'chargeback'].includes(intent.status)) {
+      await conn.commit()
+      return
+    }
+    await conn.execute(
+      `UPDATE marketplace_payment_intents
+       SET status = 'failed', failure_reason = ?, failed_at = NOW(), updated_at = NOW()
+       WHERE id = ?`,
+      [reason.slice(0, 500), intent.id]
+    )
+    await conn.execute(
+      `UPDATE booking_payment_accounts
+       SET status = 'rejected', updated_at = NOW()
+       WHERE marketplace_payment_intent_id = ?`,
+      [intent.id]
+    )
+    await conn.commit()
   } catch (error) {
     await conn.rollback().catch(() => undefined)
     throw error
@@ -921,6 +1148,7 @@ export async function getMarketplaceWalletSnapshot(
           platformFees: string | number
           totalFunded: string | number
           totalSpent: string | number
+          totalPaid: string | number
           refundable: string | number
         })[]>(
           `SELECT
@@ -933,6 +1161,7 @@ export async function getMarketplaceWalletSnapshot(
               FROM wallet_funding_intents
               WHERE client_uid = ? AND status = 'succeeded') AS totalFunded,
              COALESCE(SUM(released_amount_kobo), 0) AS totalSpent,
+             COALESCE(SUM(funded_amount_kobo), 0) AS totalPaid,
              (SELECT COALESCE(SUM(balance_kobo), 0)
               FROM money_accounts
               WHERE owner_type = 'client' AND owner_id = ?
@@ -998,6 +1227,9 @@ export async function getMarketplaceWalletSnapshot(
       ) / 100,
       totalSpent: Number(
         (stateRow as (typeof stateRow & { totalSpent?: string | number }))?.totalSpent ?? 0
+      ) / 100,
+      totalPaid: Number(
+        (stateRow as (typeof stateRow & { totalPaid?: string | number }))?.totalPaid ?? 0
       ) / 100,
       isVerified: Boolean(recipient),
       paystackRecipientCode: recipient?.provider_recipient_code ?? null,
