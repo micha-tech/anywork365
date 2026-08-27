@@ -2,30 +2,52 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getVerifiedSession } from '@/lib/auth'
 import {
-  getBookingsByClient,
+  createDbNotification,
+  getBookingQuotesByBookingIds,
   getBookingsByBusiness,
+  getBookingsByClient,
   getBusinessByUid,
   getUserRowByUid,
-  getWalletByUserId,
-  getOrCreateWallet as getOrCreateWalletDb,
-  createDbNotification,
 } from '@/lib/queries'
 import { checkRateLimit } from '@/lib/wallet'
 import { sendPushNotification } from '@/lib/notifications'
 import { getConnection } from '@/lib/db'
 import type { ApiResponse } from '@/types'
-import type mysql from 'mysql2'
-import type { RowDataPacket } from 'mysql2'
-import { holdBookingFunds, isMoneyV2Enabled, nairaToKobo } from '@/lib/money'
-import {
-  createWalletFundedJobInTransaction,
-  isMarketplaceFinanceEnabled,
-  type WalletFundedJob,
-} from '@/lib/financial/marketplace-service'
-import { majorToMinor } from '@/lib/financial/money-value'
-import { FinancialError } from '@/lib/financial/errors'
+import type { ResultSetHeader } from 'mysql2/promise'
 
 export const runtime = 'nodejs'
+
+type BookingResponse = {
+  id: number
+  businessId: number
+  clientUID: string
+  businessName?: string
+  clientName?: string
+  description: string
+  budget: number
+  priceConfirmed: number
+  date: string
+  location: string
+  inspectionMethod: 'none' | 'physical' | 'virtual'
+  status: string
+  clientDecision: string
+  vendorDecision: string
+  jobStatus: string
+  createdAt: string
+  meetingPoint: string
+  reasonForCancellation: string
+  quotes: Array<{
+    id: number
+    amount: number
+    scope: string
+    estimatedDuration: string | null
+    proposedStartDate: string | null
+    status: string
+    respondedAt: string | null
+    createdAt: string
+    updatedAt: string
+  }>
+}
 
 export async function GET() {
   const session = await getVerifiedSession()
@@ -44,7 +66,7 @@ export async function GET() {
     )
   }
 
-  let bookings: any[] = []
+  let bookings: BookingResponse[] = []
 
   if (session.role === 'artisan') {
     const business = await getBusinessByUid(session.id)
@@ -56,10 +78,11 @@ export async function GET() {
         clientUID: r.clientUID,
         clientName: r.fullName,
         description: r.additionalInfo,
-        budget: r.amountAgreed,
+        budget: Number(r.amountAgreed),
         priceConfirmed: r.priceConfirmed,
         date: r.bookedDate,
         location: r.appointmentAddress,
+        inspectionMethod: r.inspectionMethod || 'none',
         status: mapStatus(r.bookingStatus),
         clientDecision: r.clientDecision,
         vendorDecision: r.vendorDecision,
@@ -67,6 +90,7 @@ export async function GET() {
         createdAt: r.dateBooked,
         meetingPoint: r.meetingPoint,
         reasonForCancellation: r.reasonForCancellation,
+        quotes: [],
       }))
     }
   } else {
@@ -77,10 +101,11 @@ export async function GET() {
       clientUID: r.clientUID,
       businessName: r.businessName,
       description: r.additionalInfo,
-      budget: r.amountAgreed,
+      budget: Number(r.amountAgreed),
       priceConfirmed: r.priceConfirmed,
       date: r.bookedDate,
       location: r.appointmentAddress,
+      inspectionMethod: r.inspectionMethod || 'none',
       status: mapStatus(r.bookingStatus),
       clientDecision: r.clientDecision,
       vendorDecision: r.vendorDecision,
@@ -88,10 +113,33 @@ export async function GET() {
       createdAt: r.dateBooked,
       meetingPoint: r.meetingPoint,
       reasonForCancellation: r.reasonForCancellation,
+      quotes: [],
     }))
   }
 
-  return NextResponse.json<ApiResponse<any>>(
+  const quoteRows = await getBookingQuotesByBookingIds(bookings.map((booking) => booking.id))
+  const quotesByBooking = new Map<number, BookingResponse['quotes']>()
+  for (const quote of quoteRows) {
+    const bookingQuotes = quotesByBooking.get(quote.booking_id) ?? []
+    bookingQuotes.push({
+      id: quote.id,
+      amount: Number(quote.amount),
+      scope: quote.scope,
+      estimatedDuration: quote.estimated_duration,
+      proposedStartDate: quote.proposed_start_date,
+      status: quote.status,
+      respondedAt: quote.responded_at,
+      createdAt: quote.created_at,
+      updatedAt: quote.updated_at,
+    })
+    quotesByBooking.set(quote.booking_id, bookingQuotes)
+  }
+  bookings = bookings.map((booking) => ({
+    ...booking,
+    quotes: quotesByBooking.get(booking.id) ?? [],
+  }))
+
+  return NextResponse.json<ApiResponse<BookingResponse[]>>(
     { success: true, data: bookings },
     { status: 200 }
   )
@@ -121,13 +169,23 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const body = await req.json()
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Please check the booking details and try again.' },
+      { status: 400 }
+    )
+  }
+
   const schema = z.object({
     vendorId: z.string().min(1, 'Artisan is required'),
-    description: z.string().min(1, 'Description is required').max(2000, 'Description must be under 2000 characters'),
-    budget: z.number().int().min(1000, 'Minimum booking budget is ₦1,000').max(10_000_000, 'Maximum booking budget is ₦10,000,000'),
-    date: z.string().min(1, 'Date is required'),
-    location: z.string().max(500).optional().default(''),
+    description: z.string().trim().min(1, 'Description is required').max(2000, 'Description must be under 2000 characters'),
+    budget: z.number().int().min(1000, 'Minimum estimated budget is ₦1,000').max(10_000_000, 'Maximum estimated budget is ₦10,000,000'),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose a valid preferred date'),
+    location: z.string().trim().max(500).optional().default(''),
+    inspectionMethod: z.enum(['none', 'physical', 'virtual']).default('none'),
   })
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
@@ -136,7 +194,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     )
   }
-  const { vendorId, description, budget, date, location } = parsed.data
+  const { vendorId, description, budget, date, location, inspectionMethod } = parsed.data
 
   const vendor = await getBusinessByUid(vendorId)
   if (!vendor) {
@@ -154,117 +212,35 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const useMarketplaceFinance = isMarketplaceFinanceEnabled()
-  const useMoneyV2 = !useMarketplaceFinance && isMoneyV2Enabled()
-  let clientWallet = await getWalletByUserId(clientRow.userId)
-  let vendorWalletId: number | null = null
-  if (!useMarketplaceFinance && !useMoneyV2) {
-    // Legacy wallets are only touched while the v2 ledger rollout flag is off.
-    clientWallet = clientWallet ?? await getOrCreateWalletDb(clientRow.userId, clientRow.email)
-    const vendorRow = await getUserRowByUid(vendorId)
-    if (vendorRow) {
-      let vw = await getWalletByUserId(vendorRow.userId)
-      if (!vw) {
-        vw = await getOrCreateWalletDb(vendorRow.userId, vendorRow.email)
-      }
-      vendorWalletId = vw.id
-    }
-  }
-
-  // Transaction: atomic booking and legacy locked-funds handling.
   const conn = await getConnection()
-  let walletFunding: WalletFundedJob | null = null
   try {
-    await conn.beginTransaction()
-
-    let currentBalance = 0
-    if (!useMarketplaceFinance && !useMoneyV2) {
-      if (!clientWallet) throw new Error('Client wallet not found')
-      // Lock the legacy wallet row while legacy mode remains active.
-      const [walletRows] = await conn.execute<RowDataPacket[]>(
-        'SELECT id FROM wallets WHERE id = ? FOR UPDATE',
-        [clientWallet.id]
-      )
-      if (walletRows.length === 0) {
-        await conn.rollback()
-        return NextResponse.json<ApiResponse<null>>(
-          { success: false, error: 'Wallet not found' },
-          { status: 404 }
-        )
-      }
-
-      const [balRows] = await conn.execute<RowDataPacket[]>(
-        `SELECT COALESCE(SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END), 0) AS balance
-         FROM wallet_ledger WHERE wallet_id = ?`,
-        [clientWallet.id]
-      )
-      currentBalance = Number(balRows[0]?.balance ?? 0)
-      if (currentBalance < budget) {
-        await conn.rollback()
-        return NextResponse.json<ApiResponse<null>>(
-          { success: false, error: 'Insufficient balance. Please fund your wallet and try again.' },
-          { status: 400 }
-        )
-      }
-    }
-
-    // INSERT booking
-    const [bookingResult] = await conn.execute<mysql.ResultSetHeader>(
+    const [bookingResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO bookings (
          businessId, clientUID, bookedDate, bookedTime, appointmentAddress,
-         meetingPoint, additionalInfo, bookingStatus, vendorComment,
+         meetingPoint, inspectionMethod, additionalInfo, bookingStatus, vendorComment,
          amountAgreed, priceConfirmed, reasonForCancellation, dateBooked
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, 1, '', NOW())`,
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', '', ?, 0, '', NOW())`,
       [
         vendor.businessId,
         session.id,
         date,
         new Date().toLocaleTimeString('en-US', { hour12: false }),
-        location || '',
-        location || '',
+        location,
+        location,
+        inspectionMethod,
         description,
-        'Pending',
         budget,
       ]
     )
     const bookingId = bookingResult.insertId
 
-    if (useMarketplaceFinance) {
-      walletFunding = await createWalletFundedJobInTransaction(conn, {
-        bookingId,
-        clientUid: session.id,
-        artisanUid: vendorId,
-        amountMinor: majorToMinor(String(budget)),
-        actor: { type: 'user', id: session.id },
-      })
-    } else if (useMoneyV2) {
-      await holdBookingFunds(conn, {
-        bookingId,
-        clientUid: session.id,
-        artisanUid: vendorId,
-        amountKobo: nairaToKobo(budget),
-      })
-    } else {
-      if (!clientWallet) throw new Error('Client wallet not found')
-      const newBalance = currentBalance - budget
-      await conn.execute(
-        `INSERT INTO wallet_ledger (wallet_id, amount, direction, balance_after, description, created_at)
-         VALUES (?, ?, 'debit', ?, ?, NOW())`,
-        [clientWallet.id, budget, newBalance, `Payment locked for booking #${bookingId}`]
-      )
-
-      if (!vendorWalletId) throw new Error('Artisan wallet not found')
-      await conn.execute(
-        `INSERT INTO wallet_escrow (booking_id, client_wallet_id, vendor_wallet_id, escrow_wallet_id, amount, status, created_at)
-         VALUES (?, ?, ?, (SELECT id FROM wallets WHERE wallet_type = 'escrow' LIMIT 1), ?, 'held', NOW())`,
-        [bookingId, clientWallet.id, vendorWalletId, budget]
-      )
-    }
-
-    await conn.commit()
-
     const clientName = clientRow.fullName || 'A client'
-    const notificationBody = `${clientName} sent booking #${bookingId} for ₦${budget.toLocaleString()}.`
+    const inspectionLabel = inspectionMethod === 'physical'
+      ? 'Physical inspection requested.'
+      : inspectionMethod === 'virtual'
+        ? 'Virtual inspection requested.'
+        : 'No inspection requested.'
+    const notificationBody = `${clientName} sent booking request #${bookingId}. ${inspectionLabel}`
     await Promise.allSettled([
       createDbNotification(vendorId, notificationBody),
       sendPushNotification(
@@ -275,7 +251,7 @@ export async function POST(req: NextRequest) {
       ),
     ])
 
-    return NextResponse.json<ApiResponse<any>>(
+    return NextResponse.json<ApiResponse<unknown>>(
       {
         success: true,
         data: {
@@ -285,32 +261,19 @@ export async function POST(req: NextRequest) {
           budget,
           date,
           location,
+          inspectionMethod,
           status: 'pending',
-          fundingReference: walletFunding?.reference ?? null,
-          platformFeeNGN: walletFunding ? walletFunding.platformFeeMinor / 100 : null,
           createdAt: new Date().toISOString(),
         },
-        message: useMarketplaceFinance
-          ? 'Booking funded from your verified wallet. The artisan can now accept it.'
-          : 'Booking request sent! The artisan will respond shortly.',
+        message: 'Booking request sent. The artisan can now review it and send you a quote.',
       },
       { status: 201 }
     )
   } catch (error) {
-    await conn.rollback()
-    console.error('Booking creation transaction error:', error)
-    const insufficient =
-      error instanceof FinancialError && error.code === 'INSUFFICIENT_FUNDS'
+    console.error('Booking creation error:', error)
     return NextResponse.json<ApiResponse<null>>(
-      {
-        success: false,
-        error: insufficient
-          ? 'Insufficient verified wallet balance. Fund your wallet before creating this booking.'
-          : error instanceof FinancialError
-            ? error.message
-            : 'Failed to create booking. Please try again.',
-      },
-      { status: insufficient ? 402 : error instanceof FinancialError ? error.httpStatus : 500 }
+      { success: false, error: 'We could not send your booking request. Please try again.' },
+      { status: 500 }
     )
   } finally {
     conn.release()

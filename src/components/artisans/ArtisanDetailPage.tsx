@@ -68,34 +68,20 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
           budget: parseInt(formData.get('budget') as string, 10),
           date: formData.get('date'),
           location: formData.get('location'),
+          inspectionMethod: formData.get('inspectionMethod'),
         }),
       })
 
       const data = await res.json()
       if (!res.ok || !data.success) {
-        if (res.status === 402) {
-          toast.error(data.error || 'Fund your wallet to continue', {
-            action: {
-              label: 'Fund wallet',
-              onClick: () => router.push('/wallet?tab=fund'),
-            },
-          })
-        } else {
-          toast.error(data.error || 'Failed to create booking')
-        }
+        toast.error(data.error || 'Failed to create booking request')
         setBookingLoading(false)
-        return
-      }
-
-      if (data.data?.authorizationUrl) {
-        toast.success('Booking saved. Redirecting to secure payment…')
-        window.location.assign(data.data.authorizationUrl)
         return
       }
 
       setBookOpen(false)
       setBooked(true)
-      toast.success('Booking funded and sent to the artisan')
+      toast.success('Request sent. The artisan can now review it and send a quote.')
     } catch {
       toast.error('Network error. Please try again.')
     } finally {
@@ -410,8 +396,9 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="form-group min-w-0">
-              <label className="label">Your Budget (₦)</label>
+              <label className="label">Estimated budget (₦)</label>
               <input name="budget" type="number" inputMode="numeric" className="input-field min-w-0 max-w-full" min={1000} placeholder="50000" required />
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">This is a guide only. You will not be charged when you send the request.</p>
             </div>
             <div className="form-group min-w-0">
               <label className="label">Preferred Date</label>
@@ -421,6 +408,15 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
           <div className="form-group">
             <label className="label">Your Location</label>
             <input name="location" type="text" className="input-field" placeholder="e.g. Lekki Phase 1, Lagos" />
+          </div>
+          <div className="form-group">
+            <label className="label">Does the job require an inspection?</label>
+            <select name="inspectionMethod" className="input-field" defaultValue="none">
+              <option value="none">No inspection needed</option>
+              <option value="physical">Physical inspection</option>
+              <option value="virtual">Virtual inspection</option>
+            </select>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">The artisan will see your choice before preparing a quote.</p>
           </div>
           <div className="sticky bottom-0 z-10 -mx-5 mt-6 flex items-center gap-2 border-t border-slate-200 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:static sm:mx-0 sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
             <button
@@ -435,7 +431,7 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
               disabled={bookingLoading}
               className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(15,79,74,0.16)] transition-all hover:bg-brand-600 active:scale-[0.98] active:bg-brand-700 disabled:pointer-events-none disabled:opacity-50 sm:flex-none sm:px-6"
             >
-              {bookingLoading ? 'Sending...' : 'Send request'}
+              {bookingLoading ? 'Sending...' : 'Send booking request'}
             </button>
           </div>
         </form>
