@@ -73,7 +73,7 @@ export async function GET(
   }
   if (!isMarketplaceFinanceEnabled()) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Bank transfer verification is temporarily unavailable.' },
+      { success: false, error: 'Bank transfer is unavailable right now.' },
       { status: 503 }
     )
   }
@@ -97,7 +97,7 @@ export async function GET(
 
   if (!account) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'No bank-transfer payment was found for this booking.' },
+      { success: false, error: 'No transfer found for this booking.' },
       { status: 404 }
     )
   }
@@ -107,7 +107,7 @@ export async function GET(
         success: true,
         data: { bookingId, status: 'cancelled', refundStatus: account.refund_status },
         message: account.refund_status === 'pending' || account.refund_status === 'processing'
-          ? 'This booking was cancelled and the payment refund is being processed.'
+          ? 'Booking cancelled. Refund in progress.'
           : 'This booking was cancelled.',
       },
       { status: 202 }
@@ -126,8 +126,8 @@ export async function GET(
         success: true,
         data: { bookingId, status: account.status },
         message: account.status === 'rejected'
-          ? 'The transfer was not accepted. Please generate a new account and transfer the exact amount.'
-          : 'This transfer account is no longer active.',
+          ? 'Transfer declined. Get a new account and send the exact amount.'
+          : 'This account is no longer active.',
       },
       { status: 202 }
     )
@@ -149,14 +149,14 @@ export async function GET(
         {
           success: true,
           data: { bookingId, status: 'pending' },
-          message: 'We are still waiting for the bank to verify this transfer.',
+          message: 'Payment not received yet.',
         },
         { status: 202 }
       )
     }
     console.error('[BOOKING PAYMENT CHECK]', error)
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'We could not verify this transfer yet. Please try again shortly.' },
+      { success: false, error: 'Couldn\u2019t check payment. Try again.' },
       { status: 502 }
     )
   }
@@ -208,7 +208,7 @@ export async function POST(
   }).safeParse(body)
   if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Choose wallet credit or bank transfer.' },
+      { success: false, error: 'Choose a payment method.' },
       { status: 400 }
     )
   }
@@ -249,7 +249,7 @@ export async function POST(
       return NextResponse.json<ApiResponse<unknown>>({
         success: true,
         data: { bookingId, status: 'confirmed' },
-        message: 'Payment is already secured for this booking.',
+        message: 'This booking is already paid.',
       })
     }
     if (booking.bookingStatus !== 'Awaiting Payment') {
@@ -283,7 +283,7 @@ export async function POST(
         if (existingFunds[0]) {
           throw new FinancialError(
             'INVALID_STATE',
-            'A bank-transfer payment has already been created for this booking. Complete it or generate a new account.',
+            'A bank transfer is already open for this booking.',
             409
           )
         }
@@ -319,7 +319,7 @@ export async function POST(
       if (!isMarketplaceFinanceEnabled()) {
         throw new FinancialError(
           'CONFIGURATION_ERROR',
-          'Bank transfer is temporarily unavailable. You can use available wallet credit instead.',
+          'Bank transfer is unavailable. Use your wallet balance instead.',
           503
         )
       }
@@ -355,7 +355,7 @@ export async function POST(
             accountNumber: active.account_number,
             expiresAt: active.expires_at,
           },
-          message: 'Use these account details to complete payment.',
+          message: 'Account ready.',
         })
       }
 
@@ -396,7 +396,7 @@ export async function POST(
       {
         success: false,
         error: insufficient
-          ? 'Your available credit is too low. Fund your wallet or pay by bank transfer.'
+          ? 'Your wallet balance is too low. Add money or pay by bank transfer.'
           : error instanceof FinancialError
             ? error.message
             : 'We could not start this payment. Please try again.',
@@ -434,7 +434,7 @@ export async function POST(
           accountNumber: payment.accountNumber,
           expiresAt: payment.expiresAt,
         },
-        message: 'Transfer the exact amount to this temporary account.',
+        message: 'Send the exact amount to this account.',
       })
     } catch (error) {
       console.error('[BOOKING PWT INITIALIZATION]', error)
@@ -464,7 +464,7 @@ export async function POST(
   return NextResponse.json<ApiResponse<unknown>>({
     success: true,
     data: { method: 'wallet', bookingId, status: 'confirmed' },
-    message: 'Payment secured. The booking is confirmed.',
+    message: 'Payment confirmed.',
   })
 }
 

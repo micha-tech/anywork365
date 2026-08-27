@@ -137,7 +137,7 @@ function WalletPageContent() {
     } else if (payStatus === 'failed') {
       toast.error('Payment wasn\u2019t completed')
     } else if (payStatus === 'error') {
-      toast.error('Payment verification failed')
+      toast.error('Couldn\u2019t confirm payment')
     }
   }, [fetchWallet, payAmount, payMsg, payReceipt, payStatus])
 
@@ -317,18 +317,18 @@ function WalletPageContent() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-brand-500 text-white rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-white/70">
-              {isArtisan ? 'Available Earnings' : 'Available Credit'}
+              {isArtisan ? 'Available Earnings' : 'Available Balance'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 break-words">
               {formatCurrency(wallet?.availableBalance ?? 0)}
             </p>
             <p className="text-xs text-white/60">
-              {isArtisan ? 'Ready to withdraw' : 'Ledger credit available for future bookings'}
+              {isArtisan ? 'Ready to withdraw' : 'Ready to use'}
             </p>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-              {isArtisan ? 'Pending Earnings' : 'Secured Payments'}
+              {isArtisan ? 'Pending Earnings' : 'In Active Bookings'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-amber-600 break-words">
               {formatCurrency(wallet?.escrowBalance ?? 0)}
@@ -336,12 +336,12 @@ function WalletPageContent() {
             <p className="text-xs text-slate-500">
               {isArtisan
                 ? 'Released after the marketplace safety hold'
-                : 'Payments currently tied to active bookings'}
+                : 'Payments held for active work'}
             </p>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-              {isArtisan ? 'Total Earned' : 'Total Payments'}
+              {isArtisan ? 'Total Earned' : 'Total Paid'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-slate-900 break-words">
               {formatCurrency(isArtisan ? wallet?.totalEarned ?? 0 : wallet?.totalPaid ?? 0)}
@@ -428,7 +428,7 @@ function WalletPageContent() {
                   { id: 'withdraw', label: 'Withdraw' },
                   { id: 'bank', label: 'Bank Account' },
                 ]
-              : [{ id: 'fund', label: 'Fund Wallet' }]),
+              : [{ id: 'fund', label: 'Add Money' }]),
           ] as { id: WalletTab; label: string }[]).map((tab) => (
             <button
               key={tab.id}
@@ -527,14 +527,14 @@ function WalletPageContent() {
 
       {activeTab === 'fund' && !isArtisan && (
         <div className="card max-w-xl">
-          <h2 className="font-medium text-base mb-1">Fund Wallet</h2>
+          <h2 className="font-medium text-base mb-1">Add Money</h2>
           <p className="text-sm text-slate-500 mb-5">
-            Add verified funds through Paystack for future marketplace bookings.
+            Top up securely with Paystack.
           </p>
 
           <form onSubmit={handleFundWallet}>
             <div className="form-group">
-              <label className="label">Amount to credit (NGN)</label>
+              <label className="label">Amount (NGN)</label>
               <input
                 type="number"
                 inputMode="numeric"
@@ -548,14 +548,12 @@ function WalletPageContent() {
                 required
               />
               <p className="text-xs text-slate-500 mt-1.5">
-                Minimum NGN 100. Your wallet receives the exact verified amount entered here.
+                Minimum ₦100
               </p>
             </div>
 
-            <div className="mb-5 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-xs leading-5 text-brand-700">
-              Paystack may apply processing charges according to your payment channel. Anywork365
-              records the verified Paystack fee separately; it does not silently reduce the wallet
-              amount shown above. The receipt and wallet credit are created atomically.
+            <div className="mb-5 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-xs text-brand-700">
+              Paystack fees may apply.
             </div>
 
             <button
@@ -564,8 +562,8 @@ function WalletPageContent() {
               className="btn-primary w-full py-3 justify-center"
             >
               {submitting
-                ? 'Opening Paystack?'
-                : `Continue to Paystack${fundAmount ? ` ? ${formatCurrency(Number(fundAmount))}` : ''}`}
+                ? 'Opening Paystack...'
+                : `Continue${fundAmount ? ` · ${formatCurrency(Number(fundAmount))}` : ''}`}
             </button>
           </form>
         </div>

@@ -196,7 +196,7 @@ export default function BookingsPage() {
         if (latest?.status === 'confirmed') {
           setPaymentBooking(null)
           setPaymentDetails(null)
-          toast.success('Payment verified. Your booking is confirmed.')
+          toast.success('Payment confirmed')
         } else if (latest?.status === 'cancelled') {
           setPaymentBooking(null)
           setPaymentDetails(null)
@@ -360,7 +360,7 @@ export default function BookingsPage() {
           setPaymentBooking(null)
           setPaymentDetails(null)
           await loadBookings()
-          toast.success('Payment verified. Your booking is confirmed.')
+          toast.success('Payment confirmed')
           return
         }
         if (verification.data?.status === 'rejected') {
@@ -380,19 +380,19 @@ export default function BookingsPage() {
       if (latest?.status === 'confirmed') {
         setPaymentBooking(null)
         setPaymentDetails(null)
-        toast.success('Payment verified. Your booking is confirmed.')
+        toast.success('Payment confirmed')
         return
       }
       if (latest?.status === 'cancelled') {
         setPaymentBooking(null)
         setPaymentDetails(null)
-        toast.error('This booking is no longer awaiting payment.')
+        toast.error('This booking is no longer active.')
         return
       }
       if (latest?.payment?.status === 'active') setPaymentDetails(latest.payment)
-      if (showFeedback) toast.info('We are still waiting for the bank to verify this transfer.')
+      if (showFeedback) toast.info('Payment not received yet')
     } catch {
-      if (showFeedback) toast.error('We couldn\u2019t check the payment yet. Please try again shortly.')
+      if (showFeedback) toast.error('Couldn\u2019t check payment. Try again.')
     }
   }
 
@@ -408,8 +408,8 @@ export default function BookingsPage() {
       const data = await res.json()
       if (!res.ok || !data.success) {
         if (res.status === 402) {
-          toast.error(data.error || 'Your available credit is too low.', {
-            action: { label: 'Add credit', onClick: () => router.push('/wallet?tab=fund') },
+          toast.error(data.error || 'Your wallet balance is too low.', {
+            action: { label: 'Add money', onClick: () => router.push('/wallet?tab=fund') },
           })
         } else {
           toast.error(data.error || 'Couldn\u2019t start payment')
@@ -428,9 +428,9 @@ export default function BookingsPage() {
           expiresAt: data.data.expiresAt,
         })
         setPaymentNow(Date.now())
-        toast.success('Temporary account created')
+        toast.success('Account ready')
       } else {
-        toast.success(data.message || 'Payment secured')
+        toast.success('Payment confirmed')
         setPaymentBooking(null)
       }
       loadBookings()
@@ -693,14 +693,14 @@ export default function BookingsPage() {
             {b.status === 'awaiting_payment' && (
               <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50 p-3.5 sm:p-4">
                 <p className="text-sm font-semibold text-violet-900">
-                  {isVendor ? 'Waiting for the client to complete payment' : 'Complete payment to confirm this booking'}
+                  {isVendor ? 'Awaiting client payment' : 'Payment required'}
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-violet-700">
                   {isVendor
-                    ? 'You will be notified as soon as the payment is verified and secured.'
+                    ? 'We\u2019ll notify you when it\u2019s confirmed.'
                     : b.payment?.status === 'active'
-                      ? `A temporary ${b.payment.bankName} account is ready for this payment.`
-                      : 'Choose available credit or generate a temporary bank account.'}
+                      ? `${b.payment.bankName} account ready.`
+                      : 'Choose how you want to pay.'}
                 </p>
               </div>
             )}
@@ -751,7 +751,7 @@ export default function BookingsPage() {
                     disabled={actionLoading !== null}
                     className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
                   >
-                    {b.payment?.status === 'active' ? 'View payment details' : 'Complete payment'}
+                    {b.payment?.status === 'active' ? 'View account' : 'Pay now'}
                   </button>
                 )}
                 {!isVendor && b.status === 'pending' && pendingQuote && (
@@ -853,14 +853,13 @@ export default function BookingsPage() {
       <Modal
         open={paymentBooking !== null}
         onClose={() => paymentSubmitting === null && setPaymentBooking(null)}
-        title="Complete payment"
+        title="Pay for booking"
       >
         {paymentBooking && (
           <div>
             <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Booking #{paymentBooking.id}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Amount due · Booking #{paymentBooking.id}</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">₦{paymentBooking.budget.toLocaleString()}</p>
-              <p className="mt-1 text-xs text-slate-500">Payment is recorded against this booking and secured only after verification.</p>
             </div>
 
             {paymentDetails ? (
@@ -868,11 +867,11 @@ export default function BookingsPage() {
                 <div className="rounded-xl border border-brand-200 bg-brand-50 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Temporary transfer account</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Bank transfer</p>
                       <p className="mt-2 text-sm font-medium text-slate-800">{paymentDetails.bankName}</p>
                     </div>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${paymentSecondsRemaining > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                      {paymentSecondsRemaining > 0 ? 'Awaiting payment' : 'Account expired'}
+                      {paymentSecondsRemaining > 0 ? 'Waiting' : 'Expired'}
                     </span>
                   </div>
                   <p className="mt-4 font-mono text-3xl font-semibold tracking-wider text-slate-950">{paymentDetails.accountNumber}</p>
@@ -891,7 +890,7 @@ export default function BookingsPage() {
                   </div>
                 </div>
                 <p className="mt-3 text-xs leading-relaxed text-amber-700">
-                  Transfer the exact amount. The booking confirms automatically after Paystack verifies the payment—no receipt upload is required.
+                  Send the exact amount to this account.
                 </p>
                 <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {paymentSecondsRemaining === 0 ? (
@@ -901,7 +900,7 @@ export default function BookingsPage() {
                       onClick={() => handlePayment('bank_transfer')}
                       disabled={paymentSubmitting !== null}
                     >
-                      {paymentSubmitting === 'bank_transfer' ? 'Generating account...' : 'Generate a new account'}
+                      {paymentSubmitting === 'bank_transfer' ? 'Getting account...' : 'Get a new account'}
                     </button>
                   ) : (
                     <>
@@ -920,7 +919,7 @@ export default function BookingsPage() {
                     className="btn-ghost justify-center py-2.5 text-sm"
                     onClick={() => void checkPaymentStatus(true)}
                   >
-                    I have paid
+                    Check payment
                   </button>
                     </>
                   )}
@@ -934,9 +933,9 @@ export default function BookingsPage() {
                   disabled={paymentSubmitting !== null}
                   className="w-full rounded-xl border border-slate-200 p-4 text-left transition-colors hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50"
                 >
-                  <span className="block text-sm font-semibold text-slate-900">Use available credit</span>
-                  <span className="mt-1 block text-xs leading-relaxed text-slate-500">Secure the payment immediately from your verified ledger credit.</span>
-                  {paymentSubmitting === 'wallet' && <span className="mt-2 block text-xs font-semibold text-brand-600">Securing payment...</span>}
+                  <span className="block text-sm font-semibold text-slate-900">Wallet balance</span>
+                  <span className="mt-1 block text-xs text-slate-500">Pay instantly from your available balance.</span>
+                  {paymentSubmitting === 'wallet' && <span className="mt-2 block text-xs font-semibold text-brand-600">Paying...</span>}
                 </button>
                 <button
                   type="button"
@@ -944,9 +943,9 @@ export default function BookingsPage() {
                   disabled={paymentSubmitting !== null}
                   className="w-full rounded-xl border border-slate-200 p-4 text-left transition-colors hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50"
                 >
-                  <span className="block text-sm font-semibold text-slate-900">Pay by bank transfer</span>
-                  <span className="mt-1 block text-xs leading-relaxed text-slate-500">Generate a temporary Paystack account for this quote only.</span>
-                  {paymentSubmitting === 'bank_transfer' && <span className="mt-2 block text-xs font-semibold text-brand-600">Generating account...</span>}
+                  <span className="block text-sm font-semibold text-slate-900">Bank transfer</span>
+                  <span className="mt-1 block text-xs text-slate-500">Get a one-time account number.</span>
+                  {paymentSubmitting === 'bank_transfer' && <span className="mt-2 block text-xs font-semibold text-brand-600">Getting account...</span>}
                 </button>
               </div>
             )}
@@ -963,8 +962,8 @@ export default function BookingsPage() {
           <form onSubmit={handleCancellation}>
             <p className="text-sm leading-relaxed text-slate-600">
               {cancellationBooking.status === 'confirmed'
-                ? 'This booking has a secured payment. Cancelling it will start the appropriate refund process.'
-                : 'No payment has been secured, so this booking can be cancelled immediately.'}
+                ? 'Your payment will be refunded after cancellation.'
+                : 'This booking will be cancelled immediately.'}
             </p>
             <div className="form-group mt-5">
               <label className="label">Reason for cancellation</label>
