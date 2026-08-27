@@ -104,6 +104,16 @@ export async function PATCH(
       )
     }
 
+    // Older, already-funded requests can still be confirmed through this route.
+    // New requests must go through the linked quote flow instead.
+    if (action === 'confirm' && Number(booking.priceConfirmed) !== 1) {
+      await conn.rollback()
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Send the client a quote before confirming this booking.' },
+        { status: 409 }
+      )
+    }
+
     if (action === 'complete' && !isClient) {
       await conn.rollback()
       return NextResponse.json<ApiResponse<null>>(
@@ -189,7 +199,7 @@ export async function PATCH(
       }
     }
 
-    if (action === 'cancel') {
+    if (action === 'cancel' && Number(booking.priceConfirmed) === 1) {
       if (useMarketplaceFinance) {
         await cancelOrRefundJobInTransaction(conn, {
           bookingId,
@@ -218,8 +228,16 @@ export async function PATCH(
       'UPDATE bookings SET bookingStatus = ?, vendorDecision = ?, clientDecision = ? WHERE bookingId = ?',
       [
         newStatus,
-        isVendor ? 'Accepted' : booking.vendorDecision || '',
-        isClient ? 'Accepted' : booking.clientDecision || '',
+        action === 'confirm'
+          ? 'Accepted'
+          : action === 'cancel' && isVendor
+            ? 'Cancelled'
+            : booking.vendorDecision || '',
+        action === 'complete'
+          ? 'Completed'
+          : action === 'cancel' && isClient
+            ? 'Cancelled'
+            : booking.clientDecision || '',
         bookingId,
       ]
     )

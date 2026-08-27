@@ -11,6 +11,16 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/ui/EmptyState'
 
+interface BookingQuote {
+  id: number
+  amount: number
+  scope: string
+  estimatedDuration: string | null
+  proposedStartDate: string | null
+  status: 'pending' | 'accepted' | 'rejected' | 'superseded' | 'withdrawn'
+  createdAt: string
+}
+
 interface BookingItem {
   id: number
   businessId: number
@@ -22,13 +32,15 @@ interface BookingItem {
   priceConfirmed: number
   date: string
   location: string
+  inspectionMethod: 'none' | 'physical' | 'virtual'
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
   createdAt: string
+  quotes: BookingQuote[]
 }
 
 const BOOKING_STEPS = [
-  { status: 'pending', label: 'Requested', detail: 'Payment secured' },
-  { status: 'confirmed', label: 'Accepted', detail: 'Artisan confirmed' },
+  { status: 'pending', label: 'Requested', detail: 'Awaiting quote' },
+  { status: 'confirmed', label: 'Confirmed', detail: 'Quote accepted' },
   { status: 'completed', label: 'Completed', detail: 'Payment released' },
 ] as const
 
@@ -101,6 +113,13 @@ export default function BookingsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<BookingFilter>('active')
 
+  const [quoteBooking, setQuoteBooking] = useState<BookingItem | null>(null)
+  const [quoteAmount, setQuoteAmount] = useState('')
+  const [quoteScope, setQuoteScope] = useState('')
+  const [quoteDuration, setQuoteDuration] = useState('')
+  const [quoteStartDate, setQuoteStartDate] = useState('')
+  const [quoteSubmitting, setQuoteSubmitting] = useState(false)
+
   const [reviewBooking, setReviewBooking] = useState<BookingItem | null>(null)
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewComment, setReviewComment] = useState('')
@@ -148,6 +167,80 @@ export default function BookingsPage() {
       } else {
         toast.error(data.error || 'Action failed')
       }
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  function openQuoteComposer(booking: BookingItem) {
+    const currentQuote = booking.quotes?.find((quote) => quote.status === 'pending')
+    setQuoteBooking(booking)
+    setQuoteAmount(String(currentQuote?.amount || booking.budget || ''))
+    setQuoteScope(currentQuote?.scope || '')
+    setQuoteDuration(currentQuote?.estimatedDuration || '')
+    setQuoteStartDate(currentQuote?.proposedStartDate?.slice(0, 10) || booking.date || '')
+  }
+
+  async function handleSendQuote(e: React.FormEvent) {
+    e.preventDefault()
+    if (!quoteBooking) return
+
+    setQuoteSubmitting(true)
+    try {
+      const res = await fetch(`/api/bookings/${quoteBooking.id}/quotes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: Number(quoteAmount),
+          scope: quoteScope,
+          estimatedDuration: quoteDuration || null,
+          proposedStartDate: quoteStartDate || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        toast.error(data.error || 'Couldn\u2019t send the quote')
+        return
+      }
+      toast.success(data.message || 'Quote sent to the client')
+      setQuoteBooking(null)
+      loadBookings()
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setQuoteSubmitting(false)
+    }
+  }
+
+  async function handleQuoteDecision(booking: BookingItem, quote: BookingQuote, action: 'accept' | 'reject') {
+    if (action === 'reject' && !window.confirm('Decline this quote? The artisan can send a revised quote.')) return
+
+    const actionKey = `${booking.id}:quote:${action}`
+    setActionLoading(actionKey)
+    try {
+      const res = await fetch(`/api/bookings/${booking.id}/quotes`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quoteId: quote.id, action }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        if (res.status === 402) {
+          toast.error(data.error || 'Fund your wallet to accept this quote.', {
+            action: {
+              label: 'Fund wallet',
+              onClick: () => router.push('/wallet?tab=fund'),
+            },
+          })
+        } else {
+          toast.error(data.error || 'Couldn\u2019t update the quote')
+        }
+        return
+      }
+      toast.success(data.message || (action === 'accept' ? 'Quote accepted' : 'Quote declined'))
+      loadBookings()
     } catch {
       toast.error('Network error. Please try again.')
     } finally {
@@ -249,7 +342,7 @@ export default function BookingsPage() {
           <div className="min-w-0">
             <h1 className="font-display text-xl sm:text-2xl font-semibold">{isVendor ? 'Booking Requests' : 'Bookings'}</h1>
             <p className="mt-1 text-sm text-slate-500">
-              {isVendor ? 'Accept new requests, track accepted jobs, and keep clients moving.' : 'Track requests, active jobs, and reviews.'}
+              {isVendor ? 'Review requests, send clear quotes, and track confirmed jobs.' : 'Review quotes, confirm work, and track every booking.'}
             </p>
           </div>
         </div>
@@ -299,7 +392,16 @@ export default function BookingsPage() {
               </Link>
             ) : undefined}
           />
-        ) : visibleBookings.map((b) => (
+        ) : visibleBookings.map((b) => {
+          const latestQuote = b.quotes?.[0]
+          const pendingQuote = b.quotes?.find((quote) => quote.status === 'pending')
+          const inspectionLabel = b.inspectionMethod === 'physical'
+            ? 'Physical inspection'
+            : b.inspectionMethod === 'virtual'
+              ? 'Virtual inspection'
+              : 'No inspection needed'
+
+          return (
           <div key={b.id} className="card min-w-0 p-4 sm:p-6">
             <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
               <div className="flex-1 min-w-0">
@@ -308,9 +410,10 @@ export default function BookingsPage() {
                 </p>
                 <p className="mb-2 break-words text-sm font-medium leading-snug">{b.description}</p>
                 <div className="grid gap-1 text-xs text-slate-500 sm:flex sm:flex-wrap sm:gap-x-4">
-                  <span>Budget: <strong className="text-slate-900">₦{b.budget?.toLocaleString()}</strong></span>
+                  <span>{b.priceConfirmed ? 'Agreed price' : 'Estimated budget'}: <strong className="text-slate-900">₦{b.budget?.toLocaleString()}</strong></span>
                   <span>Date: {b.date}</span>
                   {b.location && <span className="break-words">Location: {b.location}</span>}
+                  <span className="font-medium text-brand-600">Inspection: {inspectionLabel}</span>
                 </div>
               </div>
               <span className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium capitalize ${statusColors[b.status] || 'bg-gray-100 text-gray-600'}`}>
@@ -320,15 +423,44 @@ export default function BookingsPage() {
 
             <BookingTimeline status={b.status} />
 
+            {latestQuote && (
+              <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50/60 p-3.5 sm:p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Artisan quote</p>
+                    <p className="mt-1 text-xl font-semibold text-slate-900">₦{latestQuote.amount.toLocaleString()}</p>
+                  </div>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
+                    latestQuote.status === 'accepted'
+                      ? 'bg-green-100 text-green-700'
+                      : latestQuote.status === 'rejected'
+                        ? 'bg-red-100 text-red-700'
+                        : latestQuote.status === 'pending'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-slate-100 text-slate-600'
+                  }`}>
+                    {latestQuote.status}
+                  </span>
+                </div>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{latestQuote.scope}</p>
+                {(latestQuote.estimatedDuration || latestQuote.proposedStartDate) && (
+                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-brand-100 pt-2.5 text-xs text-slate-500">
+                    {latestQuote.estimatedDuration && <span>Estimated duration: <strong className="text-slate-700">{latestQuote.estimatedDuration}</strong></span>}
+                    {latestQuote.proposedStartDate && <span>Proposed start: <strong className="text-slate-700">{new Date(latestQuote.proposedStartDate).toLocaleDateString()}</strong></span>}
+                  </div>
+                )}
+              </div>
+            )}
+
             {(b.status === 'pending' || b.status === 'confirmed') && (
               <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3 sm:flex">
                 {isVendor && b.status === 'pending' && (
                   <button
-                    onClick={() => handleAction(b.id, 'confirm')}
+                    onClick={() => openQuoteComposer(b)}
                     disabled={actionLoading !== null}
                     className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
                   >
-                    {actionLoading === `${b.id}:confirm` ? 'Accepting...' : 'Accept request'}
+                    {pendingQuote ? 'Update quote' : latestQuote?.status === 'rejected' ? 'Send revised quote' : 'Send quote'}
                   </button>
                 )}
                 {isVendor && (
@@ -349,6 +481,26 @@ export default function BookingsPage() {
                   >
                     {actionLoading === `${b.id}:complete` ? 'Completing...' : 'Mark Complete'}
                   </button>
+                )}
+                {!isVendor && b.status === 'pending' && pendingQuote && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleQuoteDecision(b, pendingQuote, 'accept')}
+                      disabled={actionLoading !== null}
+                      className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+                    >
+                      {actionLoading === `${b.id}:quote:accept` ? 'Securing payment...' : 'Accept quote'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleQuoteDecision(b, pendingQuote, 'reject')}
+                      disabled={actionLoading !== null}
+                      className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {actionLoading === `${b.id}:quote:reject` ? 'Declining...' : 'Decline quote'}
+                    </button>
+                  </>
                 )}
                 {b.status === 'pending' && (
                   <button
@@ -372,8 +524,104 @@ export default function BookingsPage() {
               </div>
             )}
           </div>
-        ))}
+          )
+        })}
       </div>
+
+      <Modal open={quoteBooking !== null} onClose={() => !quoteSubmitting && setQuoteBooking(null)} title="Send a quote">
+        {quoteBooking && (
+          <form onSubmit={handleSendQuote}>
+            <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Booking request #{quoteBooking.id}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{quoteBooking.description}</p>
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                <span>Client budget: <strong className="text-slate-700">₦{quoteBooking.budget.toLocaleString()}</strong></span>
+                <span>
+                  Inspection: <strong className="text-slate-700">
+                    {quoteBooking.inspectionMethod === 'physical'
+                      ? 'Physical'
+                      : quoteBooking.inspectionMethod === 'virtual'
+                        ? 'Virtual'
+                        : 'Not required'}
+                  </strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="label">Quote amount (₦)</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1000}
+                max={10000000}
+                required
+                className="input-field"
+                value={quoteAmount}
+                onChange={(event) => setQuoteAmount(event.target.value)}
+                placeholder="50000"
+              />
+              <p className="mt-1 text-xs text-slate-500">The client will secure this amount when they accept your quote.</p>
+            </div>
+
+            <div className="form-group">
+              <label className="label">What the quote covers</label>
+              <textarea
+                required
+                minLength={10}
+                maxLength={2000}
+                rows={4}
+                className="input-field resize-y"
+                value={quoteScope}
+                onChange={(event) => setQuoteScope(event.target.value)}
+                placeholder="Describe the work, labour, materials, and anything that is not included."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="form-group min-w-0">
+                <label className="label">Estimated duration</label>
+                <input
+                  type="text"
+                  maxLength={120}
+                  className="input-field"
+                  value={quoteDuration}
+                  onChange={(event) => setQuoteDuration(event.target.value)}
+                  placeholder="e.g. 2–3 days"
+                />
+              </div>
+              <div className="form-group min-w-0">
+                <label className="label">Proposed start date</label>
+                <input
+                  type="date"
+                  className="input-field"
+                  min={new Date().toISOString().split('T')[0]}
+                  value={quoteStartDate}
+                  onChange={(event) => setQuoteStartDate(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2 border-t border-slate-200 pt-4">
+              <button
+                type="button"
+                onClick={() => setQuoteBooking(null)}
+                disabled={quoteSubmitting}
+                className="btn-ghost px-5 py-2.5 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={quoteSubmitting || !quoteAmount || quoteScope.trim().length < 10}
+                className="btn-primary px-5 py-2.5 text-sm"
+              >
+                {quoteSubmitting ? 'Sending...' : 'Send quote'}
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
 
       <Modal open={reviewBooking !== null} onClose={() => setReviewBooking(null)} title="Leave a Review">
         {reviewBooking && (

@@ -76,7 +76,7 @@ export interface VacancyRow extends RowDataPacket {
   application_count: number
 }
 
-interface BookingRow extends RowDataPacket {
+export interface BookingRow extends RowDataPacket {
   bookingId: number
   bookingCode: string | null
   businessId: number
@@ -85,6 +85,7 @@ interface BookingRow extends RowDataPacket {
   bookedTime: string
   appointmentAddress: string
   meetingPoint: string
+  inspectionMethod: 'none' | 'physical' | 'virtual'
   additionalInfo: string
   bookingStatus: string
   clientDecision: string
@@ -95,6 +96,20 @@ interface BookingRow extends RowDataPacket {
   jobStatus: string
   dateBooked: string
   reasonForCancellation: string
+}
+
+export interface BookingQuoteRow extends RowDataPacket {
+  id: number
+  booking_id: number
+  artisan_uid: string
+  amount: number
+  scope: string
+  estimated_duration: string | null
+  proposed_start_date: string | null
+  status: 'pending' | 'accepted' | 'rejected' | 'superseded' | 'withdrawn'
+  responded_at: string | null
+  created_at: string
+  updated_at: string
 }
 
 interface WalletRow extends RowDataPacket {
@@ -778,6 +793,20 @@ export async function getBookingsByBusiness(businessId: number): Promise<(Bookin
      WHERE b.businessId = ?
      ORDER BY b.dateBooked DESC
      LIMIT 50`, [businessId])
+}
+
+export async function getBookingQuotesByBookingIds(bookingIds: number[]): Promise<BookingQuoteRow[]> {
+  if (bookingIds.length === 0) return []
+
+  const placeholders = bookingIds.map(() => '?').join(', ')
+  return query<BookingQuoteRow[]>(
+    `SELECT id, booking_id, artisan_uid, amount, scope, estimated_duration,
+            proposed_start_date, status, responded_at, created_at, updated_at
+     FROM booking_quotes
+     WHERE booking_id IN (${placeholders})
+     ORDER BY created_at DESC, id DESC`,
+    bookingIds
+  )
 }
 
 // ─── Applications (Vacancy Applications) ──────────────────────────────────
