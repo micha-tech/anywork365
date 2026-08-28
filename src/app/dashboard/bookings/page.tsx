@@ -540,11 +540,18 @@ export default function BookingsPage() {
   }
 
   const statusColors: Record<string, string> = {
-    pending: 'bg-amber-100 text-amber-700',
-    awaiting_payment: 'bg-violet-100 text-violet-700',
-    confirmed: 'bg-blue-100 text-blue-700',
-    completed: 'bg-green-100 text-green-700',
+    pending: 'bg-amber-100 text-amber-800',
+    awaiting_payment: 'bg-violet-100 text-violet-800',
+    confirmed: 'bg-brand-100 text-brand-700',
+    completed: 'bg-emerald-100 text-emerald-800',
     cancelled: 'bg-slate-100 text-slate-600',
+  }
+  const statusAccents: Record<string, string> = {
+    pending: 'bg-amber-400',
+    awaiting_payment: 'bg-violet-400',
+    confirmed: 'bg-brand-400',
+    completed: 'bg-emerald-400',
+    cancelled: 'bg-slate-300',
   }
 
   const isVendor = user?.role === 'artisan'
@@ -567,13 +574,23 @@ export default function BookingsPage() {
   return (
     <>
       <PullToRefresh onRefresh={loadBookings}>
-      <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="font-display text-xl sm:text-2xl font-semibold">{isVendor ? 'Booking Requests' : 'Bookings'}</h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {isVendor ? 'Review requests, send clear quotes, and track confirmed jobs.' : 'Review quotes, confirm work, and track every booking.'}
-            </p>
+      <div className="mb-5 sm:mb-7">
+        <div className="friendly-hero p-5 sm:p-7">
+          <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <span className="friendly-pill mb-3 bg-white/10 text-[#d8ffad] ring-1 ring-inset ring-white/10">
+                <SparkIcon /> {activeBookings.length} active
+              </span>
+              <h1 className="font-display text-2xl font-bold tracking-[-0.04em] sm:text-4xl">
+                {isVendor ? 'Your work, all in one place' : 'Keep every job moving'}
+              </h1>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-white/70 sm:text-base">
+                {isVendor ? 'Review requests, share quotes and stay on top of every job.' : 'Compare quotes, pay securely and follow each booking.'}
+              </p>
+            </div>
+            <div className="hidden h-20 w-20 items-center justify-center rounded-[2rem] bg-[#c9f58b] text-brand-900 shadow-lg sm:flex">
+              <BookingsHeroIcon />
+            </div>
           </div>
         </div>
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-none sm:mx-0 sm:px-0">
@@ -582,10 +599,10 @@ export default function BookingsPage() {
               key={tab.key}
               type="button"
               onClick={() => setStatusFilter(tab.key)}
-              className={`flex-shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${
+              className={`flex-shrink-0 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all sm:text-sm ${
                 statusFilter === tab.key
-                  ? 'border-brand-500 bg-brand-50 text-brand-600'
-                  : 'border-slate-200 bg-white text-slate-500 hover:border-brand-300 hover:text-brand-600'
+                  ? 'border-brand-700 bg-brand-700 text-white shadow-[0_6px_16px_rgba(15,79,74,0.16)]'
+                  : 'border-slate-200 bg-white text-slate-500 hover:-translate-y-0.5 hover:border-brand-300 hover:text-brand-600'
               }`}
             >
               {tab.label}
@@ -632,21 +649,26 @@ export default function BookingsPage() {
               : 'No inspection needed'
 
           return (
-          <div key={b.id} className="card min-w-0 p-4 sm:p-6">
+          <div key={b.id} className="friendly-card relative min-w-0 overflow-hidden p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,79,74,0.09)] sm:p-6">
+            <div className={`absolute inset-x-0 top-0 h-1.5 ${statusAccents[b.status] || 'bg-slate-300'}`} />
             <div className="flex min-w-0 flex-col gap-2 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
               <div className="flex-1 min-w-0">
-                <p className="mb-1 break-words text-xs text-slate-500 sm:text-sm">
-                  {isVendor ? (b.clientName || 'Client') : (b.businessName || 'Artisan')} &middot; Booking #{b.id} &middot; {new Date(b.createdAt).toLocaleDateString()}
+                <p className="mb-2 flex flex-wrap items-center gap-1.5 break-words text-xs font-medium text-slate-500 sm:text-sm">
+                  <span className="text-slate-800">{isVendor ? (b.clientName || 'Client') : (b.businessName || 'Artisan')}</span>
+                  <span className="text-slate-300">•</span>
+                  <span>#{b.id}</span>
+                  <span className="text-slate-300">•</span>
+                  <span>{new Date(b.createdAt).toLocaleDateString()}</span>
                 </p>
-                <p className="mb-2 break-words text-sm font-medium leading-snug">{b.description}</p>
-                <div className="grid gap-1 text-xs text-slate-500 sm:flex sm:flex-wrap sm:gap-x-4">
-                  <span>{b.priceConfirmed ? 'Agreed price' : 'Estimated budget'}: <strong className="text-slate-900">₦{b.budget?.toLocaleString()}</strong></span>
-                  <span>Date: {b.date}</span>
-                  {b.location && <span className="break-words">Location: {b.location}</span>}
-                  <span className="font-medium text-brand-600">Inspection: {inspectionLabel}</span>
+                <p className="mb-3 break-words text-base font-semibold leading-snug text-slate-950 sm:text-lg">{b.description}</p>
+                <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1.5"><strong className="text-slate-900">₦{b.budget?.toLocaleString()}</strong> {b.priceConfirmed ? 'agreed' : 'budget'}</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1.5">{b.date}</span>
+                  {b.location && <span className="max-w-full truncate rounded-full bg-slate-100 px-2.5 py-1.5">{b.location}</span>}
+                  <span className="rounded-full bg-brand-50 px-2.5 py-1.5 font-medium text-brand-700">{inspectionLabel}</span>
                 </div>
               </div>
-              <span className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium capitalize ${statusColors[b.status] || 'bg-gray-100 text-gray-600'}`}>
+              <span className={`w-fit rounded-full px-3 py-1.5 text-xs font-bold capitalize ${statusColors[b.status] || 'bg-gray-100 text-gray-600'}`}>
                 {b.status.replace('_', ' ')}
               </span>
             </div>
@@ -654,11 +676,12 @@ export default function BookingsPage() {
             <BookingTimeline status={b.status} />
 
             {latestQuote && (
-              <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50/60 p-3.5 sm:p-4">
+              <div className="relative mt-5 overflow-hidden rounded-2xl border border-brand-100 bg-[linear-gradient(135deg,#f5fbfa_0%,#ffffff_65%)] p-4 sm:p-5">
+                <div className="absolute -right-5 -top-6 h-20 w-20 rounded-full bg-[#c9f58b]/25" />
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Artisan quote</p>
-                    <p className="mt-1 text-xl font-semibold text-slate-900">₦{latestQuote.amount.toLocaleString()}</p>
+                    <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-brand-600"><QuoteIcon /> Artisan quote</p>
+                    <p className="mt-1 font-display text-2xl font-bold tracking-tight text-slate-950">₦{latestQuote.amount.toLocaleString()}</p>
                   </div>
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
                     latestQuote.status === 'accepted'
@@ -672,7 +695,7 @@ export default function BookingsPage() {
                     {latestQuote.status}
                   </span>
                 </div>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{latestQuote.scope}</p>
+                <p className="relative mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{latestQuote.scope}</p>
                 {(latestQuote.estimatedDuration || latestQuote.proposedStartDate) && (
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-brand-100 pt-2.5 text-xs text-slate-500">
                     {latestQuote.estimatedDuration && <span>Estimated duration: <strong className="text-slate-700">{latestQuote.estimatedDuration}</strong></span>}
@@ -691,8 +714,10 @@ export default function BookingsPage() {
             )}
 
             {b.status === 'awaiting_payment' && (
-              <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50 p-3.5 sm:p-4">
-                <p className="text-sm font-semibold text-violet-900">
+              <div className="mt-4 flex items-start gap-3 rounded-2xl border border-violet-200 bg-violet-50 p-3.5 sm:p-4">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><PaymentIcon /></div>
+                <div>
+                <p className="text-sm font-semibold text-violet-950">
                   {isVendor ? 'Awaiting client payment' : 'Payment required'}
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-violet-700">
@@ -702,6 +727,7 @@ export default function BookingsPage() {
                       ? `${b.payment.bankName} account ready.`
                       : 'Choose how you want to pay.'}
                 </p>
+                </div>
               </div>
             )}
 
@@ -715,12 +741,12 @@ export default function BookingsPage() {
             )}
 
             {(b.status === 'pending' || b.status === 'awaiting_payment' || b.status === 'confirmed') && (
-              <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3 sm:flex">
+              <div className="mt-5 grid grid-cols-2 gap-2 border-t border-slate-100 pt-4 sm:flex">
                 {isVendor && b.status === 'pending' && (
                   <button
                     onClick={() => openQuoteComposer(b)}
                     disabled={actionLoading !== null}
-                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-600 disabled:opacity-50"
                   >
                     {pendingQuote ? 'Update quote' : latestQuote?.status === 'rejected' ? 'Send revised quote' : 'Send quote'}
                   </button>
@@ -730,7 +756,7 @@ export default function BookingsPage() {
                     type="button"
                     onClick={() => handleMessageClient(b.clientUID)}
                     disabled={actionLoading !== null}
-                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
                   >
                     {actionLoading === `message:${b.clientUID}` ? 'Opening...' : 'Message client'}
                   </button>
@@ -739,7 +765,7 @@ export default function BookingsPage() {
                   <button
                     onClick={() => handleAction(b.id, 'complete')}
                     disabled={actionLoading !== null}
-                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-600 disabled:opacity-50"
                   >
                     {actionLoading === `${b.id}:complete` ? 'Completing...' : 'Mark Complete'}
                   </button>
@@ -749,7 +775,7 @@ export default function BookingsPage() {
                     type="button"
                     onClick={() => openPayment(b)}
                     disabled={actionLoading !== null}
-                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-600 disabled:opacity-50"
                   >
                     {b.payment?.status === 'active' ? 'View account' : 'Pay now'}
                   </button>
@@ -760,7 +786,7 @@ export default function BookingsPage() {
                       type="button"
                       onClick={() => handleQuoteDecision(b, pendingQuote, 'accept')}
                       disabled={actionLoading !== null}
-                      className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+                      className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-600 disabled:opacity-50"
                     >
                       {actionLoading === `${b.id}:quote:accept` ? 'Accepting...' : 'Accept quote'}
                     </button>
@@ -768,7 +794,7 @@ export default function BookingsPage() {
                       type="button"
                       onClick={() => handleQuoteDecision(b, pendingQuote, 'reject')}
                       disabled={actionLoading !== null}
-                      className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                      className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
                     >
                       Request changes
                     </button>
@@ -778,7 +804,7 @@ export default function BookingsPage() {
                   <button
                     onClick={() => openCancellation(b)}
                     disabled={actionLoading !== null}
-                    className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-600 transition-colors hover:bg-amber-50 disabled:opacity-50"
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 disabled:opacity-50"
                   >
                     Cancel booking
                   </button>
@@ -789,7 +815,7 @@ export default function BookingsPage() {
               <div className="mt-4 flex gap-2 border-t border-slate-200 pt-3">
                 <button
                   onClick={() => openReview(b)}
-                  className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600"
+                  className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-600"
                 >
                   Leave a Review
                 </button>
@@ -853,45 +879,51 @@ export default function BookingsPage() {
       <Modal
         open={paymentBooking !== null}
         onClose={() => paymentSubmitting === null && setPaymentBooking(null)}
-        title="Pay for booking"
+        title="Choose how to pay"
       >
         {paymentBooking && (
           <div>
-            <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Amount due · Booking #{paymentBooking.id}</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">₦{paymentBooking.budget.toLocaleString()}</p>
+            <div className="relative mb-5 overflow-hidden rounded-3xl border border-brand-100 bg-[#efffde] p-5">
+              <div className="absolute -right-4 -top-8 h-24 w-24 rounded-full bg-[#c9f58b]" />
+              <div className="relative flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wide text-brand-700">
+                <span>Amount due</span>
+                <span>Booking #{paymentBooking.id}</span>
+              </div>
+              <p className="relative mt-2 font-display text-3xl font-bold tracking-tight text-brand-900">₦{paymentBooking.budget.toLocaleString()}</p>
             </div>
 
             {paymentDetails ? (
               <div>
-                <div className="rounded-xl border border-brand-200 bg-brand-50 p-4">
+                <div className="relative overflow-hidden rounded-3xl border border-brand-700 bg-brand-800 p-5 text-white shadow-[0_18px_40px_rgba(4,31,30,0.18)]">
+                  <div className="absolute -bottom-12 -right-8 h-36 w-36 rounded-full bg-brand-400/15" />
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Bank transfer</p>
-                      <p className="mt-2 text-sm font-medium text-slate-800">{paymentDetails.bankName}</p>
+                      <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#d8ffad]"><BankIcon /> Transfer details</p>
+                      <p className="mt-2 text-sm font-medium text-white/75">{paymentDetails.bankName}</p>
                     </div>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${paymentSecondsRemaining > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                      {paymentSecondsRemaining > 0 ? 'Waiting' : 'Expired'}
+                      {paymentSecondsRemaining > 0 ? 'Waiting for payment' : 'Expired'}
                     </span>
                   </div>
-                  <p className="mt-4 font-mono text-3xl font-semibold tracking-wider text-slate-950">{paymentDetails.accountNumber}</p>
-                  <p className="mt-1 text-sm text-slate-600">{paymentDetails.accountName}</p>
-                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-brand-100 pt-3 text-xs">
+                  <p className="relative mt-5 font-mono text-3xl font-bold tracking-wider text-white">{paymentDetails.accountNumber}</p>
+                  <p className="relative mt-1 text-sm text-white/65">{paymentDetails.accountName}</p>
+                  <div className="relative mt-5 grid grid-cols-2 gap-3 border-t border-white/10 pt-4 text-xs">
                     <div>
-                      <p className="text-slate-500">Exact amount</p>
-                      <p className="mt-0.5 font-semibold text-slate-900">₦{paymentDetails.amount.toLocaleString()}</p>
+                      <p className="text-white/50">Exact amount</p>
+                      <p className="mt-0.5 font-semibold text-white">₦{paymentDetails.amount.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Time remaining</p>
-                      <p className={`mt-0.5 font-semibold ${paymentSecondsRemaining > 0 ? 'text-slate-900' : 'text-red-600'}`}>
+                      <p className="text-white/50">Time remaining</p>
+                      <p className={`mt-0.5 font-semibold ${paymentSecondsRemaining > 0 ? 'text-white' : 'text-red-300'}`}>
                         {paymentSecondsRemaining > 0 ? paymentCountdown : 'Expired'}
                       </p>
                     </div>
                   </div>
                 </div>
-                <p className="mt-3 text-xs leading-relaxed text-amber-700">
-                  Send the exact amount to this account.
-                </p>
+                <div className="mt-3 text-xs leading-relaxed text-slate-600">
+                  <p>Send the exact amount to the account above.</p>
+                  <p className="mt-1">We\u2019ll confirm your booking once payment is received.</p>
+                </div>
                 <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {paymentSecondsRemaining === 0 ? (
                     <button
@@ -931,21 +963,29 @@ export default function BookingsPage() {
                   type="button"
                   onClick={() => handlePayment('wallet')}
                   disabled={paymentSubmitting !== null}
-                  className="w-full rounded-xl border border-slate-200 p-4 text-left transition-colors hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50"
+                  className="friendly-choice group disabled:opacity-50"
                 >
-                  <span className="block text-sm font-semibold text-slate-900">Wallet balance</span>
-                  <span className="mt-1 block text-xs text-slate-500">Pay instantly from your available balance.</span>
-                  {paymentSubmitting === 'wallet' && <span className="mt-2 block text-xs font-semibold text-brand-600">Paying...</span>}
+                  <span className="friendly-icon bg-[#efffde] text-brand-700"><WalletChoiceIcon /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold text-slate-950">Anywork365 balance</span>
+                    <span className="mt-0.5 block text-xs text-slate-500">Pay instantly from your available balance.</span>
+                    {paymentSubmitting === 'wallet' && <span className="mt-1 block text-xs font-semibold text-brand-600">Paying...</span>}
+                  </span>
+                  <ArrowIcon />
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePayment('bank_transfer')}
                   disabled={paymentSubmitting !== null}
-                  className="w-full rounded-xl border border-slate-200 p-4 text-left transition-colors hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50"
+                  className="friendly-choice group disabled:opacity-50"
                 >
-                  <span className="block text-sm font-semibold text-slate-900">Bank transfer</span>
-                  <span className="mt-1 block text-xs text-slate-500">Get a one-time account number.</span>
-                  {paymentSubmitting === 'bank_transfer' && <span className="mt-2 block text-xs font-semibold text-brand-600">Getting account...</span>}
+                  <span className="friendly-icon bg-amber-50 text-amber-700"><BankIcon /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold text-slate-950">Bank transfer</span>
+                    <span className="mt-0.5 block text-xs text-slate-500">Pay directly from your banking app.</span>
+                    {paymentSubmitting === 'bank_transfer' && <span className="mt-1 block text-xs font-semibold text-brand-600">Getting account...</span>}
+                  </span>
+                  <ArrowIcon />
                 </button>
               </div>
             )}
@@ -990,12 +1030,13 @@ export default function BookingsPage() {
         )}
       </Modal>
 
-      <Modal open={quoteBooking !== null} onClose={() => !quoteSubmitting && setQuoteBooking(null)} title="Send a quote">
+      <Modal open={quoteBooking !== null} onClose={() => !quoteSubmitting && setQuoteBooking(null)} title="Build your quote">
         {quoteBooking && (
           <form onSubmit={handleSendQuote}>
-            <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Booking request #{quoteBooking.id}</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{quoteBooking.description}</p>
+            <div className="relative mb-5 overflow-hidden rounded-3xl border border-brand-100 bg-[linear-gradient(135deg,#efffde_0%,#ffffff_75%)] p-4 sm:p-5">
+              <div className="absolute -right-5 -top-8 h-24 w-24 rounded-full bg-[#c9f58b]/35" />
+              <p className="relative flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-brand-700"><QuoteIcon /> Request #{quoteBooking.id}</p>
+              <p className="relative mt-2 text-sm font-medium leading-6 text-slate-800">{quoteBooking.description}</p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
                 <span>Client budget: <strong className="text-slate-700">₦{quoteBooking.budget.toLocaleString()}</strong></span>
                 <span>
@@ -1011,27 +1052,27 @@ export default function BookingsPage() {
             </div>
 
             {quoteBooking.quotes?.[0]?.status === 'rejected' && quoteBooking.quotes[0].rejectionNote && (
-              <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3.5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Client feedback</p>
+              <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-amber-700">What the client wants changed</p>
                 <p className="mt-1 text-sm font-medium capitalize text-amber-900">{quoteBooking.quotes[0].rejectionReason}</p>
                 <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-amber-800">{quoteBooking.quotes[0].rejectionNote}</p>
               </div>
             )}
 
             <div className="form-group">
-              <label className="label">Quote amount (₦)</label>
+              <label className="label">Your price (₦)</label>
               <input
                 type="number"
                 inputMode="numeric"
                 min={1000}
                 max={10000000}
                 required
-                className="input-field"
+                className="input-field rounded-2xl text-lg font-bold"
                 value={quoteAmount}
                 onChange={(event) => setQuoteAmount(event.target.value)}
                 placeholder="50000"
               />
-              <p className="mt-1 text-xs text-slate-500">The client will secure this amount when they accept your quote.</p>
+              <p className="mt-1 text-xs text-slate-500">The client pays only after accepting your quote.</p>
             </div>
 
             <div className="form-group">
@@ -1041,7 +1082,7 @@ export default function BookingsPage() {
                 minLength={10}
                 maxLength={2000}
                 rows={4}
-                className="input-field resize-y"
+                className="input-field resize-y rounded-2xl"
                 value={quoteScope}
                 onChange={(event) => setQuoteScope(event.target.value)}
                 placeholder="Describe the work, labour, materials, and anything that is not included."
@@ -1054,7 +1095,7 @@ export default function BookingsPage() {
                 <input
                   type="text"
                   maxLength={120}
-                  className="input-field"
+                  className="input-field rounded-2xl"
                   value={quoteDuration}
                   onChange={(event) => setQuoteDuration(event.target.value)}
                   placeholder="e.g. 2–3 days"
@@ -1064,7 +1105,7 @@ export default function BookingsPage() {
                 <label className="label">Proposed start date</label>
                 <input
                   type="date"
-                  className="input-field"
+                  className="input-field rounded-2xl"
                   min={new Date().toISOString().split('T')[0]}
                   value={quoteStartDate}
                   onChange={(event) => setQuoteStartDate(event.target.value)}
@@ -1077,14 +1118,14 @@ export default function BookingsPage() {
                 type="button"
                 onClick={() => setQuoteBooking(null)}
                 disabled={quoteSubmitting}
-                className="btn-ghost px-5 py-2.5 text-sm"
+                className="btn-ghost rounded-full px-5 py-2.5 text-sm"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={quoteSubmitting || !quoteAmount || quoteScope.trim().length < 10}
-                className="btn-primary px-5 py-2.5 text-sm"
+                className="btn-primary rounded-full px-5 py-2.5 text-sm"
               >
                 {quoteSubmitting ? 'Sending...' : 'Send quote'}
               </button>
@@ -1150,6 +1191,67 @@ export default function BookingsPage() {
       </Modal>
       </PullToRefresh>
     </>
+  )
+}
+
+function SparkIcon() {
+  return (
+    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m12 3 1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4L12 3Z" />
+      <path strokeLinecap="round" d="M19 15v4M21 17h-4" />
+    </svg>
+  )
+}
+
+function BookingsHeroIcon() {
+  return (
+    <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 3v3m10-3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="m9 14 2 2 4-4" />
+    </svg>
+  )
+}
+
+function QuoteIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" />
+      <path strokeLinecap="round" d="M9 8h6M9 12h4" />
+    </svg>
+  )
+}
+
+function PaymentIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Z" />
+      <path strokeLinecap="round" d="M4 9h16m-4 5h1" />
+    </svg>
+  )
+}
+
+function BankIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m3 9 9-5 9 5M5 10h14M6 10v7m4-7v7m4-7v7m4-7v7M4 17h16M3 20h18" />
+    </svg>
+  )
+}
+
+function WalletChoiceIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11h5v4h-5a2 2 0 1 1 0-4Z" />
+    </svg>
+  )
+}
+
+function ArrowIcon() {
+  return (
+    <svg className="h-5 w-5 flex-shrink-0 text-slate-300 transition-colors group-hover:text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
+    </svg>
   )
 }
 

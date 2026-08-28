@@ -81,7 +81,7 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
 
       setBookOpen(false)
       setBooked(true)
-      toast.success('Request sent. The artisan can now review it and send a quote.')
+      toast.success('Request sent — watch for the artisan’s quote.')
     } catch {
       toast.error('Network error. Please try again.')
     } finally {
@@ -382,54 +382,75 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
         </aside>
       </div>
 
-      <Modal open={bookOpen} onClose={() => setBookOpen(false)} title={`Book ${displayName}`}>
+      <Modal open={bookOpen} onClose={() => setBookOpen(false)} title={`Tell ${displayName} what you need`}>
         <form onSubmit={handleBook} className="min-w-0">
+          <div className="mb-5 flex items-start gap-3 rounded-2xl bg-[#efffde] p-4">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-[#c9f58b] text-brand-900">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 3v3m10-3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="m9 14 2 2 4-4" />
+              </svg>
+            </span>
+            <div>
+              <p className="text-sm font-bold text-brand-900">Start with the job basics</p>
+              <p className="mt-0.5 text-xs leading-5 text-brand-700">You’ll receive a quote to review before making any payment.</p>
+            </div>
+          </div>
           <div className="form-group">
-            <label className="label">Describe your job *</label>
+            <label className="label">What needs to be done?</label>
             <textarea
               name="description"
-              className="input-field resize-y"
+              className="input-field resize-y rounded-2xl"
               rows={4}
               required
-              placeholder="What do you need done? Include location, materials, and any specific requirements..."
+              placeholder="Describe the job, materials, and anything the artisan should know."
             />
           </div>
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="form-group min-w-0">
-              <label className="label">Estimated budget (₦)</label>
-              <input name="budget" type="number" inputMode="numeric" className="input-field min-w-0 max-w-full" min={1000} placeholder="50000" required />
+              <label className="label">Your budget (₦)</label>
+              <input name="budget" type="number" inputMode="numeric" className="input-field min-w-0 max-w-full rounded-2xl" min={1000} placeholder="50,000" required />
               <p className="mt-1 text-xs leading-relaxed text-slate-500">This is a guide only. You will not be charged when you send the request.</p>
             </div>
             <div className="form-group min-w-0">
-              <label className="label">Preferred Date</label>
-              <input name="date" type="date" className="input-field min-w-0 max-w-full" min={new Date().toISOString().split('T')[0]} required />
+              <label className="label">Preferred date</label>
+              <input name="date" type="date" className="input-field min-w-0 max-w-full rounded-2xl" min={new Date().toISOString().split('T')[0]} required />
             </div>
           </div>
           <div className="form-group">
-            <label className="label">Your Location</label>
-            <input name="location" type="text" className="input-field" placeholder="e.g. Lekki Phase 1, Lagos" />
+            <label className="label">Job location</label>
+            <input name="location" type="text" className="input-field rounded-2xl" placeholder="e.g. Lekki Phase 1, Lagos" />
           </div>
           <div className="form-group">
-            <label className="label">Does the job require an inspection?</label>
-            <select name="inspectionMethod" className="input-field" defaultValue="none">
-              <option value="none">No inspection needed</option>
-              <option value="physical">Physical inspection</option>
-              <option value="virtual">Virtual inspection</option>
-            </select>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">The artisan will see your choice before preparing a quote.</p>
+            <label className="label">How should the artisan inspect the job?</label>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {[
+                { value: 'none', label: 'No inspection', hint: 'Quote from details' },
+                { value: 'physical', label: 'In person', hint: 'Visit the location' },
+                { value: 'virtual', label: 'Video call', hint: 'Inspect remotely' },
+              ].map((option) => (
+                <label key={option.value} className="cursor-pointer">
+                  <input className="peer sr-only" type="radio" name="inspectionMethod" value={option.value} defaultChecked={option.value === 'none'} />
+                  <span className="block rounded-2xl border border-slate-200 bg-white p-3 transition-all hover:border-brand-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:ring-2 peer-checked:ring-brand-500/10">
+                    <span className="block text-sm font-bold text-slate-900 peer-checked:text-brand-700">{option.label}</span>
+                    <span className="mt-0.5 block text-xs text-slate-500">{option.hint}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
           <div className="sticky bottom-0 z-10 -mx-5 mt-6 flex items-center gap-2 border-t border-slate-200 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:static sm:mx-0 sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
             <button
               type="button"
               onClick={() => setBookOpen(false)}
-              className="inline-flex h-11 flex-none items-center justify-center rounded-lg px-3.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200 sm:px-5"
+              className="inline-flex h-11 flex-none items-center justify-center rounded-full px-3.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200 sm:px-5"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={bookingLoading}
-              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(15,79,74,0.16)] transition-all hover:bg-brand-600 active:scale-[0.98] active:bg-brand-700 disabled:pointer-events-none disabled:opacity-50 sm:flex-none sm:px-6"
+              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-full bg-brand-500 px-4 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(15,79,74,0.16)] transition-all hover:-translate-y-0.5 hover:bg-brand-600 active:scale-[0.98] active:bg-brand-700 disabled:pointer-events-none disabled:opacity-50 sm:flex-none sm:px-6"
             >
               {bookingLoading ? 'Sending...' : 'Send booking request'}
             </button>
