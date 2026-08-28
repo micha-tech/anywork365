@@ -5,11 +5,13 @@
 import { NextRequest } from 'next/server'
 import { getVerifiedSession } from '@/lib/auth'
 import { getUserConversations, getUserNotifications } from '@/lib/chat'
+import { enrichChatConversations } from '@/lib/chat-enrichment'
 
 export const dynamic = 'force-dynamic'
 
 const activeConnections = new Map<string, number>()
 const MAX_CONNECTIONS_PER_USER = 3
+const MAX_STREAM_LIFETIME_MS = 4 * 60 * 1000
 
 export async function GET(req: NextRequest) {
   const session = await getVerifiedSession()
@@ -28,8 +30,32 @@ export async function GET(req: NextRequest) {
   const stream = new ReadableStream({
     start(controller) {
       let lastMessageTime = Date.now()
+      let closed = false
+      const timers: {
+        intervalId?: ReturnType<typeof setInterval>
+        lifetimeId?: ReturnType<typeof setTimeout>
+      } = {}
+
+      const releaseConnection = () => {
+        if (closed) return
+        closed = true
+        if (timers.intervalId) clearInterval(timers.intervalId)
+        if (timers.lifetimeId) clearTimeout(timers.lifetimeId)
+        const count = (activeConnections.get(session.id) ?? 1) - 1
+        if (count <= 0) activeConnections.delete(session.id)
+        else activeConnections.set(session.id, count)
+      }
+
+      const closeStream = () => {
+        if (closed) return
+        releaseConnection()
+        try {
+          controller.close()
+        } catch {}
+      }
 
       const sendEvent = (event: string, data: object) => {
+        if (closed) return
         controller.enqueue(encoder.encode(`event: ${event}\n`))
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
       }
@@ -39,7 +65,8 @@ export async function GET(req: NextRequest) {
         const latestConv = conversations.find(c => c.updatedAt)
 
         if (latestConv && new Date(latestConv.updatedAt).getTime() > lastMessageTime) {
-          sendEvent('conversation_update', { conversations })
+          const enriched = await enrichChatConversations(conversations, session.id)
+          sendEvent('conversation_update', { conversations: enriched })
           lastMessageTime = Date.now()
         }
 
@@ -50,19 +77,14 @@ export async function GET(req: NextRequest) {
 
       sendEvent('connected', { userId: session.id })
 
-      const intervalId = setInterval(() => {
+      timers.intervalId = setInterval(() => {
         checkForUpdates().catch((error) => {
           console.error('Chat SSE update error:', error)
         })
       }, 5000)
 
-      req.signal.addEventListener('abort', () => {
-        clearInterval(intervalId)
-        const c = (activeConnections.get(session.id) ?? 1) - 1
-        if (c <= 0) activeConnections.delete(session.id)
-        else activeConnections.set(session.id, c)
-        controller.close()
-      })
+      timers.lifetimeId = setTimeout(closeStream, MAX_STREAM_LIFETIME_MS)
+      req.signal.addEventListener('abort', closeStream, { once: true })
     },
   })
 

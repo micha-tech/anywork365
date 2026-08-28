@@ -1,50 +1,27 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { VerifiedBusinessBadge } from '@/components/ui'
 import { getInitials } from '@/lib/utils'
-import type { ChatConversation, ChatMessage } from '@/types'
+import {
+  getChatConversations,
+  getChatErrorMessage,
+  getChatMessages,
+  sendChatMessage,
+} from '@/lib/chat-client'
+import type { ChatMessage, EnrichedChatConversation } from '@/types'
 
-interface ParticipantInfo {
-  id: string
-  firstName: string
-  lastName: string
-  role: string
-  avatarUrl?: string
-  isVerified?: boolean
-  city?: string
-}
+const CONVERSATION_POLL_MS = 10_000
+const MESSAGE_POLL_MS = 5_000
 
-interface EnrichedConversation extends ChatConversation {
-  participantsInfo: Record<string, ParticipantInfo>
-}
-
-const chatApi = {
-  async getConversations() {
-    const res = await fetch('/api/chat/conversations')
-    return res.json()
-  },
-  async getMessages(conversationId: string) {
-    const res = await fetch(`/api/chat/messages?conversationId=${conversationId}`)
-    return res.json()
-  },
-  async send(conversationId: string, content: string) {
-    const res = await fetch('/api/chat/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId, content }),
-    })
-    return res.json()
-  },
-}
-
-function getOtherParticipant(conv: EnrichedConversation, currentUserId: string): ParticipantInfo | null {
+function getOtherParticipant(conv: EnrichedChatConversation, currentUserId: string) {
   for (const pid of conv.participants) {
     if (pid !== currentUserId) {
-      return conv.participantsInfo[pid] ?? null
+      return conv.participantsInfo?.[pid] ?? null
     }
   }
   return null
@@ -54,29 +31,57 @@ function ChatPageContent() {
   const searchParams = useSearchParams()
   const { user, loading: userLoading } = useCurrentUser()
   
-  const [conversations, setConversations] = useState<EnrichedConversation[]>([])
-  const [selectedConv, setSelectedConv] = useState<EnrichedConversation | null>(null)
+  const [conversations, setConversations] = useState<EnrichedChatConversation[]>([])
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [newMessage, setNewMessage] = useState('')
+  const [conversationIssue, setConversationIssue] = useState<string | null>(null)
+  const [messageIssue, setMessageIssue] = useState<string | null>(null)
+  const conversationsLoadingRef = useRef(false)
+  const messagesLoadingRef = useRef<string | null>(null)
+  const messagesRequestIdRef = useRef(0)
 
   const conversationId = searchParams.get('id')
+  const selectedConv = conversationId
+    ? conversations.find((conversation) => conversation.id === conversationId) ?? null
+    : null
+  const selectedConversationId = selectedConv?.id ?? null
+  const connectionIssue = messageIssue || conversationIssue
 
   const loadConversations = useCallback(async () => {
-    const res = await chatApi.getConversations()
-    if (res.success) {
-      setConversations(res.data.conversations)
+    if (conversationsLoadingRef.current) return
+    conversationsLoadingRef.current = true
+    try {
+      const nextConversations = await getChatConversations()
+      setConversations(nextConversations)
+      setConversationIssue(null)
+    } catch (error) {
+      setConversationIssue(getChatErrorMessage(error))
+    } finally {
+      conversationsLoadingRef.current = false
     }
   }, [])
 
-  const loadMessages = useCallback(async (convId: string) => {
-    setLoading(true)
-    const res = await chatApi.getMessages(convId)
-    if (res.success) {
-      setMessages(res.data.messages)
+  const loadMessages = useCallback(async (convId: string, initial = false) => {
+    if (messagesLoadingRef.current === convId) return
+    const requestId = ++messagesRequestIdRef.current
+    messagesLoadingRef.current = convId
+    if (initial) setLoading(true)
+    try {
+      const nextMessages = await getChatMessages(convId)
+      if (requestId !== messagesRequestIdRef.current) return
+      setMessages(nextMessages)
+      setMessageIssue(null)
+    } catch (error) {
+      if (requestId !== messagesRequestIdRef.current) return
+      setMessageIssue(getChatErrorMessage(error))
+    } finally {
+      if (requestId === messagesRequestIdRef.current) {
+        messagesLoadingRef.current = null
+        if (initial) setLoading(false)
+      }
     }
-    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -86,52 +91,56 @@ function ChatPageContent() {
   }, [userLoading, user, loadConversations])
 
   useEffect(() => {
-    if (conversationId) {
-      const conv = conversations.find(c => c.id === conversationId)
-      if (conv) {
-        setSelectedConv(conv)
-        loadMessages(conv.id)
-      }
+    if (!user) return
+    const poll = () => {
+      if (document.visibilityState === 'visible') void loadConversations()
     }
-  }, [conversationId, conversations, loadMessages])
+    const intervalId = window.setInterval(poll, CONVERSATION_POLL_MS)
+    document.addEventListener('visibilitychange', poll)
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', poll)
+    }
+  }, [user, loadConversations])
 
   useEffect(() => {
-    if (!user) return
-
-    const eventSource = new EventSource('/api/chat/sse')
-
-    eventSource.addEventListener('connected', () => {})
-
-    eventSource.addEventListener('conversation_update', (e) => {
-      const data = JSON.parse(e.data)
-      setConversations(data.conversations)
-    })
-
-    eventSource.addEventListener('message_update', (e) => {
-      const data = JSON.parse(e.data)
-      if (selectedConv && data.conversationId === selectedConv.id) {
-        setMessages(data.messages)
-      }
-    })
-
-    return () => {
-      eventSource.close()
+    if (!selectedConversationId) {
+      setMessages([])
+      setMessageIssue(null)
+      setLoading(false)
+      return
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, selectedConv?.id])
+
+    void loadMessages(selectedConversationId, true)
+    const poll = () => {
+      if (document.visibilityState === 'visible') void loadMessages(selectedConversationId)
+    }
+    const intervalId = window.setInterval(poll, MESSAGE_POLL_MS)
+    document.addEventListener('visibilitychange', poll)
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', poll)
+    }
+  }, [selectedConversationId, loadMessages])
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
     if (!newMessage.trim() || !selectedConv || sending) return
 
     setSending(true)
-    const res = await chatApi.send(selectedConv.id, newMessage.trim())
-    if (res.success) {
-      setMessages(res.data.messages)
+    try {
+      const nextMessages = await sendChatMessage(selectedConv.id, newMessage.trim())
+      setMessages(nextMessages)
       setNewMessage('')
-      loadConversations()
+      setMessageIssue(null)
+      void loadConversations()
+    } catch (error) {
+      const message = getChatErrorMessage(error)
+      setMessageIssue(message)
+      toast.error(message)
+    } finally {
+      setSending(false)
     }
-    setSending(false)
   }
 
   if (userLoading) {
@@ -149,6 +158,19 @@ function ChatPageContent() {
         <div className="p-4 bg-[#F0F2F5] border-b border-gray-200">
           <h1 className="font-semibold text-lg text-[#111]">Messages</h1>
         </div>
+
+        {connectionIssue && !selectedConv && (
+          <div className="m-4 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
+            <p>{connectionIssue}</p>
+            <button
+              type="button"
+              onClick={() => void loadConversations()}
+              className="mt-2 font-semibold text-brand-700 hover:text-brand-800"
+            >
+              Try again
+            </button>
+          </div>
+        )}
         
         {conversations.length === 0 ? (
           <div className="flex-1 flex items-center justify-center p-4 text-center">
@@ -256,6 +278,21 @@ function ChatPageContent() {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[#ECE5DD] overscroll-contain">
+              {connectionIssue && (
+                <div className="mx-auto flex max-w-xl items-center justify-between gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm">
+                  <span>{connectionIssue}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void loadConversations()
+                      void loadMessages(selectedConv.id)
+                    }}
+                    className="shrink-0 font-semibold text-brand-700 hover:text-brand-800"
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
               <div className="flex justify-center my-4">
                 <span className="text-xs text-gray-400 bg-[#DFDCD7] px-4 py-1 rounded-full">
                   Messages are end-to-end encrypted

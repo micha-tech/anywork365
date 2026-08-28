@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation'
 import { toast } from 'sonner'
 import { Avatar, Badge, Stars, VerifiedBusinessBadge } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
+import { getChatErrorMessage, startChatConversation } from '@/lib/chat-client'
 import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 
@@ -93,19 +94,10 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
     if (!pro) return
     setStartingChat(true)
     try {
-      const res = await fetch('/api/chat/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: pro.id }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        router.push(`/messages?id=${data.data.conversation.id}`)
-      } else {
-        toast.error(data.error || 'Failed to start chat')
-      }
-    } catch {
-      toast.error('Failed to start chat')
+      const conversation = await startChatConversation(pro.id)
+      router.push(`/messages?id=${conversation.id}`)
+    } catch (error) {
+      toast.error(getChatErrorMessage(error))
     } finally {
       setStartingChat(false)
     }

@@ -2,26 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { getInitialsFromUser } from '@/hooks/useCurrentUser'
+import {
+  getChatErrorMessage,
+  getChatMessages,
+  sendChatMessage,
+} from '@/lib/chat-client'
 import type { ChatConversation, ChatMessage, User } from '@/types'
 
-const chatApi = {
-  async getConversations() {
-    const res = await fetch('/api/chat/conversations')
-    return res.json()
-  },
-  async getMessages(conversationId: string) {
-    const res = await fetch(`/api/chat/messages?conversationId=${conversationId}`)
-    return res.json()
-  },
-  async send(conversationId: string, content: string) {
-    const res = await fetch('/api/chat/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId, content }),
-    })
-    return res.json()
-  },
-}
+const MESSAGE_POLL_MS = 5_000
 
 interface ChatListProps {
   conversations: ChatConversation[]
@@ -89,21 +77,43 @@ export function ChatWindow({ conversation, currentUserId, onSend }: ChatWindowPr
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const loadingRef = useRef<string | null>(null)
+  const requestIdRef = useRef(0)
 
-  const loadMessages = useCallback(async () => {
-    setLoading(true)
-    const res = await chatApi.getMessages(conversation.id)
-    if (res.success) {
-      setMessages(res.data.messages)
+  const loadMessages = useCallback(async (initial = false) => {
+    if (loadingRef.current === conversation.id) return
+    const requestId = ++requestIdRef.current
+    loadingRef.current = conversation.id
+    if (initial) setLoading(true)
+    try {
+      const nextMessages = await getChatMessages(conversation.id)
+      if (requestId !== requestIdRef.current) return
+      setMessages(nextMessages)
+      setErrorMessage(null)
+    } catch (error) {
+      if (requestId !== requestIdRef.current) return
+      setErrorMessage(getChatErrorMessage(error))
+    } finally {
+      if (requestId === requestIdRef.current) {
+        loadingRef.current = null
+        if (initial) setLoading(false)
+      }
     }
-    setLoading(false)
-  }, [conversation.id, currentUserId])
+  }, [conversation.id])
 
   useEffect(() => {
-    loadMessages()
-    const interval = setInterval(loadMessages, 5000)
-    return () => clearInterval(interval)
+    void loadMessages(true)
+    const poll = () => {
+      if (document.visibilityState === 'visible') void loadMessages()
+    }
+    const intervalId = window.setInterval(poll, MESSAGE_POLL_MS)
+    document.addEventListener('visibilitychange', poll)
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', poll)
+    }
   }, [loadMessages])
 
   useEffect(() => {
@@ -114,13 +124,18 @@ export function ChatWindow({ conversation, currentUserId, onSend }: ChatWindowPr
     e.preventDefault()
     if (!newMessage.trim() || sending) return
 
+    const content = newMessage.trim()
     setSending(true)
-    const res = await chatApi.send(conversation.id, newMessage.trim())
-    if (res.success) {
-      setMessages(res.data.messages)
+    try {
+      setMessages(await sendChatMessage(conversation.id, content))
       setNewMessage('')
+      setErrorMessage(null)
+      onSend(content)
+    } catch (error) {
+      setErrorMessage(getChatErrorMessage(error))
+    } finally {
+      setSending(false)
     }
-    setSending(false)
   }
 
   return (
@@ -162,6 +177,19 @@ export function ChatWindow({ conversation, currentUserId, onSend }: ChatWindowPr
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {errorMessage && (
+        <div className="mx-3 mb-2 flex items-center justify-between gap-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <span>{errorMessage}</span>
+          <button
+            type="button"
+            onClick={() => void loadMessages()}
+            className="shrink-0 font-semibold text-brand-700"
+          >
+            Try again
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSend} className="border-t border-slate-200 p-3">
         <div className="flex gap-2">

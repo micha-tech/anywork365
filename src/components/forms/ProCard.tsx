@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Avatar, Stars, VerifiedBusinessBadge } from '@/components/ui'
+import { getChatErrorMessage, startChatConversation } from '@/lib/chat-client'
 import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 
@@ -29,16 +30,10 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
     if (startingChat) return
     setStartingChat(true)
     try {
-      const res = await fetch('/api/chat/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: pro.id }),
-      })
-      const data = await res.json()
-      if (data.success) router.push(`/messages?id=${data.data.conversation.id}`)
-      else toast.error(data.error || 'Failed to start chat')
-    } catch {
-      toast.error('Failed to start chat')
+      const conversation = await startChatConversation(pro.id)
+      router.push(`/messages?id=${conversation.id}`)
+    } catch (error) {
+      toast.error(getChatErrorMessage(error))
     } finally {
       setStartingChat(false)
     }
