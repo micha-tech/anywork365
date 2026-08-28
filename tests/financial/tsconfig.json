@@ -16,6 +16,9 @@
     "../../src/lib/financial/ledger-invariants.ts",
     "../../src/lib/financial/state-machines.ts",
     "../../src/lib/financial/controlled-test-exception.ts",
-    "../../src/lib/financial/errors.ts"
+    "../../src/lib/financial/errors.ts",
+    "../../src/lib/financial/payment-integrity.ts",
+    "../../src/lib/financial/payment-rail.ts",
+    "../../src/lib/paystack.ts"
   ]
 }

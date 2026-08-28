@@ -42,7 +42,12 @@ const { majorToMinor } = await import('../src/lib/financial/money-value')
 
 const runId = randomUUID().replaceAll('-', '').slice(0, 20)
 const clientUid = `wallet-test-client-${runId}`
-const artisanUid = `wallet-test-artisan-${runId}`
+const [stagingBusinessRows] = await pool.query<import('mysql2/promise').RowDataPacket[]>(
+  'SELECT businessId, uid FROM businesses ORDER BY businessId LIMIT 1'
+)
+assert(stagingBusinessRows[0], 'Staging clone must contain a business')
+const stagingBusinessId = Number(stagingBusinessRows[0].businessId)
+const artisanUid = String(stagingBusinessRows[0].uid)
 const customerEmail = `wallet-test-${runId}@example.invalid`
 const fundingAmount = majorToMinor('100000')
 const cancelledJobAmount = majorToMinor('25000')
@@ -321,10 +326,6 @@ async function createBookingAndLock(amountMinor: bigint): Promise<number> {
   const connection = await getConnection()
   try {
     await connection.beginTransaction()
-    const [businessRows] = await connection.query<import('mysql2/promise').RowDataPacket[]>(
-      'SELECT businessId FROM businesses ORDER BY businessId LIMIT 1'
-    )
-    assert(businessRows[0], 'Staging clone must contain a business')
     const [result] = await connection.execute<import('mysql2/promise').ResultSetHeader>(
       `INSERT INTO bookings (
          businessId, clientUID, bookedDate, bookedTime, appointmentAddress,
@@ -332,18 +333,32 @@ async function createBookingAndLock(amountMinor: bigint): Promise<number> {
          amountAgreed, priceConfirmed, reasonForCancellation, dateBooked
        ) VALUES (?, ?, CURRENT_DATE, CURRENT_TIME, '', '', ?, 'Pending', '', ?, 1, '', NOW())`,
       [
-        businessRows[0].businessId,
+        stagingBusinessId,
         clientUid,
         `Wallet v4 staging verification ${runId}`,
         Number(amountMinor) / 100,
       ]
     )
+    const [quote] = await connection.execute<import('mysql2/promise').ResultSetHeader>(
+      `INSERT INTO booking_quotes (
+         booking_id, artisan_uid, amount, scope, status, responded_at
+       ) VALUES (?, ?, ?, ?, 'accepted', NOW())`,
+      [
+        result.insertId,
+        artisanUid,
+        Number(amountMinor) / 100,
+        `Wallet v4 staging quote ${runId}`,
+      ]
+    )
     await marketplace.createWalletFundedJobInTransaction(connection, {
       bookingId: result.insertId,
+      quoteId: quote.insertId,
       clientUid,
       artisanUid,
       amountMinor,
       actor: { type: 'user', id: clientUid },
+      requestId: randomUUID(),
+      sessionFingerprint: 'a'.repeat(64),
     })
     await connection.commit()
     return result.insertId

@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { createHash } from 'crypto'
 import type { AuthUser } from '@/types'
 import { auth as adminAuth } from '@/lib/firebase/admin'
 import { getUserRowByUid } from '@/lib/queries'
@@ -94,6 +95,17 @@ export async function getSession(): Promise<AuthUser | null> {
 export async function getVerifiedSession(): Promise<AuthUser | null> {
   const session = await getSession()
   return session?.emailVerified ? session : null
+}
+
+/**
+ * Correlates sensitive actions performed during the same authenticated session
+ * without persisting the Firebase session cookie itself.
+ */
+export async function getSessionFingerprint(): Promise<string | null> {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get(COOKIE_NAME)?.value
+  if (!sessionCookie) return null
+  return createHash('sha256').update(sessionCookie).digest('hex')
 }
 
 export async function clearSession(): Promise<void> {

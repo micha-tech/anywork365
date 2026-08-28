@@ -19,7 +19,7 @@ import {
   settleFunding,
 } from '@/lib/money'
 import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
-import { processProviderEvents, recordProviderEvent } from '@/lib/financial/provider-events'
+import { recordProviderEvent } from '@/lib/financial/provider-events'
 
 function extractWithdrawalId(reference: string): string | null {
   if (!reference.toLowerCase().startsWith('wd_')) return null
@@ -40,11 +40,8 @@ export async function POST(req: NextRequest) {
 
     if (isMarketplaceFinanceEnabled()) {
       await recordProviderEvent({ rawBody, signature })
-      // Process immediately for a responsive booking flow. The durable worker retries
-      // anything that cannot be completed during the webhook request.
-      await processProviderEvents(5).catch((error) => {
-        console.error('[WEBHOOK PROVIDER EVENT PROCESSING]', error)
-      })
+      // Acknowledge after durable storage. Verification and fulfilment run in the
+      // authenticated worker, keeping this public endpoint fast and replay-safe.
       return NextResponse.json({ received: true }, { status: 200 })
     }
 

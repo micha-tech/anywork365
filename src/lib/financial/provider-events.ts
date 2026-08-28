@@ -118,8 +118,13 @@ async function claimProviderEvent(): Promise<ProviderEventRow | null> {
     const [rows] = await conn.execute<ProviderEventRow[]>(
       `SELECT id, event_type, provider_reference, payload, processing_attempts
        FROM provider_events
-       WHERE processing_status IN ('verified','failed')
-         AND (next_attempt_at IS NULL OR next_attempt_at <= NOW())
+       WHERE (
+           processing_status IN ('verified','failed')
+           AND (next_attempt_at IS NULL OR next_attempt_at <= NOW())
+         ) OR (
+           processing_status = 'processing'
+           AND processing_started_at <= DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+         )
        ORDER BY received_at, id
        LIMIT 1 FOR UPDATE SKIP LOCKED`
     )
