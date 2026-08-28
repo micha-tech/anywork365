@@ -68,6 +68,73 @@ export async function runFinancialReconciliation(
           mt.transaction_type <> 'wallet_funding_confirmed'
         )
     `)
+    await check(connection, checks, 'booking_payment_relational_chain', `
+      SELECT mpi.id AS internal_reference, mpi.provider_reference, mpi.booking_id,
+             mpi.amount_kobo AS expected_amount_kobo,
+             bpa.amount_kobo AS actual_amount_kobo
+      FROM marketplace_payment_intents mpi
+      JOIN job_funds jf ON jf.id = mpi.job_fund_id
+      JOIN bookings b ON b.bookingId = mpi.booking_id
+      JOIN businesses bus ON bus.businessId = b.businessId
+      JOIN booking_quotes q ON q.id = mpi.quote_id
+      LEFT JOIN booking_payment_accounts bpa
+        ON bpa.marketplace_payment_intent_id = mpi.id
+      WHERE mpi.booking_id <> jf.booking_id
+         OR mpi.quote_id <> jf.quote_id
+         OR mpi.quote_id <> q.id
+         OR q.booking_id <> mpi.booking_id
+         OR BINARY mpi.client_uid <> BINARY jf.client_uid
+         OR BINARY mpi.client_uid <> BINARY b.clientUID
+         OR BINARY jf.artisan_uid <> BINARY q.artisan_uid
+         OR BINARY jf.artisan_uid <> BINARY bus.uid
+         OR mpi.amount_kobo <> jf.expected_amount_kobo
+         OR mpi.amount_kobo <> ROUND(q.amount * 100)
+         OR mpi.amount_kobo <> ROUND(b.amountAgreed * 100)
+         OR (
+           mpi.status IN (
+             'initialized','pending','succeeded','refunded',
+             'partially_refunded','chargeback'
+           ) AND bpa.id IS NULL
+         )
+         OR (
+           bpa.id IS NOT NULL AND (
+             bpa.booking_id <> mpi.booking_id OR
+             bpa.quote_id <> mpi.quote_id OR
+             BINARY bpa.client_uid <> BINARY mpi.client_uid OR
+             bpa.amount_kobo <> mpi.amount_kobo OR
+             BINARY bpa.currency <> BINARY mpi.currency OR
+             BINARY bpa.provider <> BINARY mpi.provider OR
+             BINARY bpa.provider_reference <> BINARY mpi.provider_reference
+           )
+         )
+    `)
+    await check(connection, checks, 'succeeded_booking_payment_completeness', `
+      SELECT mpi.id AS internal_reference, mpi.provider_reference, mpi.booking_id,
+             mpi.amount_kobo AS expected_amount_kobo,
+             mt.amount_kobo AS actual_amount_kobo
+      FROM marketplace_payment_intents mpi
+      JOIN job_funds jf ON jf.id = mpi.job_fund_id
+      LEFT JOIN money_transactions mt ON mt.id = jf.funded_transaction_id
+      LEFT JOIN booking_payment_accounts bpa
+        ON bpa.marketplace_payment_intent_id = mpi.id AND bpa.status = 'paid'
+      WHERE mpi.status = 'succeeded'
+        AND (
+          mpi.provider_transaction_id IS NULL OR
+          jf.status NOT IN ('locked','released','refund_pending','refunded','disputed') OR
+          mt.id IS NULL OR
+          mt.transaction_type <> 'job_funding_confirmed' OR
+          mt.booking_id <> mpi.booking_id OR
+          mt.amount_kobo <> mpi.amount_kobo OR
+          bpa.id IS NULL
+        )
+    `)
+    await check(connection, checks, 'multiple_active_booking_payment_accounts', `
+      SELECT booking_id, COUNT(*) AS actual_amount_kobo
+      FROM booking_payment_accounts
+      WHERE status = 'active'
+      GROUP BY booking_id
+      HAVING COUNT(*) > 1
+    `)
     await check(connection, checks, 'verified_wallet_funding_release_coverage', `
       SELECT released.client_uid AS user_uid,
              verified.verified_amount_kobo AS expected_amount_kobo,
@@ -113,6 +180,12 @@ export async function runFinancialReconciliation(
     await check(connection, checks, 'dead_letter_provider_events', `
       SELECT id, provider_reference, processing_status AS actual_status
       FROM provider_events WHERE processing_status = 'dead_letter'
+    `)
+    await check(connection, checks, 'stale_processing_provider_events', `
+      SELECT id, provider_reference, processing_status AS actual_status
+      FROM provider_events
+      WHERE processing_status = 'processing'
+        AND processing_started_at < DATE_SUB(NOW(), INTERVAL 15 MINUTE)
     `)
     await check(connection, checks, 'stale_outbox_events', `
       SELECT id, aggregate_id AS internal_reference, status AS actual_status

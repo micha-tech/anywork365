@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise'
-import { getVerifiedSession } from '@/lib/auth'
+import { getSessionFingerprint, getVerifiedSession } from '@/lib/auth'
 import { getConnection } from '@/lib/db'
 import { checkRateLimit } from '@/lib/wallet'
 import { createDbNotification } from '@/lib/queries'
@@ -16,7 +17,7 @@ import {
   isMarketplaceFinanceEnabled,
   type JobFundingInitialization,
 } from '@/lib/financial/marketplace-service'
-import { majorToMinor } from '@/lib/financial/money-value'
+import { majorToMinor, minorFromDatabase } from '@/lib/financial/money-value'
 import { FinancialError } from '@/lib/financial/errors'
 import type { ApiResponse } from '@/types'
 
@@ -179,6 +180,14 @@ export async function POST(
       { status: 403 }
     )
   }
+  const sessionFingerprint = await getSessionFingerprint()
+  if (!sessionFingerprint) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: 'Your session has expired. Please sign in again.' },
+      { status: 401 }
+    )
+  }
+  const requestId = randomUUID()
 
   const rateLimit = checkRateLimit(`booking-payment:${session.id}`, 8, 60 * 1000)
   if (!rateLimit.allowed) {
@@ -289,10 +298,13 @@ export async function POST(
         }
         await createWalletFundedJobInTransaction(conn, {
           bookingId,
+          quoteId: quote.id,
           clientUid: session.id,
           artisanUid: booking.artisanUid,
           amountMinor: majorToMinor(String(quote.amount)),
           actor: { type: 'user', id: session.id },
+          requestId,
+          sessionFingerprint,
         })
       } else if (useMoneyV2) {
         await holdBookingFunds(conn, {
@@ -325,23 +337,49 @@ export async function POST(
       }
 
       const [activeAccounts] = await conn.execute<(RowDataPacket & {
+        marketplace_payment_intent_id: number
+        quote_id: number
+        client_uid: string
         provider_reference: string
         amount_kobo: string | number
+        currency: string
         bank_name: string
         bank_slug: string
         account_name: string
         account_number: string
         expires_at: Date
       })[]>(
-        `SELECT provider_reference, amount_kobo, bank_name, bank_slug,
-                account_name, account_number, expires_at
-         FROM booking_payment_accounts
-         WHERE booking_id = ? AND status = 'active' AND expires_at > NOW()
-         ORDER BY id DESC LIMIT 1 FOR UPDATE`,
+        `SELECT bpa.marketplace_payment_intent_id, bpa.quote_id, bpa.client_uid,
+                bpa.provider_reference, bpa.amount_kobo, bpa.currency,
+                bpa.bank_name, bpa.bank_slug, bpa.account_name,
+                bpa.account_number, bpa.expires_at
+         FROM booking_payment_accounts bpa
+         JOIN marketplace_payment_intents mpi
+           ON mpi.id = bpa.marketplace_payment_intent_id
+          AND mpi.booking_id = bpa.booking_id
+          AND mpi.quote_id = bpa.quote_id
+          AND BINARY mpi.client_uid = BINARY bpa.client_uid
+          AND mpi.amount_kobo = bpa.amount_kobo
+          AND BINARY mpi.currency = BINARY bpa.currency
+         WHERE bpa.booking_id = ? AND bpa.status = 'active'
+           AND bpa.expires_at > NOW()
+         ORDER BY bpa.id DESC LIMIT 1 FOR UPDATE`,
         [bookingId]
       )
       const active = activeAccounts[0]
       if (active) {
+        if (
+          Number(active.quote_id) !== quote.id ||
+          active.client_uid !== session.id ||
+          minorFromDatabase(active.amount_kobo) !== majorToMinor(String(quote.amount)) ||
+          active.currency !== 'NGN'
+        ) {
+          throw new FinancialError(
+            'INVALID_STATE',
+            'The open transfer account does not match this booking.',
+            409
+          )
+        }
         await conn.commit()
         return NextResponse.json<ApiResponse<unknown>>({
           success: true,
@@ -370,19 +408,25 @@ export async function POST(
         [bookingId]
       )
       initialization = existingFunds[0]
-        ? await createJobPaymentRetryInTransaction(conn, {
+          ? await createJobPaymentRetryInTransaction(conn, {
             bookingId,
+            quoteId: quote.id,
             clientUid: session.id,
             customerEmail: booking.clientEmail,
             actor: { type: 'user', id: session.id },
+            requestId,
+            sessionFingerprint,
           })
-        : await createJobFundingInTransaction(conn, {
+          : await createJobFundingInTransaction(conn, {
             bookingId,
+            quoteId: quote.id,
             clientUid: session.id,
             artisanUid: booking.artisanUid,
             customerEmail: booking.clientEmail,
             amountMinor: majorToMinor(String(quote.amount)),
             actor: { type: 'user', id: session.id },
+            requestId,
+            sessionFingerprint,
           })
       await conn.commit()
     }

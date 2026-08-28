@@ -7,6 +7,7 @@ import { FinancialError } from './errors'
 import { LedgerService, type LedgerActor } from './ledger-service'
 import {
   calculateBasisPoints,
+  majorToMinor,
   minorFromDatabase,
   toSafeDatabaseInteger,
   type MinorAmount,
@@ -15,6 +16,11 @@ import { paymentRail, type PaystackGateway } from './paystack-gateway'
 import type { PaymentRail, PaymentVerificationResult } from './payment-rail'
 import { assertTransition, jobFundsTransitions, paymentIntentTransitions } from './state-machines'
 import { createPayWithTransferCharge } from '@/lib/paystack'
+import {
+  assertMarketplacePaymentLink,
+  assertMarketplaceProviderPayment,
+  type MarketplacePaymentLink,
+} from './payment-integrity'
 
 type FeeRuleRow = RowDataPacket & {
   id: number
@@ -26,6 +32,7 @@ type FeeRuleRow = RowDataPacket & {
 type JobFundRow = RowDataPacket & {
   id: number
   booking_id: number
+  quote_id: number | null
   client_uid: string
   artisan_uid: string
   expected_amount_kobo: string | number
@@ -40,21 +47,70 @@ type JobFundRow = RowDataPacket & {
 type PaymentIntentRow = RowDataPacket & {
   id: number
   internal_reference: string
+  provider: string
   provider_reference: string | null
   booking_id: number
+  quote_id: number
   job_fund_id: number
   client_uid: string
   customer_email: string
   amount_kobo: string | number
   currency: string
+  initiated_request_id: string
+  initiated_session_fingerprint: string
   status: keyof typeof paymentIntentTransitions
+}
+
+type MarketplacePaymentLinkRow = RowDataPacket & {
+  intent_id: number
+  intent_internal_reference: string
+  intent_booking_id: number
+  intent_job_fund_id: number
+  intent_quote_id: number
+  intent_client_uid: string
+  intent_customer_email: string
+  intent_amount_kobo: string | number
+  intent_currency: string
+  intent_provider: string
+  intent_provider_reference: string | null
+  intent_request_id: string
+  intent_session_fingerprint: string
+  job_fund_id: number
+  job_fund_booking_id: number
+  job_fund_quote_id: number
+  job_fund_client_uid: string
+  job_fund_artisan_uid: string
+  job_fund_amount_kobo: string | number
+  job_fund_currency: string
+  quote_id: number
+  quote_booking_id: number
+  quote_artisan_uid: string
+  quote_amount: string | number
+  quote_status: string
+  booking_id: number
+  booking_client_uid: string
+  booking_artisan_uid: string
+  booking_amount: string | number
+  booking_status: string
+  account_payment_intent_id: number | null
+  account_booking_id: number | null
+  account_quote_id: number | null
+  account_client_uid: string | null
+  account_amount_kobo: string | number | null
+  account_currency: string | null
+  account_provider: string | null
+  account_provider_reference: string | null
+  account_status: string | null
 }
 
 export type JobFundingInitialization = {
   intentId: number
   jobFundId: number
+  quoteId: number
   reference: string
   amountMinor: number
+  requestId: string
+  sessionFingerprint: string
 }
 
 export type WalletFundedJob = {
@@ -75,10 +131,19 @@ export type PayWithTransferAccount = {
   expiresAt: string
 }
 
+type JobPayWithTransferInput = JobFundingInitialization & {
+  customerEmail: string
+  clientUid: string
+  bookingId: number
+}
+
 const ledger = new LedgerService()
 
 export function isMarketplaceFinanceEnabled(): boolean {
   const enabled = process.env.MARKETPLACE_FINANCE_V3_ENABLED === 'true'
+  if (process.env.NODE_ENV === 'production' && !enabled) {
+    throw new Error('Marketplace finance must be enabled in production')
+  }
   if (enabled) getFinancialConfig()
   return enabled
 }
@@ -87,11 +152,14 @@ export async function createJobFundingInTransaction(
   conn: PoolConnection,
   input: {
     bookingId: number
+    quoteId: number
     clientUid: string
     artisanUid: string
     customerEmail: string
     amountMinor: MinorAmount
     actor: LedgerActor
+    requestId: string
+    sessionFingerprint: string
   }
 ): Promise<JobFundingInitialization> {
   if (input.amountMinor <= BigInt(0)) {
@@ -113,34 +181,47 @@ export async function createJobFundingInTransaction(
 
   const [jobResult] = await conn.execute<ResultSetHeader>(
     `INSERT INTO job_funds (
-       booking_id, client_uid, artisan_uid, currency, expected_amount_kobo,
-       locked_account_id, status, fee_rule_id, platform_fee_kobo
-     ) VALUES (?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?)`,
+       booking_id, quote_id, client_uid, artisan_uid, currency, expected_amount_kobo,
+       locked_account_id, status, fee_rule_id, platform_fee_kobo,
+       initiated_request_id, initiated_session_fingerprint
+     ) VALUES (?, ?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?, ?, ?)`,
     [
       input.bookingId,
+      input.quoteId,
       input.clientUid,
       input.artisanUid,
       input.amountMinor.toString(),
       lockedAccount.id,
       feeRule.id,
       fee.toString(),
+      input.requestId,
+      input.sessionFingerprint,
     ]
   )
 
   const reference = financialReference('job-pay')
   const [intentResult] = await conn.execute<ResultSetHeader>(
     `INSERT INTO marketplace_payment_intents (
-       internal_reference, provider, booking_id, job_fund_id, client_uid,
-       customer_email, amount_kobo, currency, status, purpose, metadata
-     ) VALUES (?, 'paystack', ?, ?, ?, ?, ?, 'NGN', 'created', 'booking_funding', ?)`,
+       internal_reference, provider, booking_id, quote_id, job_fund_id, client_uid,
+       customer_email, amount_kobo, currency, status, purpose,
+       initiated_request_id, initiated_session_fingerprint, metadata
+     ) VALUES (?, 'paystack', ?, ?, ?, ?, ?, ?, 'NGN', 'created', 'booking_funding', ?, ?, ?)`,
     [
       reference,
       input.bookingId,
+      input.quoteId,
       jobResult.insertId,
       input.clientUid,
       input.customerEmail.toLowerCase(),
       input.amountMinor.toString(),
-      JSON.stringify({ bookingId: input.bookingId, actor: input.actor }),
+      input.requestId,
+      input.sessionFingerprint,
+      JSON.stringify({
+        bookingId: input.bookingId,
+        quoteId: input.quoteId,
+        requestId: input.requestId,
+        actor: input.actor,
+      }),
     ]
   )
 
@@ -152,6 +233,7 @@ export async function createJobFundingInTransaction(
     reference,
     details: {
       bookingId: input.bookingId,
+      quoteId: input.quoteId,
       amountMinor: input.amountMinor.toString(),
       feeRuleId: feeRule.id,
     },
@@ -160,8 +242,11 @@ export async function createJobFundingInTransaction(
   return {
     intentId: intentResult.insertId,
     jobFundId: jobResult.insertId,
+    quoteId: input.quoteId,
     reference,
     amountMinor: toSafeDatabaseInteger(input.amountMinor),
+    requestId: input.requestId,
+    sessionFingerprint: input.sessionFingerprint,
   }
 }
 
@@ -169,10 +254,13 @@ export async function createWalletFundedJobInTransaction(
   conn: PoolConnection,
   input: {
     bookingId: number
+    quoteId: number
     clientUid: string
     artisanUid: string
     amountMinor: MinorAmount
     actor: LedgerActor
+    requestId: string
+    sessionFingerprint: string
   }
 ): Promise<WalletFundedJob> {
   if (input.amountMinor <= BigInt(0)) {
@@ -194,17 +282,21 @@ export async function createWalletFundedJobInTransaction(
 
   const [jobResult] = await conn.execute<ResultSetHeader>(
     `INSERT INTO job_funds (
-       booking_id, client_uid, artisan_uid, currency, expected_amount_kobo,
-       locked_account_id, status, fee_rule_id, platform_fee_kobo
-     ) VALUES (?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?)`,
+       booking_id, quote_id, client_uid, artisan_uid, currency, expected_amount_kobo,
+       locked_account_id, status, fee_rule_id, platform_fee_kobo,
+       initiated_request_id, initiated_session_fingerprint
+     ) VALUES (?, ?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?, ?, ?)`,
     [
       input.bookingId,
+      input.quoteId,
       input.clientUid,
       input.artisanUid,
       input.amountMinor.toString(),
       lockedAccount.id,
       feeRule.id,
       fee.toString(),
+      input.requestId,
+      input.sessionFingerprint,
     ]
   )
 
@@ -222,6 +314,7 @@ export async function createWalletFundedJobInTransaction(
     ],
     metadata: {
       jobFundId: jobResult.insertId,
+      quoteId: input.quoteId,
       artisanUid: input.artisanUid,
       feeMinor: fee.toString(),
       fundingSource: 'verified_client_wallet',
@@ -281,6 +374,7 @@ export async function initializeJobPayment(
   rail: PaymentRail = paymentRail
 ): Promise<{ authorizationUrl: string; reference: string }> {
   try {
+    await validateMarketplacePaymentInitialization(input)
     const provider = await rail.initializePayment({
       email: input.customerEmail,
       amountMinor: input.amountMinor,
@@ -292,10 +386,15 @@ export async function initializeJobPayment(
         bookingId: String(input.bookingId),
         clientUid: input.clientUid,
         paymentIntentId: String(input.intentId),
+        quoteId: String(input.quoteId),
+        requestId: input.requestId,
       },
     })
+    if (provider.providerReference !== input.reference) {
+      throw new FinancialError('NOT_AUTHORIZED', 'Paystack returned an unexpected payment reference', 502)
+    }
 
-    await updateInitializedPaymentIntent(input.intentId, provider.providerReference)
+    await updateInitializedPaymentIntent(input, provider.providerReference)
     return { authorizationUrl: provider.authorizationUrl, reference: input.reference }
   } catch (error) {
     await markPaymentInitializationFailed(input.intentId, safeError(error)).catch(() => undefined)
@@ -307,9 +406,12 @@ export async function createJobPaymentRetryInTransaction(
   conn: PoolConnection,
   input: {
     bookingId: number
+    quoteId: number
     clientUid: string
     customerEmail: string
     actor: LedgerActor
+    requestId: string
+    sessionFingerprint: string
   }
 ): Promise<JobFundingInitialization> {
   const [fundRows] = await conn.execute<JobFundRow[]>(
@@ -321,6 +423,9 @@ export async function createJobPaymentRetryInTransaction(
   if (jobFund.client_uid !== input.clientUid) {
     throw new FinancialError('NOT_AUTHORIZED', 'This payment belongs to another client', 403)
   }
+  if (jobFund.quote_id !== input.quoteId) {
+    throw new FinancialError('INVALID_STATE', 'The payment does not match the accepted quote.', 409)
+  }
   if (!['awaiting_funding', 'funding_pending'].includes(jobFund.status)) {
     throw new FinancialError('INVALID_STATE', `Payment cannot be restarted from ${jobFund.status}`, 409)
   }
@@ -328,35 +433,43 @@ export async function createJobPaymentRetryInTransaction(
   const reference = financialReference('job-pwt')
   const [intentResult] = await conn.execute<ResultSetHeader>(
     `INSERT INTO marketplace_payment_intents (
-       internal_reference, provider, booking_id, job_fund_id, client_uid,
-       customer_email, amount_kobo, currency, status, purpose, metadata
-     ) VALUES (?, 'paystack', ?, ?, ?, ?, ?, 'NGN', 'created', 'booking_funding', ?)`,
+       internal_reference, provider, booking_id, quote_id, job_fund_id, client_uid,
+       customer_email, amount_kobo, currency, status, purpose,
+       initiated_request_id, initiated_session_fingerprint, metadata
+     ) VALUES (?, 'paystack', ?, ?, ?, ?, ?, ?, 'NGN', 'created', 'booking_funding', ?, ?, ?)`,
     [
       reference,
       input.bookingId,
+      input.quoteId,
       jobFund.id,
       input.clientUid,
       input.customerEmail.toLowerCase(),
       String(jobFund.expected_amount_kobo),
-      JSON.stringify({ bookingId: input.bookingId, actor: input.actor, retry: true }),
+      input.requestId,
+      input.sessionFingerprint,
+      JSON.stringify({
+        bookingId: input.bookingId,
+        quoteId: input.quoteId,
+        requestId: input.requestId,
+        actor: input.actor,
+        retry: true,
+      }),
     ]
   )
 
   return {
     intentId: intentResult.insertId,
     jobFundId: jobFund.id,
+    quoteId: input.quoteId,
     reference,
     amountMinor: toSafeDatabaseInteger(minorFromDatabase(jobFund.expected_amount_kobo)),
+    requestId: input.requestId,
+    sessionFingerprint: input.sessionFingerprint,
   }
 }
 
 export async function initializeJobPayWithTransfer(
-  input: JobFundingInitialization & {
-    quoteId: number
-    customerEmail: string
-    clientUid: string
-    bookingId: number
-  }
+  input: JobPayWithTransferInput
 ): Promise<PayWithTransferAccount> {
   const expiryMinutes = Math.min(
     480,
@@ -365,6 +478,7 @@ export async function initializeJobPayWithTransfer(
   const requestedExpiry = new Date(Date.now() + expiryMinutes * 60_000).toISOString()
 
   try {
+    await validateMarketplacePaymentInitialization(input)
     const provider = await createPayWithTransferCharge({
       email: input.customerEmail,
       amountKobo: input.amountMinor,
@@ -376,11 +490,15 @@ export async function initializeJobPayWithTransfer(
         quoteId: String(input.quoteId),
         clientUid: input.clientUid,
         paymentIntentId: String(input.intentId),
+        requestId: input.requestId,
       },
     })
 
     if (provider.data.status !== 'pending_bank_transfer') {
       throw new FinancialError('PROVIDER_UNAVAILABLE', 'Paystack did not return bank transfer details', 502)
+    }
+    if (provider.data.reference !== input.reference) {
+      throw new FinancialError('NOT_AUTHORIZED', 'Paystack returned an unexpected payment reference', 502)
     }
 
     const conn = await getConnection()
@@ -395,6 +513,9 @@ export async function initializeJobPayWithTransfer(
       if (intent.status !== 'created') {
         throw new FinancialError('INVALID_STATE', `Payment cannot be initialized from ${intent.status}`, 409)
       }
+      const link = await loadMarketplacePaymentLink(conn, input.intentId)
+      assertMarketplacePaymentLink(link, { requirePaymentAccount: false })
+      assertInitializationMatches(link, input)
 
       await conn.execute(
         `INSERT INTO booking_payment_accounts (
@@ -479,6 +600,9 @@ export async function confirmExternalPayment(
       )
     }
 
+    const link = await loadMarketplacePaymentLink(conn, intent.id)
+    assertMarketplaceProviderPayment(link, verified)
+
     if (intent.status === 'succeeded') {
       await conn.commit()
       return { bookingId: intent.booking_id, credited: false }
@@ -487,7 +611,6 @@ export async function confirmExternalPayment(
       throw new FinancialError('INVALID_STATE', `Payment cannot succeed from ${intent.status}`, 409)
     }
 
-    validateIntentAgainstProvider(intent, verified)
     const [funds] = await conn.execute<JobFundRow[]>(
       'SELECT * FROM job_funds WHERE id = ? FOR UPDATE',
       [intent.job_fund_id]
@@ -515,6 +638,11 @@ export async function confirmExternalPayment(
       ],
       metadata: {
         paymentIntentId: intent.id,
+        jobFundId: intent.job_fund_id,
+        quoteId: intent.quote_id,
+        artisanUid: jobFund.artisan_uid,
+        requestId: intent.initiated_request_id,
+        sessionFingerprint: intent.initiated_session_fingerprint,
         providerTransactionId: verified.providerTransactionId,
         paymentMethod: verified.paymentMethod,
         providerFeeMinor: String(verified.providerFeeMinor),
@@ -1298,16 +1426,22 @@ async function activeFeeRule(conn: PoolConnection): Promise<FeeRuleRow> {
   return rows[0]
 }
 
-async function updateInitializedPaymentIntent(intentId: number, providerReference: string): Promise<void> {
+async function updateInitializedPaymentIntent(
+  input: JobPayWithTransferInput,
+  providerReference: string
+): Promise<void> {
   const conn = await getConnection()
   try {
     await conn.beginTransaction()
     const [rows] = await conn.execute<PaymentIntentRow[]>(
       'SELECT * FROM marketplace_payment_intents WHERE id = ? FOR UPDATE',
-      [intentId]
+      [input.intentId]
     )
     const intent = rows[0]
     if (!intent) throw new FinancialError('NOT_FOUND', 'Payment intent was not found', 404)
+    const link = await loadMarketplacePaymentLink(conn, input.intentId)
+    assertMarketplacePaymentLink(link, { requirePaymentAccount: false })
+    assertInitializationMatches(link, input)
     if (intent.status === 'initialized' && intent.provider_reference === providerReference) {
       await conn.commit()
       return
@@ -1316,8 +1450,8 @@ async function updateInitializedPaymentIntent(intentId: number, providerReferenc
     await conn.execute(
       `UPDATE marketplace_payment_intents
        SET provider_reference = ?, status = 'initialized', initialized_at = NOW(), updated_at = NOW()
-       WHERE id = ?`,
-      [providerReference, intentId]
+      WHERE id = ?`,
+      [providerReference, input.intentId]
     )
     await conn.execute(
       `UPDATE job_funds SET status = 'funding_pending', updated_at = NOW()
@@ -1358,29 +1492,186 @@ function validateProviderPayment(verified: PaymentVerificationResult): void {
   if (verified.environment !== config.PAYSTACK_ENVIRONMENT) {
     throw new FinancialError('PROVIDER_UNAVAILABLE', 'Provider environment mismatch', 502)
   }
-  if (!Number.isSafeInteger(verified.amountMinor) || verified.amountMinor <= 0) {
+  if (
+    !Number.isSafeInteger(verified.amountMinor) ||
+    !Number.isSafeInteger(verified.requestedAmountMinor) ||
+    verified.amountMinor <= 0 ||
+    verified.requestedAmountMinor <= 0
+  ) {
     throw new FinancialError('INVALID_AMOUNT', 'Provider returned an invalid amount')
+  }
+  if (
+    !Number.isSafeInteger(verified.providerFeeMinor) ||
+    verified.providerFeeMinor < 0 ||
+    verified.providerFeeMinor > verified.amountMinor
+  ) {
+    throw new FinancialError('INVALID_AMOUNT', 'Provider returned an invalid fee')
   }
 }
 
-function validateIntentAgainstProvider(
-  intent: PaymentIntentRow,
-  verified: PaymentVerificationResult
+async function validateMarketplacePaymentInitialization(
+  input: JobPayWithTransferInput
+): Promise<void> {
+  const conn = await getConnection()
+  try {
+    await conn.beginTransaction()
+    const link = await loadMarketplacePaymentLink(conn, input.intentId)
+    assertMarketplacePaymentLink(link, { requirePaymentAccount: false })
+    assertInitializationMatches(link, input)
+    await conn.commit()
+  } catch (error) {
+    await conn.rollback().catch(() => undefined)
+    throw error
+  } finally {
+    conn.release()
+  }
+}
+
+function assertInitializationMatches(
+  link: MarketplacePaymentLink,
+  input: JobPayWithTransferInput
 ): void {
-  if (minorFromDatabase(intent.amount_kobo) !== BigInt(verified.amountMinor)) {
-    throw new FinancialError('INVALID_AMOUNT', 'Provider amount does not match the booking amount')
-  }
-  if (intent.currency !== verified.currency) {
-    throw new FinancialError('CURRENCY_MISMATCH', 'Provider currency does not match the payment intent')
-  }
-  if (intent.customer_email.toLowerCase() !== verified.customerEmail.toLowerCase()) {
-    throw new FinancialError('NOT_AUTHORIZED', 'Provider customer does not match the payment intent', 403)
-  }
   if (
-    verified.metadata.bookingId !== String(intent.booking_id) ||
-    verified.metadata.clientUid !== intent.client_uid
+    link.intent.id !== input.intentId ||
+    link.intent.internalReference !== input.reference ||
+    link.intent.bookingId !== input.bookingId ||
+    link.intent.jobFundId !== input.jobFundId ||
+    link.intent.quoteId !== input.quoteId ||
+    link.intent.clientUid !== input.clientUid ||
+    link.intent.customerEmail.toLowerCase() !== input.customerEmail.toLowerCase() ||
+    link.intent.amountMinor !== BigInt(input.amountMinor) ||
+    link.intent.requestId !== input.requestId ||
+    link.intent.sessionFingerprint !== input.sessionFingerprint
   ) {
-    throw new FinancialError('NOT_AUTHORIZED', 'Provider metadata does not match the payment intent', 403)
+    throw new FinancialError(
+      'NOT_AUTHORIZED',
+      'Payment initialization does not match the authenticated booking request.',
+      403
+    )
+  }
+}
+
+async function loadMarketplacePaymentLink(
+  conn: PoolConnection,
+  intentId: number
+): Promise<MarketplacePaymentLink> {
+  const [rows] = await conn.execute<MarketplacePaymentLinkRow[]>(
+    `SELECT
+       mpi.id AS intent_id,
+       mpi.internal_reference AS intent_internal_reference,
+       mpi.booking_id AS intent_booking_id,
+       mpi.job_fund_id AS intent_job_fund_id,
+       mpi.quote_id AS intent_quote_id,
+       mpi.client_uid AS intent_client_uid,
+       mpi.customer_email AS intent_customer_email,
+       mpi.amount_kobo AS intent_amount_kobo,
+       mpi.currency AS intent_currency,
+       mpi.provider AS intent_provider,
+       mpi.provider_reference AS intent_provider_reference,
+       mpi.initiated_request_id AS intent_request_id,
+       mpi.initiated_session_fingerprint AS intent_session_fingerprint,
+       jf.id AS job_fund_id,
+       jf.booking_id AS job_fund_booking_id,
+       jf.quote_id AS job_fund_quote_id,
+       jf.client_uid AS job_fund_client_uid,
+       jf.artisan_uid AS job_fund_artisan_uid,
+       jf.expected_amount_kobo AS job_fund_amount_kobo,
+       jf.currency AS job_fund_currency,
+       q.id AS quote_id,
+       q.booking_id AS quote_booking_id,
+       q.artisan_uid AS quote_artisan_uid,
+       q.amount AS quote_amount,
+       q.status AS quote_status,
+       b.bookingId AS booking_id,
+       b.clientUID AS booking_client_uid,
+       bus.uid AS booking_artisan_uid,
+       b.amountAgreed AS booking_amount,
+       b.bookingStatus AS booking_status,
+       bpa.marketplace_payment_intent_id AS account_payment_intent_id,
+       bpa.booking_id AS account_booking_id,
+       bpa.quote_id AS account_quote_id,
+       bpa.client_uid AS account_client_uid,
+       bpa.amount_kobo AS account_amount_kobo,
+       bpa.currency AS account_currency,
+       bpa.provider AS account_provider,
+       bpa.provider_reference AS account_provider_reference,
+       bpa.status AS account_status
+     FROM marketplace_payment_intents mpi
+     JOIN job_funds jf ON jf.id = mpi.job_fund_id
+     JOIN booking_quotes q ON q.id = mpi.quote_id
+     JOIN bookings b ON b.bookingId = mpi.booking_id
+     JOIN businesses bus ON bus.businessId = b.businessId
+     LEFT JOIN booking_payment_accounts bpa
+       ON bpa.marketplace_payment_intent_id = mpi.id
+     WHERE mpi.id = ?
+     ORDER BY bpa.id DESC
+     LIMIT 1
+     FOR UPDATE`,
+    [intentId]
+  )
+  const row = rows[0]
+  if (!row) {
+    throw new FinancialError(
+      'INVALID_STATE',
+      'The payment is missing a required booking or quote relationship.',
+      409
+    )
+  }
+
+  const account = row.account_payment_intent_id === null
+    ? undefined
+    : {
+        paymentIntentId: Number(row.account_payment_intent_id),
+        bookingId: Number(row.account_booking_id),
+        quoteId: Number(row.account_quote_id),
+        clientUid: String(row.account_client_uid),
+        amountMinor: minorFromDatabase(row.account_amount_kobo ?? 0),
+        currency: String(row.account_currency),
+        provider: String(row.account_provider),
+        providerReference: String(row.account_provider_reference),
+        status: String(row.account_status),
+      }
+
+  return {
+    intent: {
+      id: Number(row.intent_id),
+      internalReference: row.intent_internal_reference,
+      bookingId: Number(row.intent_booking_id),
+      jobFundId: Number(row.intent_job_fund_id),
+      quoteId: Number(row.intent_quote_id),
+      clientUid: row.intent_client_uid,
+      customerEmail: row.intent_customer_email,
+      amountMinor: minorFromDatabase(row.intent_amount_kobo),
+      currency: row.intent_currency,
+      provider: row.intent_provider,
+      providerReference: row.intent_provider_reference,
+      requestId: row.intent_request_id,
+      sessionFingerprint: row.intent_session_fingerprint,
+    },
+    jobFund: {
+      id: Number(row.job_fund_id),
+      bookingId: Number(row.job_fund_booking_id),
+      quoteId: Number(row.job_fund_quote_id),
+      clientUid: row.job_fund_client_uid,
+      artisanUid: row.job_fund_artisan_uid,
+      amountMinor: minorFromDatabase(row.job_fund_amount_kobo),
+      currency: row.job_fund_currency,
+    },
+    quote: {
+      id: Number(row.quote_id),
+      bookingId: Number(row.quote_booking_id),
+      artisanUid: row.quote_artisan_uid,
+      amountMinor: majorToMinor(String(row.quote_amount)),
+      status: row.quote_status,
+    },
+    booking: {
+      id: Number(row.booking_id),
+      clientUid: row.booking_client_uid,
+      artisanUid: row.booking_artisan_uid,
+      amountMinor: majorToMinor(String(row.booking_amount)),
+      status: row.booking_status,
+    },
+    account,
   }
 }
 

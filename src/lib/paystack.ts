@@ -19,6 +19,7 @@ async function paystackRequest<T>(
   const paystackSecret = getPaystackSecret()
   const res = await fetch(`${PAYSTACK_BASE}${path}`, {
     ...options,
+    signal: options?.signal ?? AbortSignal.timeout(15_000),
     headers: {
       Authorization: `Bearer ${paystackSecret}`,
       'Content-Type': 'application/json',
@@ -26,7 +27,9 @@ async function paystackRequest<T>(
     },
   })
 
-  const json = await res.json()
+  const json = await res.json().catch(() => {
+    throw new Error(`Paystack returned an invalid response (${res.status})`)
+  })
 
   if (!res.ok || !json.status) {
     throw new Error(json.message ?? `Paystack error: ${res.status}`)
