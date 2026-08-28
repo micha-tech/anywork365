@@ -40,7 +40,7 @@ export default async function RecruiterApplicationsPage({
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-6 rounded-xl border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 sm:p-6">
+      <div className="mb-6 rounded-3xl border border-brand-100 bg-[#efffde] p-5 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Job applications</h1>
@@ -51,14 +51,14 @@ export default async function RecruiterApplicationsPage({
       </div>
 
       {vacancyId && (
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm">
+        <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
           <span>Filtered to job #{vacancyId}</span>
           <Link href="/dashboard/applications" className="font-semibold text-brand-600">View all</Link>
         </div>
       )}
 
       {applications.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white px-5 py-14 text-center">
+        <div className="friendly-card px-5 py-14 text-center">
           <h2 className="font-semibold text-slate-900">No applications yet</h2>
           <p className="mt-1 text-sm text-slate-500">Applications will appear here as candidates submit them.</p>
         </div>
@@ -67,7 +67,7 @@ export default async function RecruiterApplicationsPage({
           {applications.map((application) => {
             const experience = parseExperience(application.work_experience)
             return (
-              <article key={application.application_id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <article key={application.application_id} className="friendly-card p-4 sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">{application.vacancy_title}</p>
@@ -90,7 +90,7 @@ export default async function RecruiterApplicationsPage({
                   {application.applicant_email && <a href={`mailto:${application.applicant_email}`} className="btn-ghost px-4 py-2 text-xs">Email candidate</a>}
                 </div>
 
-                <details className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
                   <summary className="cursor-pointer text-sm font-semibold text-slate-800">Review full application</summary>
                   <div className="mt-4 space-y-5 text-sm">
                     <section>

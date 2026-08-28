@@ -30,21 +30,24 @@ export default async function ArtisansPage({
   const hasMore = totalCount > currentPage * PAGE_SIZE
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="page-shell">
       <div className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
-        <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <header className="relative overflow-hidden rounded-3xl bg-brand-800 p-6 text-white sm:p-9">
+          <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-[#c9f58b]/15" />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">Artisans</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">Find skilled artisans and service providers for the work you need.</p>
+            <h1 className="font-display text-3xl font-bold tracking-[-0.04em] sm:text-5xl">Find the right hands</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70 sm:text-base">Browse artisans by skill, location and experience.</p>
           </div>
-          <Link href="/nearby" className="btn-outline w-fit px-4 py-2 text-sm">Near me</Link>
+          <Link href="/nearby" className="inline-flex min-h-11 w-fit items-center rounded-full bg-[#c9f58b] px-5 py-2 text-sm font-bold text-brand-900 transition-all hover:-translate-y-0.5 hover:bg-[#d8ffad]">Find nearby</Link>
+          </div>
         </header>
 
         <div className="mt-8 sm:mt-10">
         <ProfessionalFilters category={category} state={state} lga={lga} search={search} />
         </div>
 
-        <nav aria-label="Quick artisan categories" className="-mx-4 flex gap-6 overflow-x-auto border-b border-slate-200 px-4 pb-3 sm:mx-0 sm:px-0">
+        <nav aria-label="Quick artisan categories" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
           {CATEGORIES.map((item) => (
             <a
               key={item}
@@ -54,10 +57,10 @@ export default async function ArtisansPage({
                 ...(lga ? { lga } : {}),
                 ...(search ? { search } : {}),
               }).toString()}`}
-              className={`relative flex min-h-10 flex-shrink-0 items-center text-sm font-medium transition-colors after:absolute after:inset-x-0 after:-bottom-3 after:h-0.5 ${
+              className={`flex min-h-10 flex-shrink-0 items-center rounded-full border px-4 text-sm font-semibold transition-colors ${
                 category === item || (item === 'All' && !category)
-                  ? 'text-brand-600 after:bg-brand-500'
-                  : 'text-slate-500 after:bg-transparent hover:text-brand-600'
+                  ? 'border-brand-700 bg-brand-700 text-white'
+                  : 'border-slate-200 bg-white text-slate-500 hover:border-brand-200 hover:text-brand-600'
               }`}
             >
               {item}
@@ -70,7 +73,7 @@ export default async function ArtisansPage({
             <div className="flex items-center justify-between py-6">
               <p className="text-sm font-medium text-slate-700">{totalCount.toLocaleString()} artisan{totalCount === 1 ? '' : 's'} found</p>
             </div>
-            <div className="grid grid-cols-1 gap-x-8 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {vendors.map((artisan, index) => <ProCard key={artisan.id} pro={artisan} index={index} />)}
             </div>
             {hasMore && (

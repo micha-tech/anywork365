@@ -24,7 +24,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
 
   return (
     <form
-      className="mb-6 grid min-w-0 gap-3 border-y border-slate-200 py-4 md:sticky md:top-[64px] md:z-30 md:grid-cols-2 md:bg-white/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-white/90 lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,0.8fr))_auto]"
+      className="soft-panel mb-6 grid min-w-0 gap-3 p-3 md:sticky md:top-[72px] md:z-30 md:grid-cols-2 md:bg-white/95 md:p-4 md:backdrop-blur md:supports-[backdrop-filter]:bg-white/90 lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,0.8fr))_auto]"
       method="GET"
     >
       <div className="relative">
@@ -42,7 +42,7 @@ export function ProfessionalFilters({ category, state, lga, search }: Profession
       </div>
       <button
         type="button"
-        className="flex min-h-11 items-center justify-between rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 md:hidden"
+        className="flex min-h-11 items-center justify-between rounded-2xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 md:hidden"
         onClick={() => setShowMobileFilters((value) => !value)}
         aria-expanded={showMobileFilters}
       >

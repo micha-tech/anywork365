@@ -66,7 +66,7 @@ export default function PostJobPage() {
 
   return (
     <>
-      <div className="mb-5 rounded-lg border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-7 sm:p-6">
+      <div className="mb-6 rounded-3xl border border-brand-100 bg-[#efffde] p-5 shadow-[0_10px_30px_rgba(15,79,74,0.05)] sm:mb-7 sm:p-6">
         <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Post a Job</h1>
         <p className="mt-1 text-sm text-slate-600">Create a clear brief so the right applicants know what you need.</p>
       </div>
@@ -236,7 +236,7 @@ export default function PostJobPage() {
           </div>
         </form>
       </div>
-      <aside className="rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] lg:sticky lg:top-24 lg:self-start">
+      <aside className="friendly-card p-4 lg:sticky lg:top-24 lg:self-start">
         <h2 className="font-display text-base font-semibold text-slate-900">Good posts include</h2>
         <div className="mt-4 space-y-3">
           {[

@@ -16,11 +16,11 @@ export function ProfessionalDirectoryFilters({ search, industry, state }: Profes
   const hasFilters = Boolean(search || industry || state)
 
   return (
-    <form method="GET" className="mt-8 grid gap-3 border-y border-slate-200 py-4 sm:mt-10 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+    <form method="GET" className="soft-panel mt-8 grid gap-3 p-3 sm:mt-10 sm:p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
       <input name="search" defaultValue={search} className="input-field" placeholder="Search name, job title, or specialty" aria-label="Search professionals" />
       <button
         type="button"
-        className="flex min-h-11 items-center justify-between rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 md:hidden"
+        className="flex min-h-11 items-center justify-between rounded-2xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 md:hidden"
         onClick={() => setShowMobileFilters((value) => !value)}
         aria-expanded={showMobileFilters}
       >

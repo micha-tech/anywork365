@@ -50,14 +50,14 @@ export function EmptyState({
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-10 text-center sm:px-6 sm:py-16">
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 sm:h-16 sm:w-16">
+      <div className="mb-4 flex h-14 w-14 rotate-[-4deg] items-center justify-center rounded-2xl bg-[#efffde] text-brand-600 sm:h-16 sm:w-16 [&_svg]:stroke-brand-600">
         {icon ? icons[icon] : (
           <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
             <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><circle cx="12" cy="8" r=".5" fill="#94a3b8" />
           </svg>
         )}
       </div>
-      <h3 className="text-base font-semibold text-slate-900 mb-1">{title}</h3>
+      <h3 className="mb-1 font-display text-base font-bold text-slate-900">{title}</h3>
       {description && <p className="max-w-xs text-sm text-slate-500">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>

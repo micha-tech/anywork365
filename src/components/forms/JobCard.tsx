@@ -19,11 +19,11 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
     : 'Open until filled'
 
   return (
-    <div className={`card min-w-0 p-4 transition-all duration-200 hover:border-brand-300 hover:shadow-card-md sm:p-5 ${
+    <div className={`card min-w-0 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md sm:p-5 ${
       job.timeline === 'urgent' ? 'border-l-4 border-l-red-500' : ''
     }`}>
       <div className="mb-3 flex items-start justify-between gap-2">
-        <span className={`flex-shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold border ${
+        <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold border ${
           job.jobType === 'full-time'
             ? 'bg-blue-50 text-blue-700 border-blue-100'
             : 'bg-purple-50 text-purple-700 border-purple-100'
@@ -34,7 +34,7 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
-        <span className="rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">
+        <span className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">
           {formatOption(job.workArrangement)}
         </span>
       </div>

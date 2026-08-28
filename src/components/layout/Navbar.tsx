@@ -130,22 +130,22 @@ export function Navbar() {
 
   return (
     <>
-      <header className="navbar sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+      <header className="navbar sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 h-16">
 
             <BrandLogo size="md" priority imageClassName="object-contain" />
 
-            <nav className="hidden items-center gap-1 md:flex">
+            <nav className="hidden items-center gap-1 rounded-full border border-slate-200/70 bg-slate-50/70 p-1 md:flex">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'relative px-3.5 py-5 text-sm font-medium transition-colors duration-150 after:absolute after:inset-x-3.5 after:bottom-0 after:h-0.5 after:origin-left after:bg-brand-500 after:transition-transform',
+                    'relative rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-150',
                     pathname.startsWith(link.href)
-                      ? 'font-semibold text-brand-600 after:scale-x-100'
-                      : 'text-slate-600 after:scale-x-0 hover:text-brand-600'
+                      ? 'bg-white font-semibold text-brand-700 shadow-sm'
+                      : 'text-slate-600 hover:bg-white/70 hover:text-brand-600'
                   )}
                 >
                   {link.label}
@@ -161,7 +161,7 @@ export function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setDropOpen(!dropOpen)}
-                    className="flex items-center gap-2 rounded-xl border border-transparent py-1.5 pl-1.5 pr-3 transition-colors hover:border-slate-200 hover:bg-slate-50"
+                    className="flex items-center gap-2 rounded-full border border-transparent py-1.5 pl-1.5 pr-3 transition-colors hover:border-slate-200 hover:bg-slate-50"
                   >
                     <Avatar src={user?.avatarUrl} initials={initials} size="sm" className="font-bold" />
                     <span className="text-sm font-medium text-slate-700">{user?.firstName}</span>
@@ -171,7 +171,7 @@ export function Navbar() {
                   </button>
 
                   {dropOpen && (
-                    <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-200/90 bg-white py-1.5 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
+                    <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-3xl border border-slate-200/90 bg-white py-2 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
                       <div className="border-b border-slate-100 px-4 py-3.5">
                         <p className="text-sm font-semibold text-slate-900">{user?.firstName} {user?.lastName}</p>
                         <p className="text-xs text-slate-400 capitalize mt-0.5">{user?.role}</p>
@@ -214,7 +214,7 @@ export function Navbar() {
                         <Link
                           key={item.href}
                           href={item.href}
-                          className="mx-1.5 flex items-center rounded-lg px-3 py-2.5 text-sm text-slate-600 transition-colors hover:bg-brand-50 hover:text-brand-600"
+                          className="mx-2 flex items-center rounded-xl px-3 py-2.5 text-sm text-slate-600 transition-colors hover:bg-brand-50 hover:text-brand-600"
                         >
                           {item.label}
                         </Link>
@@ -222,7 +222,7 @@ export function Navbar() {
                       {user?.canSwitchClientRecruiter && (
                         <Link
                           href="/profile#account-mode"
-                          className="mx-1.5 flex items-center rounded-lg bg-amber-50 px-3 py-2.5 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-100"
+                          className="mx-2 flex items-center rounded-xl bg-amber-50 px-3 py-2.5 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-100"
                         >
                           Switch account type
                         </Link>
@@ -230,7 +230,7 @@ export function Navbar() {
                       <div className="border-t border-slate-100 mt-1 pt-1">
                         <button
                           onClick={handleLogout}
-                          className="mx-1.5 w-[calc(100%-0.75rem)] rounded-lg px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+                          className="mx-2 w-[calc(100%-1rem)] rounded-xl px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
                         >
                           Log out
                         </button>
@@ -285,7 +285,7 @@ export function Navbar() {
       {menuOpen && (
         <div className="fixed inset-0 z-40 md:hidden" style={{ top: '64px' }}>
           <div className="absolute inset-0 bg-slate-950/30 backdrop-blur-[2px]" onClick={() => setMenuOpen(false)} />
-          <div className="relative border-b border-slate-200 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.10)]">
+          <div className="relative rounded-b-3xl border-b border-slate-200 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.10)]">
             <nav className="flex flex-col gap-1 px-4 py-4">
               {navLinks.map((link) => (
                 <Link

@@ -31,7 +31,7 @@ export default async function MyJobsPage({
 
   return (
     <>
-      <div className="mb-5 rounded-lg border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-7 sm:p-6">
+      <div className="mb-6 rounded-3xl border border-brand-100 bg-[#efffde] p-5 shadow-[0_10px_30px_rgba(15,79,74,0.05)] sm:mb-7 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Posted Jobs</h1>
@@ -42,11 +42,11 @@ export default async function MyJobsPage({
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+        <div className="friendly-card p-4">
           <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Active</p>
           <p className="mt-1 font-display text-2xl font-bold text-brand-600">{activeCount}</p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+        <div className="friendly-card p-4">
           <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Completed</p>
           <p className="mt-1 font-display text-2xl font-bold text-green-700">{completedCount}</p>
         </div>
@@ -70,7 +70,7 @@ export default async function MyJobsPage({
 
       <div className="flex flex-col gap-3 sm:gap-4">
         {filtered.length === 0 ? (
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-10 text-center shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+          <div className="friendly-card px-4 py-10 text-center">
             <p className="text-sm font-semibold text-slate-900">No {currentTab} jobs</p>
             <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
               {currentTab === 'active' ? 'Post a hiring job when you need extra hands.' : 'Closed jobs will appear here.'}

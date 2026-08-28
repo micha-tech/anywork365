@@ -8,7 +8,7 @@
     --brand-ink: #0f4f4a;
     --brand-ink-dark: #0a3835;
     --brand-accent: #f59e0b;
-    --page-bg: #f7f9fa;
+    --page-bg: #f7f8f3;
     --surface: #ffffff;
     --surface-border: #e2e8f0;
   }
@@ -23,8 +23,9 @@
     overflow-x: hidden;
     overscroll-behavior: none;
     background:
-      radial-gradient(circle at 8% 0%, rgba(15, 79, 74, 0.055), transparent 28rem),
-      linear-gradient(180deg, #ffffff 0%, var(--page-bg) 42%, #f4f6f8 100%);
+      radial-gradient(circle at 8% 0%, rgba(201, 245, 139, 0.13), transparent 30rem),
+      radial-gradient(circle at 92% 18%, rgba(114, 199, 195, 0.08), transparent 24rem),
+      linear-gradient(180deg, #ffffff 0%, var(--page-bg) 45%, #f4f6f2 100%);
     color: #0f172a;
     font-size: 15px;
     line-height: 1.6;
@@ -148,19 +149,25 @@
     @apply inline-flex items-center justify-center gap-2
            bg-brand-500 hover:bg-brand-600 active:bg-brand-700
            text-white font-semibold text-sm
-           px-5 py-3 rounded-lg min-h-[48px]
+           px-5 py-3 rounded-full min-h-[48px]
            border border-brand-500
            transition-all duration-200 btn-press
            focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20
            disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none
            select-none;
+    box-shadow: 0 8px 20px rgba(15, 79, 74, 0.14);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(15, 79, 74, 0.18);
   }
 
   .btn-primary-sm {
     @apply inline-flex items-center justify-center gap-1.5
            bg-brand-500 hover:bg-brand-600 active:bg-brand-700
            text-white font-semibold text-xs
-           px-4 py-2 rounded-lg min-h-[44px]
+           px-4 py-2 rounded-full min-h-[44px]
            border border-brand-500
            transition-all duration-200 btn-press
            focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20
@@ -173,7 +180,7 @@
            border border-brand-500 text-brand-500
            hover:bg-brand-50 active:bg-brand-100
            font-semibold text-sm
-           px-5 py-3 rounded-lg min-h-[48px] bg-white
+           px-5 py-3 rounded-full min-h-[48px] bg-white
            transition-all duration-200 btn-press
            focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/15
            disabled:opacity-50 disabled:pointer-events-none
@@ -185,7 +192,7 @@
            border border-slate-200 text-slate-600
            hover:border-slate-300 hover:text-slate-800 hover:bg-slate-50
            font-medium text-sm
-           px-4 py-2 rounded-lg min-h-[44px]
+           px-4 py-2 rounded-full min-h-[44px]
            transition-all duration-200 btn-press
            focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-400/15
            select-none;
@@ -194,7 +201,7 @@
   .input-field {
     @apply w-full px-4 py-3
            text-base text-slate-900
-           bg-white border border-slate-300 rounded-lg
+           bg-white border border-slate-300 rounded-2xl
            outline-none placeholder:text-slate-400
            hover:border-slate-300
            focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10
@@ -209,11 +216,34 @@
   }
 
   .card {
-    @apply bg-white border border-slate-200 rounded-xl p-5 sm:p-6;
+    @apply rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6;
+    box-shadow: 0 10px 30px rgba(15, 79, 74, 0.045);
   }
 
   .card-sm {
-    @apply bg-white border border-slate-200 rounded-lg p-4;
+    @apply rounded-2xl border border-slate-200/90 bg-white p-4;
+    box-shadow: 0 8px 24px rgba(15, 79, 74, 0.04);
+  }
+
+  .page-shell {
+    @apply min-h-screen bg-transparent;
+  }
+
+  .page-heading {
+    @apply font-display text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-5xl;
+  }
+
+  .page-intro {
+    @apply mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base;
+  }
+
+  .soft-panel {
+    @apply rounded-3xl border border-slate-200/80 bg-white;
+    box-shadow: 0 12px 36px rgba(15, 79, 74, 0.055);
+  }
+
+  .quiet-link {
+    @apply inline-flex items-center rounded-full px-3 py-2 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-50 hover:text-brand-700;
   }
 
   .friendly-hero {

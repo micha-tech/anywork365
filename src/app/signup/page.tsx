@@ -14,28 +14,28 @@ const accountTypes = [
     title: 'Client',
     description: 'Find artisans, book services and manage your jobs.',
     icon: ClientIcon,
-    accent: 'bg-brand-50 text-brand-600 group-hover:bg-brand-500 group-hover:text-white',
+    accent: 'bg-[#efffde] text-brand-700 group-hover:bg-brand-700 group-hover:text-white',
   },
   {
     href: '/signup/artisan',
     title: 'Artisan',
     description: 'List your services and receive requests from clients.',
     icon: ArtisanIcon,
-    accent: 'bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white',
+    accent: 'bg-[#fef3d7] text-amber-700 group-hover:bg-amber-600 group-hover:text-white',
   },
   {
     href: '/signup/professional',
     title: 'Professional',
     description: 'Create a profile and apply for job opportunities.',
     icon: ProfessionalIcon,
-    accent: 'bg-sky-50 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
+    accent: 'bg-[#e8f5f3] text-brand-600 group-hover:bg-brand-600 group-hover:text-white',
   },
   {
     href: '/signup/recruiter',
     title: 'Recruiter',
     description: 'Post jobs, review applicants and manage hiring.',
     icon: RecruiterIcon,
-    accent: 'bg-violet-50 text-violet-600 group-hover:bg-violet-500 group-hover:text-white',
+    accent: 'bg-slate-100 text-slate-700 group-hover:bg-slate-800 group-hover:text-white',
   },
 ] as const
 
@@ -67,10 +67,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
+    <div className="min-h-dvh bg-[radial-gradient(circle_at_50%_0%,rgba(201,245,139,0.2),transparent_28rem),#fbfcf8] px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
       <main className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-4xl items-center justify-center sm:min-h-[calc(100dvh-5rem)]">
-        <section className="w-full bg-white">
-          <div className="bg-white py-2 sm:py-4">
+        <section className="w-full">
+          <div className="py-2 sm:py-4">
             <div className="mb-8 flex items-center justify-center">
               <BrandWordmark priority className="w-[245px] sm:w-[285px]" />
             </div>
@@ -106,9 +106,9 @@ export default function SignupPage() {
                   <Link
                     key={href}
                     href={withAuthRedirect(href, authRedirect)}
-                    className="group flex min-h-[82px] items-center gap-4 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_15px_34px_rgba(15,79,74,0.11)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 sm:p-4"
+                    className="group flex min-h-[82px] items-center gap-4 rounded-3xl border border-slate-200 bg-white p-3.5 shadow-[0_8px_24px_rgba(15,79,74,0.04)] transition-all duration-200 hover:-translate-y-1 hover:border-brand-300 hover:shadow-[0_15px_34px_rgba(15,79,74,0.11)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 sm:p-4"
                   >
-                    <span className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl transition-colors duration-200 sm:h-14 sm:w-14 ${accent}`}>
+                    <span className={`flex h-12 w-12 flex-shrink-0 rotate-[-3deg] items-center justify-center rounded-2xl transition-all duration-200 group-hover:rotate-0 sm:h-14 sm:w-14 ${accent}`}>
                       <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
                     </span>
                     <span className="min-w-0 flex-1">

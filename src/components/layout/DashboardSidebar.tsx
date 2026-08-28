@@ -74,12 +74,12 @@ export function DashboardSidebar() {
   }
 
   return (
-    <aside className="hidden min-h-[calc(100dvh-64px)] w-64 flex-shrink-0 flex-col border-r border-slate-200/80 bg-white/90 px-3 py-6 shadow-[1px_0_3px_rgba(15,23,42,0.03)] backdrop-blur md:flex">
+    <aside className="hidden min-h-[calc(100dvh-64px)] w-64 flex-shrink-0 flex-col border-r border-slate-200/70 bg-[#fbfcf8]/95 px-3 py-6 shadow-[1px_0_3px_rgba(15,23,42,0.03)] backdrop-blur md:flex">
       <div className="mb-4 border-b border-slate-100 px-3 pb-5">
         <BrandLogo size="md" imageClassName="max-w-[185px] object-contain" />
       </div>
 
-      <div className="mb-6 flex items-center gap-3 rounded-2xl border border-brand-100/80 bg-brand-50/70 px-3 py-3.5">
+      <div className="mb-6 flex items-center gap-3 rounded-3xl border border-brand-100/80 bg-[#efffde] px-3 py-3.5">
         <Avatar
           src={loading ? undefined : user?.avatarUrl}
           initials={loading ? '...' : initials}
@@ -129,7 +129,7 @@ export function DashboardSidebar() {
                   className={cn(
                     'mb-1 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-colors',
                     active
-                      ? 'bg-brand-500 text-white font-semibold shadow-[0_5px_14px_rgba(15,79,74,0.16)]'
+                      ? 'bg-brand-700 text-white font-semibold shadow-[0_7px_18px_rgba(15,79,74,0.16)]'
                       : 'text-slate-600 hover:bg-brand-50 hover:text-brand-600'
                   )}
                 >

@@ -148,7 +148,7 @@ export default function VerifyBusinessPage() {
 
   return (
     <>
-      <div className="mb-5 rounded-lg border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-7 sm:p-6">
+      <div className="mb-6 rounded-3xl border border-brand-100 bg-[#efffde] p-5 shadow-[0_10px_30px_rgba(15,79,74,0.05)] sm:mb-7 sm:p-6">
         <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Business Verification</h1>
         <p className="mt-1 text-sm text-slate-600">Add documents clients and admins can trust.</p>
       </div>
@@ -181,7 +181,7 @@ export default function VerifyBusinessPage() {
               <h2 className="font-display text-base font-semibold text-slate-900">Submit documents</h2>
               <p className="mt-1 text-sm text-slate-500">Identity evidence and one supporting business or address document are required.</p>
             </div>
-            <span className="inline-flex w-fit rounded-lg bg-brand-50 px-3 py-2 text-sm font-bold text-brand-600">
+            <span className="inline-flex w-fit rounded-full bg-brand-50 px-3 py-2 text-sm font-bold text-brand-600">
               {uploadedDocs}/{docFields.length} uploaded
             </span>
           </div>
