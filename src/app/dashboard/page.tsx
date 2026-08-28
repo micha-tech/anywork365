@@ -63,9 +63,9 @@ const metricToneStyles: Record<Metric['tone'], { icon: string; value: string; ch
 }
 
 const vendorPriorityCards = [
-  { href: '/dashboard/bookings', label: 'Respond to requests', sub: 'Accept or decline new bookings', icon: BookingsIcon, tone: 'brand' },
-  { href: '/dashboard/verify-business', label: 'Build trust', sub: 'Submit verification documents', icon: CheckCircleIcon, tone: 'green' },
-  { href: '/dashboard/wallet', label: 'Get paid', sub: 'Check earnings and withdrawals', icon: WalletIcon, tone: 'amber' },
+  { href: '/dashboard/bookings', label: 'New jobs waiting', sub: 'Review requests and send quotes', icon: BookingsIcon, tone: 'brand' },
+  { href: '/dashboard/verify-business', label: 'Stand out to clients', sub: 'Complete your business checks', icon: CheckCircleIcon, tone: 'green' },
+  { href: '/dashboard/wallet', label: 'Earnings & payouts', sub: 'Keep track of your money', icon: WalletIcon, tone: 'amber' },
 ]
 
 function getTimeOfDayGreeting() {
@@ -243,19 +243,20 @@ export default function DashboardPage() {
 
   return (
     <PullToRefresh onRefresh={fetchDashboard}>
-      <div className={`mb-5 rounded-lg border p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:p-6 ${
-        isClientDashboard || isVendorDashboard
-          ? 'border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)]'
-          : 'border-slate-200 bg-white'
-      }`}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{greeting}</h1>
-            <p className="mt-1 text-sm text-slate-600">
+      <div className="friendly-hero mb-6 p-5 sm:p-8">
+        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            {isVendorDashboard && (
+              <span className="friendly-pill mb-3 bg-white/10 text-[#d8ffad] ring-1 ring-inset ring-white/10">
+                <SparkleIcon className="h-3.5 w-3.5" /> Artisan workspace
+              </span>
+            )}
+            <h1 className="font-display text-2xl font-bold tracking-[-0.04em] text-white sm:text-4xl">{greeting}</h1>
+            <p className="mt-2 text-sm leading-6 text-white/70 sm:text-base">
               {isClientDashboard
                 ? 'Search for an artisan or review your bookings.'
                 : isVendorDashboard
-                  ? 'Manage requests, keep your business profile sharp, and track earnings.'
+                  ? 'Your requests, availability and earnings — ready when you are.'
                   : 'Here is what is happening with your projects.'}
             </p>
           </div>
@@ -278,11 +279,11 @@ export default function DashboardPage() {
             </form>
           ) : isVendorDashboard ? (
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Link href="/dashboard/bookings" className="btn-primary px-4 py-2.5 text-sm justify-center">
-                View requests
+              <Link href="/dashboard/bookings" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#c9f58b] px-5 py-2.5 text-sm font-bold text-brand-900 shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#d8ffad]">
+                Open requests
               </Link>
-              <Link href="/dashboard/my-business" className="btn-ghost px-4 py-2.5 text-sm justify-center bg-white">
-                Update business
+              <Link href="/dashboard/my-business" className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15">
+                Edit profile
               </Link>
             </div>
           ) : null}
@@ -292,10 +293,10 @@ export default function DashboardPage() {
       {isVendorDashboard && <ArtisanLiveLocation />}
 
       {isClientDashboard && clientSummary?.activeBookings ? (
-        <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:p-5">
+        <div className="friendly-card mb-5 p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg ${
+              <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${
                 clientSummary?.activeBookings ? 'bg-amber-50 text-amber-600' : 'bg-brand-50 text-brand-500'
               }`}>
                 {clientSummary?.activeBookings ? <ClockIcon className="h-5 w-5" /> : <SearchIcon className="h-5 w-5" />}
@@ -475,19 +476,19 @@ export default function DashboardPage() {
                   {dashboardLoading
                     ? 'Checking your requests...'
                     : vendorSummary?.bookingRequests
-                      ? `${vendorSummary.bookingRequests} booking request${vendorSummary.bookingRequests === 1 ? '' : 's'} on record`
-                      : 'Make your profile easier to choose'}
+                      ? `${vendorSummary.bookingRequests} request${vendorSummary.bookingRequests === 1 ? '' : 's'} ready for you`
+                      : 'Help clients choose you'}
                 </p>
                 <p className="mt-1 text-sm text-slate-500">
                   {vendorSummary?.bookingRequests
-                    ? 'Review client requests, confirm jobs, and keep conversations moving.'
-                    : 'Add service details, portfolio work, and verification so clients trust your business.'}
+                    ? 'Review the details, send a clear quote, and keep the conversation moving.'
+                    : 'Add your best work and service details to make a strong first impression.'}
                 </p>
               </div>
             </div>
             <Link
               href={vendorSummary?.bookingRequests ? '/dashboard/bookings' : '/dashboard/my-business'}
-              className="btn-primary px-4 py-2.5 text-sm justify-center"
+              className="btn-primary justify-center rounded-full px-5 py-2.5 text-sm"
             >
               {vendorSummary?.bookingRequests ? 'Open bookings' : 'Update profile'}
             </Link>
@@ -496,7 +497,7 @@ export default function DashboardPage() {
       )}
 
       {isVendorDashboard && (
-        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {vendorPriorityCards.map((card) => {
             const Icon = card.icon
             const tone = metricToneStyles[card.tone as Metric['tone']]
@@ -504,9 +505,9 @@ export default function DashboardPage() {
               <Link
                 key={card.href}
                 href={card.href}
-                className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_20px_rgba(15,23,42,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.06)]"
+                className="friendly-card-interactive group flex items-center gap-3 p-4"
               >
-                <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${tone.icon}`}>
+                <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${tone.icon}`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -531,14 +532,15 @@ export default function DashboardPage() {
           const Icon = m.icon
           const tone = metricToneStyles[m.tone]
           return (
-          <div key={m.label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:p-5">
+          <div key={m.label} className="friendly-card relative overflow-hidden p-4 sm:p-5">
+            <div className={`absolute -right-7 -top-8 h-20 w-20 rounded-full opacity-30 ${tone.icon.split(' ')[0]}`} />
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 leading-tight">{m.label}</p>
-              <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${tone.icon}`}>
+              <div className={`relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl ${tone.icon}`}>
                 <Icon className="h-4 w-4" />
               </div>
             </div>
-            <p className={`font-display text-2xl sm:text-3xl font-bold my-1 ${tone.value}`}>{m.value}</p>
+            <p className={`font-display my-1 text-3xl font-bold tracking-tight sm:text-4xl ${tone.value}`}>{m.value}</p>
             <p className={`text-xs font-medium ${tone.change}`}>{m.change}</p>
           </div>
         )})}
@@ -564,9 +566,9 @@ export default function DashboardPage() {
               <Link
                 key={a.href}
                 href={a.href}
-                className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-left shadow-[0_8px_20px_rgba(15,23,42,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.06)]"
+                className="friendly-card-interactive group flex items-center gap-3 p-3.5 text-left"
               >
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -579,7 +581,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="friendly-card p-5 sm:p-6">
         <div className="mb-4 flex items-center gap-3">
           <h2 className="font-display text-base font-bold text-slate-900">Recent Activity</h2>
         </div>
@@ -588,7 +590,7 @@ export default function DashboardPage() {
             <p className="text-sm text-slate-500 py-4 text-center">Loading activity...</p>
           ) : activity.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#efffde] text-brand-600">
                 {isClientDashboard ? <SearchIcon className="h-6 w-6" /> : isVendorDashboard ? <BookingsIcon className="h-6 w-6" /> : <BriefcaseIcon className="h-6 w-6" />}
               </div>
               <p className="text-sm font-semibold text-slate-900">
@@ -607,7 +609,7 @@ export default function DashboardPage() {
                 </Link>
               )}
               {isVendorDashboard && (
-                <Link href="/dashboard/my-business" className="btn-primary mt-4 px-5 py-2.5 text-sm">
+                <Link href="/dashboard/my-business" className="btn-primary mt-4 rounded-full px-5 py-2.5 text-sm">
                   Improve business profile
                 </Link>
               )}
@@ -635,6 +637,15 @@ function StoreIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 10h16l-1 10H5L4 10Z" />
       <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </svg>
+  )
+}
+
+function SparkleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m12 3 1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4L12 3Z" />
+      <path d="M19 15v4M21 17h-4" />
     </svg>
   )
 }

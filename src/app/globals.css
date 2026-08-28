@@ -216,6 +216,68 @@
     @apply bg-white border border-slate-200 rounded-lg p-4;
   }
 
+  .friendly-hero {
+    @apply relative overflow-hidden rounded-3xl border border-brand-700 bg-brand-800 text-white;
+    box-shadow: 0 22px 55px rgba(4, 31, 30, 0.18);
+  }
+
+  .friendly-hero::before,
+  .friendly-hero::after {
+    content: '';
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .friendly-hero::before {
+    width: 13rem;
+    height: 13rem;
+    right: -4rem;
+    top: -6rem;
+    background: rgba(201, 245, 139, 0.14);
+  }
+
+  .friendly-hero::after {
+    width: 8rem;
+    height: 8rem;
+    right: 8rem;
+    bottom: -5rem;
+    background: rgba(114, 199, 195, 0.13);
+  }
+
+  .friendly-card {
+    @apply rounded-3xl border border-slate-200/90 bg-white;
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.055);
+  }
+
+  .friendly-card-interactive {
+    @apply rounded-3xl border border-slate-200/80 bg-white transition-all duration-200;
+    box-shadow: 0 10px 30px rgba(15, 79, 74, 0.06);
+  }
+
+  .friendly-card-interactive:hover {
+    transform: translateY(-2px);
+    border-color: rgba(59, 166, 159, 0.42);
+    box-shadow: 0 18px 42px rgba(15, 79, 74, 0.09);
+  }
+
+  .friendly-choice {
+    @apply relative flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition-all duration-200;
+  }
+
+  .friendly-choice:hover {
+    @apply border-brand-300 bg-brand-50/60;
+    transform: translateY(-1px);
+  }
+
+  .friendly-icon {
+    @apply flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600;
+  }
+
+  .friendly-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold;
+  }
+
   .badge {
     @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
   }
