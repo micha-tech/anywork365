@@ -303,17 +303,23 @@ export async function getMessages(conversationId: string): Promise<ChatMessage[]
   return rows.map(messageFromRow)
 }
 
-export async function markMessagesAsRead(conversationId: string, userId: string): Promise<void> {
+export async function markMessagesAsRead(
+  conversation: ChatConversation,
+  userId: string
+): Promise<void> {
   await ensureChatTables()
-  const conversation = await getConversation(conversationId)
-  if (!conversation) return
 
-  const unreadCount = { ...conversation.unreadCount, [userId]: 0 }
-  await execute('UPDATE chat_conversations SET unread_json = ? WHERE id = ?', [JSON.stringify(unreadCount), conversationId])
+  if ((conversation.unreadCount[userId] ?? 0) > 0) {
+    const unreadCount = { ...conversation.unreadCount, [userId]: 0 }
+    await execute(
+      'UPDATE chat_conversations SET unread_json = ? WHERE id = ?',
+      [JSON.stringify(unreadCount), conversation.id]
+    )
+  }
   await execute(
     `UPDATE chat_messages SET status = ?
-     WHERE conversation_id = ? AND sender_id <> ?`,
-    ['read', conversationId, userId]
+     WHERE conversation_id = ? AND sender_id <> ? AND status <> ?`,
+    ['read', conversation.id, userId, 'read']
   )
 }
 

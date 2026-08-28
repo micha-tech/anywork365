@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { startChatConversation } from '@/lib/chat-client'
 
 interface BookingQuote {
   id: number
@@ -484,17 +485,8 @@ export default function BookingsPage() {
 
     setActionLoading(`message:${clientUID}`)
     try {
-      const res = await fetch('/api/chat/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: clientUID }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        router.push(`/messages?id=${data.data.conversation.id}`)
-      } else {
-        router.push('/messages')
-      }
+      const conversation = await startChatConversation(clientUID)
+      router.push(`/messages?id=${conversation.id}`)
     } catch {
       router.push('/messages')
     } finally {

@@ -351,6 +351,17 @@ export async function getUserFullByUid(uid: string): Promise<User | null> {
   return row ? userRowToUser(row) : null
 }
 
+export async function getUsersFullByUids(uids: string[]): Promise<User[]> {
+  const uniqueUids = Array.from(new Set(uids.filter(Boolean)))
+  if (uniqueUids.length === 0) return []
+  const placeholders = uniqueUids.map(() => '?').join(',')
+  const rows = await query<UserRow[]>(
+    `SELECT * FROM users WHERE uid IN (${placeholders}) AND deleted = 0`,
+    uniqueUids
+  )
+  return rows.map(userRowToUser)
+}
+
 export async function createUser(data: {
   uid: string
   email: string

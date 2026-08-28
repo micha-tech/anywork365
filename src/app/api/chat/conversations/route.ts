@@ -9,80 +9,70 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getVerifiedSession } from '@/lib/auth'
 import { getOrCreateConversation, getUserConversations } from '@/lib/chat'
+import { enrichChatConversation, enrichChatConversations } from '@/lib/chat-enrichment'
 import { findUserById } from '@/lib/users'
 import { checkRateLimit } from '@/lib/wallet'
-import type { ApiResponse, ChatConversation } from '@/types'
+import type { ApiResponse } from '@/types'
 
 const startSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
 })
 
-interface ParticipantInfo {
-  id: string
-  firstName: string
-  lastName: string
-  role: string
-  avatarUrl?: string
-  isVerified?: boolean
-  city?: string
-}
-
-interface EnrichedConversation extends ChatConversation {
-  participantsInfo: Record<string, ParticipantInfo>
-}
-
-async function enrichConversation(conv: ChatConversation, currentUserId: string): Promise<EnrichedConversation> {
-  const participantsInfo: Record<string, ParticipantInfo> = {}
-  for (const pid of conv.participants) {
-    if (pid === currentUserId) continue
-    const user = await findUserById(pid)
-    participantsInfo[pid] = {
-      id: pid,
-      firstName: user?.firstName ?? 'User',
-      lastName: user?.lastName ?? '',
-      role: user?.role ?? 'artisan',
-      avatarUrl: user?.avatarUrl,
-      isVerified: user?.isVerified,
-      city: user?.city,
-    }
-  }
-  return { ...conv, participantsInfo }
-}
-
 export async function POST(req: NextRequest) {
-  const session = await getVerifiedSession()
-  if (!session) {
+  try {
+    const session = await getVerifiedSession()
+    if (!session) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const rateLimit = checkRateLimit(`chat:${session.id}`, 10, 60 * 1000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: `Too many requests. Please try again in ${rateLimit.retryAfter} seconds.` },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfter) } }
+      )
+    }
+
+    const body = await req.json().catch(() => null)
+    const parsed = startSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: parsed.error.errors[0].message },
+        { status: 400 }
+      )
+    }
+
+    const { userId } = parsed.data
+    if (userId === session.id) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'You cannot start a conversation with yourself' },
+        { status: 400 }
+      )
+    }
+    const targetUser = await findUserById(userId)
+    if (!targetUser) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: 'This user is no longer available' },
+        { status: 404 }
+      )
+    }
+    const conversation = await getOrCreateConversation(session.id, userId)
+    const enriched = await enrichChatConversation(conversation, session.id)
+
+    return NextResponse.json({
+      success: true,
+      data: { conversation: enriched },
+    })
+  } catch (error) {
+    console.error('Chat conversations POST error:', error)
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: 'Authentication required' },
-      { status: 401 }
+      { success: false, error: 'Chat is temporarily unavailable' },
+      { status: 500 }
     )
   }
-
-  const rateLimit = checkRateLimit(`chat:${session.id}`, 10, 60 * 1000)
-  if (!rateLimit.allowed) {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: `Too many requests. Please try again in ${rateLimit.retryAfter} seconds.` },
-      { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfter) } }
-    )
-  }
-
-  const body = await req.json()
-  const parsed = startSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: parsed.error.errors[0].message },
-      { status: 400 }
-    )
-  }
-
-  const { userId } = parsed.data
-  const conversation = await getOrCreateConversation(session.id, userId)
-  const enriched = await enrichConversation(conversation, session.id)
-
-  return NextResponse.json({
-    success: true,
-    data: { conversation: enriched },
-  })
 }
 
 export async function GET(_req: NextRequest) {
@@ -96,7 +86,7 @@ export async function GET(_req: NextRequest) {
     }
 
     const conversations = await getUserConversations(session.id)
-    const enriched = await Promise.all(conversations.map(c => enrichConversation(c, session.id)))
+    const enriched = await enrichChatConversations(conversations, session.id)
     
     return NextResponse.json({
       success: true,

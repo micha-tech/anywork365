@@ -30,7 +30,8 @@
     "finance:v5:migrate": "node scripts/migrate-payment-integrity-v5.mjs --apply",
     "moderation:migrate:dry": "node scripts/migrate-moderation-console.mjs",
     "moderation:migrate": "node scripts/migrate-moderation-console.mjs --apply",
-    "test:financial": "tsc -p tests/financial/tsconfig.json && node --test \".test-build/tests/financial/*.test.js\""
+    "test:financial": "tsc -p tests/financial/tsconfig.json && node --test \".test-build/tests/financial/*.test.js\"",
+    "test:chat": "tsx --test tests/chat/*.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
