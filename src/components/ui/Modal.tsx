@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 
 interface ModalProps {
@@ -42,7 +43,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
 
   if (!visible) return null
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
       className={cn(
@@ -84,6 +85,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
         {/* Content */}
         <div className="min-w-0 px-5 py-5 pb-8 sm:px-6 sm:pb-6">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

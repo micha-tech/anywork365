@@ -177,7 +177,7 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
         ← Back to artisans
       </Link>
 
-      <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur pb-safe">
+      <div className="mobile-nav-offset fixed left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-3 pb-safe shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
         <div className="flex items-center gap-2 max-w-lg mx-auto">
           <button
             onClick={handleStartChat}

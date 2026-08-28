@@ -64,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <OnboardingGuard>
           <Navbar />
           <OfflineBanner />
-          <main className="page-enter pb-20 md:pb-0">{children}</main>
+          <main className="page-enter mobile-content-clearance">{children}</main>
           <MobileBottomNav />
         </OnboardingGuard>
         <Toaster

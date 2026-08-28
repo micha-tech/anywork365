@@ -91,7 +91,7 @@
 /* ─── Page transitions ───────────────────────────────── */
 @layer utilities {
   .page-enter {
-    animation: pageIn 0.2s ease-out forwards;
+    animation: pageIn 0.2s ease-out;
   }
   @keyframes pageIn {
     from { opacity: 0; }
@@ -393,6 +393,21 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+  }
+}
+
+/* Fixed mobile navigation clearance */
+@layer utilities {
+  .mobile-content-clearance {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-nav-offset {
+    bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .mobile-content-clearance { padding-bottom: 0; }
   }
 }
 
