@@ -130,7 +130,7 @@ export default function MyBusinessPage() {
 
   return (
     <>
-      <div className="mb-5 rounded-lg border border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f2fbf8_100%)] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-7 sm:p-6">
+      <div className="mb-6 rounded-3xl border border-brand-100 bg-[#efffde] p-5 shadow-[0_10px_30px_rgba(15,79,74,0.05)] sm:mb-7 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Business Profile</h1>
@@ -153,7 +153,7 @@ export default function MyBusinessPage() {
         </div>
       )}
 
-      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+      <div className="friendly-card mb-5 p-4">
         <div className="mb-2 flex items-center justify-between gap-3">
           <p className="text-sm font-semibold text-slate-900">Profile strength</p>
           <span className="text-sm font-bold text-brand-600">{completion}%</span>

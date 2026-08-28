@@ -45,7 +45,7 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
   }
 
   return (
-    <article className="group flex min-w-0 gap-4 border-t border-slate-200 py-6 sm:gap-5">
+    <article className="friendly-card-interactive group flex min-w-0 gap-4 p-4 sm:gap-5 sm:p-5">
       <Link href={`/artisans/${pro.id}`} className="relative h-fit flex-shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20">
         <Avatar src={pro.avatarUrl} initials={initials} size="xl" colorIndex={index} className="h-16 w-16 text-xl sm:h-[72px] sm:w-[72px]" />
         {pro.isVerified && <VerifiedBusinessBadge label={false} size="sm" className="absolute bottom-0 right-0 border-2 border-white" />}
@@ -81,13 +81,13 @@ export function ProCard({ pro, index = 0 }: ProCardProps) {
           )}
         </div>
 
-        <div className="mt-4 flex items-center gap-4">
-          <Link href={`/artisans/${pro.id}`} className="text-sm font-semibold text-brand-600 hover:text-brand-700">View profile</Link>
+        <div className="mt-4 flex items-center gap-2">
+          <Link href={`/artisans/${pro.id}`} className="quiet-link -ml-3">View profile</Link>
           <button
             type="button"
             onClick={handleStartChat}
             disabled={startingChat}
-            className="min-h-10 text-sm font-semibold text-slate-600 transition-colors hover:text-brand-600 disabled:opacity-50"
+            className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-brand-600 disabled:opacity-50"
           >
             {startingChat ? 'Opening chat…' : 'Message'}
           </button>

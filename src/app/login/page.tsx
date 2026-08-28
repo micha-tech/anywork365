@@ -118,14 +118,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[linear-gradient(135deg,#ffffff_0%,#FAFBFC_52%,#EEF1F5_100%)] flex flex-col items-center justify-start px-4 py-6 sm:justify-center sm:py-10">
+    <div className="flex min-h-dvh flex-col items-center justify-start bg-[radial-gradient(circle_at_50%_0%,rgba(201,245,139,0.24),transparent_26rem),linear-gradient(180deg,#ffffff_0%,#f7f8f3_100%)] px-4 py-6 sm:justify-center sm:py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex justify-center sm:mb-8">
           <BrandWordmark priority className="w-[245px] sm:w-[285px]" />
         </div>
 
         <div className="card p-5 sm:p-8">
-          <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Welcome back</h1>
+          <h1 className="mb-1 text-center font-display text-2xl font-bold tracking-tight sm:text-3xl">Welcome back</h1>
           <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to find artisans, view jobs and manage your bookings.</p>
 
           <GoogleAuthButton onClick={handleGoogleSignIn} loading={googleSubmitting} />

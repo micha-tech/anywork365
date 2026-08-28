@@ -25,7 +25,7 @@ export function ProfessionalCard({ professional, index = 0 }: ProfessionalCardPr
   const experience = Number(professional.years_experience || 0)
 
   return (
-    <article className="group flex min-w-0 gap-4 border-t border-slate-200 py-6 sm:gap-5">
+    <article className="friendly-card-interactive group flex min-w-0 gap-4 p-4 sm:gap-5 sm:p-5">
       <Link href={profileHref} className="h-fit flex-shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20">
         <Avatar src={getAvatarUrl(professional.profile_image)} initials={initials} size="xl" colorIndex={index} className="h-16 w-16 text-xl sm:h-[72px] sm:w-[72px]" />
       </Link>
@@ -54,7 +54,7 @@ export function ProfessionalCard({ professional, index = 0 }: ProfessionalCardPr
         </div>
 
         <div className="mt-4 flex items-center gap-4">
-          <Link href={profileHref} className="text-sm font-semibold text-brand-600 hover:text-brand-700">View profile</Link>
+          <Link href={profileHref} className="quiet-link -ml-3">View profile</Link>
           {safePortfolioUrl && (
             <a href={safePortfolioUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-slate-600 hover:text-brand-600">Portfolio ↗</a>
           )}

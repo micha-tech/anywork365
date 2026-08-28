@@ -33,18 +33,19 @@ export default async function JobsPage({ searchParams }: Props) {
   const loadMoreHref = `/jobs?${new URLSearchParams({ ...(search ? { search } : {}), ...(category ? { category } : {}), ...(city ? { state: city } : {}), page: String(currentPage + 1) }).toString()}`
 
   return (
-    <div className="bg-surface-base">
-      <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#FAFBFC_100%)] px-4 py-5 sm:px-6 sm:py-10">
+    <div className="page-shell">
+      <div className="px-4 py-5 sm:px-6 sm:py-10">
         <div className="max-w-5xl mx-auto">
-          <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">Browse Jobs</h1>
-            <p className="mt-2 text-sm text-slate-600">Open opportunities across Nigeria</p>
+          <div className="relative overflow-hidden rounded-3xl bg-[#fef3d7] p-6 sm:p-8">
+            <div className="absolute -right-10 -top-14 h-44 w-44 rounded-full bg-amber-300/25" />
+            <h1 className="relative font-display text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-5xl">Your next move starts here</h1>
+            <p className="relative mt-2 text-sm text-slate-600 sm:text-base">Explore open roles across Nigeria.</p>
           </div>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-3 py-4 sm:px-6 sm:py-8">
-        <form className="mb-5 grid min-w-0 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:mb-6 sm:gap-3 sm:p-4" method="GET">
+        <form className="soft-panel mb-5 grid min-w-0 gap-2 p-3 sm:mb-6 sm:gap-3 sm:p-4" method="GET">
           <input
             name="search"
             defaultValue={search}

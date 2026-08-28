@@ -20,11 +20,12 @@ export default async function ProfessionalsPage({
   const hasMore = allProfessionals.length > professionals.length
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="page-shell">
       <div className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
-        <header>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">Professionals</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">Discover professionals across industries, roles and specialist services.</p>
+        <header className="relative overflow-hidden rounded-3xl bg-[#efffde] p-6 sm:p-9">
+          <div className="absolute -right-10 -top-12 h-44 w-44 rounded-full bg-[#c9f58b]/55" />
+          <h1 className="relative page-heading text-brand-900">Meet your next great hire</h1>
+          <p className="relative page-intro text-brand-800/70">Explore professionals across industries, roles and specialist services.</p>
         </header>
 
         <ProfessionalDirectoryFilters search={search} industry={industry} state={state} />
@@ -36,7 +37,7 @@ export default async function ProfessionalsPage({
             <div className="flex items-center justify-between py-6">
               <p className="text-sm font-medium text-slate-700">{allProfessionals.length.toLocaleString()} professional{allProfessionals.length === 1 ? '' : 's'} found</p>
             </div>
-            <div className="grid grid-cols-1 gap-x-8 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {professionals.map((professional, index) => (
                 <ProfessionalCard key={professional.uid} professional={professional} index={index} />
               ))}

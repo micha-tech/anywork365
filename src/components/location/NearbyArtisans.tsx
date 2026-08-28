@@ -84,7 +84,7 @@ export function NearbyArtisans() {
 
   return (
     <div>
-      <div className="border-y border-slate-200 py-4">
+      <div className="soft-panel p-4 sm:p-5">
         <label htmlFor="nearby-category" className="label">What kind of artisan do you need?</label>
         <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
           <select id="nearby-category" value={category} onChange={(event) => setCategory(event.target.value)} className="input-field appearance-none">
@@ -109,12 +109,12 @@ export function NearbyArtisans() {
           {artisans.length ? (
             <>
               <p className="mb-4 text-sm font-medium text-slate-600">{artisans.length} artisan{artisans.length === 1 ? '' : 's'} within 50 km</p>
-              <div className="grid grid-cols-1 gap-x-8 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {artisans.map((artisan) => <NearbyCard key={artisan.id} artisan={artisan} />)}
               </div>
             </>
           ) : (
-            <div className="border-t border-slate-200 py-12 text-center">
+            <div className="soft-panel py-12 text-center">
               <p className="font-semibold text-slate-800">No artisans near you at the moment</p>
             </div>
           )}
@@ -133,7 +133,7 @@ function NearbyCard({ artisan }: { artisan: NearbyArtisan }) {
   const rating = Number(artisan.rating || 0)
 
   return (
-    <article className="group flex min-w-0 gap-4 border-t border-slate-200 py-6 sm:gap-5">
+    <article className="friendly-card-interactive group flex min-w-0 gap-4 p-4 sm:gap-5 sm:p-5">
       <div className="relative h-fit flex-shrink-0">
         <Avatar src={artisan.avatarUrl} initials={initials} size="xl" colorIndex={artisan.id.length} className="h-16 w-16 text-xl sm:h-[72px] sm:w-[72px]" />
         {artisan.isVerified && <VerifiedBusinessBadge label={false} size="sm" className="absolute bottom-0 right-0 border-2 border-white" />}
@@ -146,7 +146,7 @@ function NearbyCard({ artisan }: { artisan: NearbyArtisan }) {
             </Link>
             <p className="mt-0.5 truncate text-sm font-medium text-brand-600">{artisan.category || 'Artisan services'}</p>
           </div>
-          <strong className="flex-shrink-0 text-sm text-brand-700">{artisan.distanceKm} km away</strong>
+          <strong className="flex-shrink-0 rounded-full bg-[#efffde] px-2.5 py-1 text-xs text-brand-700">{artisan.distanceKm} km away</strong>
         </div>
         {showOwnerName && <p className="mt-1 truncate text-xs text-slate-500">Run by {artisan.name}</p>}
         <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-600"><LocationIcon /><span className="truncate">{artisan.location}</span></p>
@@ -154,7 +154,7 @@ function NearbyCard({ artisan }: { artisan: NearbyArtisan }) {
           <span>{reviews > 0 ? `★ ${rating.toFixed(1)} · ${reviews} review${reviews === 1 ? '' : 's'}` : 'New on Anywork365'}</span>
           {artisan.yearsOfExperience !== undefined && <span>{artisan.yearsOfExperience} year{artisan.yearsOfExperience === 1 ? '' : 's'} experience</span>}
         </div>
-        <Link href={`/artisans/${artisan.id}`} className="mt-4 inline-flex min-h-10 items-center text-sm font-semibold text-brand-600 hover:text-brand-700">View profile</Link>
+        <Link href={`/artisans/${artisan.id}`} className="quiet-link -ml-3 mt-2">View profile</Link>
       </div>
     </article>
   )

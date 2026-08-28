@@ -300,9 +300,9 @@ function WalletPageContent() {
 
   return (
     <PullToRefresh onRefresh={fetchWallet}>
-      <div className="mb-5 sm:mb-7">
-        <h1 className="font-display text-xl sm:text-2xl font-semibold">Wallet</h1>
-        <p className="text-sm text-slate-500 mt-1">
+      <div className="mb-6 rounded-3xl bg-[#efffde] p-5 sm:mb-7 sm:p-6">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">Your money</h1>
+        <p className="mt-1 text-sm text-brand-800/70">
           {isArtisan ? 'Manage your earnings and withdrawals' : 'Manage your payments'}
         </p>
       </div>
@@ -315,7 +315,8 @@ function WalletPageContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="bg-brand-500 text-white rounded-2xl p-4 sm:p-5">
+          <div className="relative overflow-hidden rounded-3xl bg-brand-800 p-4 text-white sm:p-5">
+            <div className="absolute -right-7 -top-8 h-24 w-24 rounded-full bg-[#c9f58b]/15" />
             <p className="text-[11px] font-medium uppercase tracking-wide text-white/70">
               {isArtisan ? 'Available Earnings' : 'Available Balance'}
             </p>
@@ -326,7 +327,7 @@ function WalletPageContent() {
               {isArtisan ? 'Ready to withdraw' : 'Ready to use'}
             </p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+          <div className="friendly-card p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
               {isArtisan ? 'Pending Earnings' : 'In Active Bookings'}
             </p>
@@ -339,7 +340,7 @@ function WalletPageContent() {
                 : 'Payments held for active work'}
             </p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+          <div className="friendly-card p-4 sm:p-5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
               {isArtisan ? 'Total Earned' : 'Total Paid'}
             </p>
@@ -367,7 +368,7 @@ function WalletPageContent() {
                 ['Secured for Bookings', wallet.escrowBalance ?? 0],
               ]
           ).map(([label, value]) => (
-            <div key={String(label)} className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+            <div key={String(label)} className="rounded-2xl border border-slate-200 bg-white px-3 py-3">
               <p className="text-[11px] uppercase tracking-wide text-slate-500">{label}</p>
               <p className="mt-1 text-sm font-semibold text-slate-900">
                 {formatCurrency(Number(value))}
