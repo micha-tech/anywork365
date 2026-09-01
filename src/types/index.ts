@@ -220,6 +220,8 @@ export interface Job {
   description: string
   category: string
   budget: number
+  budgetMin: number
+  budgetMax: number
   city: string
   status: JobStatus
   timeline: JobTimeline
@@ -240,6 +242,8 @@ export interface JobPostPayload {
   description: string
   category: string
   budget: number
+  budgetMin: number
+  budgetMax: number
   city: string
   timeline: JobTimeline
   businessName: string

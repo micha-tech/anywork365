@@ -16,9 +16,13 @@ export const jobPostSchema = z.object({
     .trim()
     .min(200, 'Detailed job description must be at least 200 characters'),
   category: z.enum(INDUSTRY_CATEGORIES, { required_error: 'Please select an industry' }),
-  budget: z
+  budgetMin: z
     .number({ invalid_type_error: 'Budget must be a number' })
     .min(1000, 'Minimum budget is ₦1,000')
+    .max(100_000_000, 'Budget seems too high'),
+  budgetMax: z
+    .number({ invalid_type_error: 'Budget must be a number' })
+    .min(1000, 'Maximum budget is ₦1,000')
     .max(100_000_000, 'Budget seems too high'),
   city: z.string().min(1, 'Please select a city'),
   timeline: z.enum(['urgent', 'this_week', 'this_month', 'flexible']),
@@ -30,6 +34,9 @@ export const jobPostSchema = z.object({
 }).refine((data) => new Date(`${data.closingDate}T23:59:59`).getTime() > Date.now(), {
   message: 'Closing date must be in the future',
   path: ['closingDate'],
+}).refine((data) => data.budgetMax >= data.budgetMin, {
+  message: 'Maximum budget must be at least the minimum budget',
+  path: ['budgetMax'],
 })
 
 export const jobApplicationSchema = z.object({
