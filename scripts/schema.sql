@@ -133,6 +133,8 @@ CREATE TABLE IF NOT EXISTS vacancies (
   vacancy_title       VARCHAR(255) NOT NULL,
   category            VARCHAR(160) NOT NULL DEFAULT '',
   budget              DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  budget_min          DECIMAL(15,2) DEFAULT NULL,
+  budget_max          DECIMAL(15,2) DEFAULT NULL,
   timeline            VARCHAR(30) NOT NULL DEFAULT 'flexible',
   vacancy_location    VARCHAR(255) NOT NULL DEFAULT '',
   job_type            VARCHAR(50) NOT NULL DEFAULT '',

@@ -60,6 +60,8 @@ export interface VacancyRow extends RowDataPacket {
   vacancy_title: string
   category: string
   budget: number
+  budget_min?: number | null
+  budget_max?: number | null
   timeline: string
   vacancy_location: string
   job_type: string
@@ -752,6 +754,8 @@ export async function createVacancy(data: {
   vacancy_title: string
   category: string
   budget: number
+  budgetMin: number
+  budgetMax: number
   timeline: string
   vacancy_location: string
   job_type: string
@@ -764,11 +768,11 @@ export async function createVacancy(data: {
 }): Promise<number> {
   const result = await execute(
     `INSERT INTO vacancies
-      (company_id, posted_by_uid, company_name, company_address, vacancy_title, category, budget, timeline,
+      (company_id, posted_by_uid, company_name, company_address, vacancy_title, category, budget, budget_min, budget_max, timeline,
        vacancy_location, job_type, work_type, years_of_experience, required_skills, short_description, job_description, closing_date, date_created)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
     [data.company_id, data.posted_by_uid, data.company_name, data.company_address, data.vacancy_title,
-      data.category, data.budget, data.timeline, data.vacancy_location, data.job_type, data.work_type,
+      data.category, data.budget, data.budgetMin, data.budgetMax, data.timeline, data.vacancy_location, data.job_type, data.work_type,
       data.years_of_experience || null, data.required_skills, data.short_description, data.job_description, data.closing_date || null]
   )
   return result.insertId

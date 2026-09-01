@@ -191,17 +191,36 @@ export default function PostJobPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="form-group">
-              <label className="label">Budget (₦) *</label>
-              <input
-                {...register('budget', { valueAsNumber: true })}
-                type="number"
-                inputMode="numeric"
-                min="1000"
-                className={`input-field ${errors.budget ? 'border-amber-300' : ''}`}
-              />
-              {errors.budget && <p className="mt-1.5 text-xs text-amber-600">{errors.budget.message}</p>}
+          <div className="form-group">
+            <label className="label">Budget range (₦) *</label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-500">Minimum</label>
+                <input
+                  {...register('budgetMin', { valueAsNumber: true })}
+                  type="number"
+                  inputMode="numeric"
+                  min="1000"
+                  placeholder="50,000"
+                  className={`input-field ${errors.budgetMin ? 'border-amber-300' : ''}`}
+                />
+                {errors.budgetMin && <p className="mt-1.5 text-xs text-amber-600">{errors.budgetMin.message}</p>}
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-500">Maximum</label>
+                <input
+                  {...register('budgetMax', { valueAsNumber: true })}
+                  type="number"
+                  inputMode="numeric"
+                  min="1000"
+                  placeholder="100,000"
+                  className={`input-field ${errors.budgetMax ? 'border-amber-300' : ''}`}
+                />
+                {errors.budgetMax && <p className="mt-1.5 text-xs text-amber-600">{errors.budgetMax.message}</p>}
+              </div>
             </div>
+            <p className="mt-1.5 text-xs text-slate-500">Give applicants a clear expected range.</p>
+          </div>
             <div className="form-group">
               <label className="label">Location *</label>
               <select

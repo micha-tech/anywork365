@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Badge } from '@/components/ui'
 import { timeAgo } from '@/lib/utils'
+import { formatJobBudget } from '@/lib/jobs'
 import type { Job } from '@/types'
 
 interface JobCardProps {
@@ -52,6 +53,10 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
       </p>
 
       <p className="mb-3 line-clamp-3 text-sm leading-5 text-slate-600">{job.shortDescription}</p>
+
+      <p className="mb-3 text-sm font-semibold text-brand-700">
+        <span className="font-normal text-slate-400">Budget range:</span> {formatJobBudget(job)}
+      </p>
       
       <div className="mb-3 flex min-w-0 items-center gap-1 text-xs text-slate-500">
         <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

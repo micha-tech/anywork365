@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
 import { JobApplicationForm } from '@/components/jobs/JobApplicationForm'
-import { formatCurrency, timeAgo } from '@/lib/utils'
+import { timeAgo } from '@/lib/utils'
+import { formatJobBudget } from '@/lib/jobs'
 import type { Job } from '@/types'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { withAuthRedirect } from '@/lib/auth-redirect'
@@ -92,8 +93,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
       <div className="sm:hidden bg-white border border-slate-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs text-slate-500">Budget</p>
-          <p className="text-xl font-semibold text-brand-500">{formatCurrency(job.budget)}</p>
+          <p className="text-xs text-slate-500">Budget range</p>
+          <p className="text-xl font-semibold text-brand-500">{formatJobBudget(job)}</p>
         </div>
         <button
           onClick={openApplication}
@@ -151,9 +152,9 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
         <div className="hidden sm:flex flex-col gap-5">
           <div className="card">
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Budget</p>
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Budget range</p>
             <p className="font-display text-2xl font-semibold text-brand-500 mb-4">
-              {formatCurrency(job.budget)}
+              {formatJobBudget(job)}
             </p>
             <div className="space-y-2 text-sm mb-5">
               {[
