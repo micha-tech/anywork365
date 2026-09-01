@@ -144,7 +144,7 @@ export default async function ProfessionalProfilePage({
               )}
             </ProfileSection>
 
-            <ProfileSection title="Education">
+            <ProfileSection title="Professional qualification">
               <div className="flex gap-4">
                 <SectionIcon type="education" />
                 <div className="min-w-0">

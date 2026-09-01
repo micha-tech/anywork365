@@ -6,7 +6,7 @@ import type { WorkExperience } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-function parseEducation(value: string | null): string {
+function parseQualification(value: string | null): string {
   if (!value) return ''
   try {
     const parsed: unknown = JSON.parse(value)
@@ -98,8 +98,8 @@ export default async function RecruiterApplicationsPage({
                       <p className="mt-2 whitespace-pre-wrap leading-relaxed text-slate-600">{application.cover_letter}</p>
                     </section>
                     <section>
-                      <h3 className="font-semibold text-slate-900">Education</h3>
-                      <p className="mt-2 whitespace-pre-wrap leading-relaxed text-slate-600">{parseEducation(application.education)}</p>
+                      <h3 className="font-semibold text-slate-900">Professional qualification</h3>
+                      <p className="mt-2 whitespace-pre-wrap leading-relaxed text-slate-600">{parseQualification(application.education)}</p>
                     </section>
                     <section>
                       <h3 className="font-semibold text-slate-900">Work experience</h3>

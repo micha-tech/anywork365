@@ -271,7 +271,7 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
               <Field label="Current or preferred job title" error={errors.jobTitle?.message}>
                 <input {...register('jobTitle')} className={`input-field ${errorClass(!!errors.jobTitle)}`} placeholder="e.g. Civil Engineer" />
               </Field>
-              <Field label="Highest qualification" error={errors.qualification?.message}>
+              <Field label="Professional qualification" error={errors.qualification?.message}>
                 <select {...register('qualification')} className={`input-field appearance-none ${errorClass(!!errors.qualification)}`}>
                   <option value="">Select a qualification</option>
                   {PROFESSIONAL_QUALIFICATIONS.map((option) => <option key={option} value={option}>{option}</option>)}

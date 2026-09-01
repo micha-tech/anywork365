@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS vacancies (
   years_of_experience INT DEFAULT NULL,
   required_skills     TEXT,
   short_description   VARCHAR(320) NOT NULL DEFAULT '',
-  job_description     TEXT,
+  job_description     LONGTEXT,
   closing_date        DATETIME DEFAULT NULL,
   date_created        DATETIME DEFAULT CURRENT_TIMESTAMP,
   closed              TINYINT(1) NOT NULL DEFAULT 0,

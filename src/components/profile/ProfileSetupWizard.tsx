@@ -429,7 +429,7 @@ function stepDefinitions(role: SetupRole) {
         { shortTitle: 'Profile photo', title: 'Add a professional profile photo', description: 'A clear, recent photo makes your profile more credible and easier for recruiters to remember.' },
         { shortTitle: 'Introduction', title: 'Complete your professional introduction', description: 'Help recruiters understand where you are based and what you bring to an opportunity.' },
         { shortTitle: 'Career headline', title: 'Sharpen your professional headline', description: 'Review the role, specialty and experience recruiters will see first.' },
-        { shortTitle: 'Background', title: 'Add education and work experience', description: 'A concise work history gives recruiters the evidence they need to assess your profile.' },
+        { shortTitle: 'Background', title: 'Add qualifications and work experience', description: 'A concise work history gives recruiters the evidence they need to assess your profile.' },
         { shortTitle: 'Cover image', title: 'Finish with a professional cover image', description: 'Choose a simple image connected to your work, industry or professional identity.' },
       ]
 }
@@ -542,7 +542,7 @@ function ProfessionalCoreStep({ value, saving, onContinue }: { value: Profession
       </div>
       <Field label="Current or preferred job title"><input className="input-field" value={form.jobTitle} onChange={(event) => setForm({ ...form, jobTitle: event.target.value })} required /></Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Highest qualification"><select className="input-field appearance-none" value={form.qualification} onChange={(event) => setForm({ ...form, qualification: event.target.value })}>{PROFESSIONAL_QUALIFICATIONS.map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
+        <Field label="Professional qualification"><select className="input-field appearance-none" value={form.qualification} onChange={(event) => setForm({ ...form, qualification: event.target.value })}>{PROFESSIONAL_QUALIFICATIONS.map((item) => <option key={item} value={item}>{item}</option>)}</select></Field>
         <Field label="Years of experience"><input className="input-field" type="number" min={0} max={70} value={form.yearsExperience} onChange={(event) => setForm({ ...form, yearsExperience: Number(event.target.value) })} required /></Field>
       </div>
       <Field label="LinkedIn or portfolio URL" hint="Optional"><input className="input-field" type="url" value={form.linkedinOrPortfolioUrl} onChange={(event) => setForm({ ...form, linkedinOrPortfolioUrl: event.target.value })} placeholder="https://" /></Field>
@@ -621,7 +621,7 @@ function CompletionView({ data, publicProfileHref, exitHref }: { data: SetupData
       <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
         {data.role === 'artisan'
           ? 'Clients can now understand your services, location and experience before sending a booking request.'
-          : 'Recruiters can now review a clear professional story, from your experience to your education and specialty.'}
+          : 'Recruiters can now review a clear professional story, from your qualifications and experience to your specialty.'}
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <Link href={publicProfileHref} className="btn-primary px-6">View my public profile</Link>

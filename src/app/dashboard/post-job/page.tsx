@@ -180,13 +180,12 @@ export default function PostJobPage() {
               {...register('description')}
               rows={10}
               minLength={200}
-              maxLength={10000}
               placeholder="Describe responsibilities, requirements, qualifications, working arrangements, and what success in the role looks like."
               className={`input-field resize-y ${errors.description ? 'border-amber-300' : ''}`}
             />
             <div className="mt-1 flex items-center justify-between gap-3 text-xs">
               <span className="text-slate-400">Shown on the full job details page.</span>
-              <span className="text-slate-400">{detailedDescriptionLength.toLocaleString()}/10,000</span>
+              <span className="text-slate-400">{detailedDescriptionLength.toLocaleString()} characters · no limit</span>
             </div>
             {errors.description && <p className="mt-1.5 text-xs text-amber-600">{errors.description.message}</p>}
           </div>
