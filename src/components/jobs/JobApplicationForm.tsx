@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { PROFESSIONAL_QUALIFICATIONS } from '@/lib/registration-options'
 import type { WorkExperience } from '@/types'
 
 type EditableExperience = WorkExperience & { key: string }
@@ -106,8 +107,11 @@ export function JobApplicationForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="application-education">Education *</label>
-        <textarea id="application-education" name="education" className="input-field min-h-28 resize-y" required minLength={10} maxLength={3000} placeholder="List your qualification, institution, field of study, and graduation year." />
+        <label className="label" htmlFor="application-qualification">Professional qualification *</label>
+        <select id="application-qualification" name="education" className="input-field appearance-none" required defaultValue="">
+          <option value="">Select your highest qualification</option>
+          {PROFESSIONAL_QUALIFICATIONS.map((qualification) => <option key={qualification} value={qualification}>{qualification}</option>)}
+        </select>
       </div>
 
       <section>

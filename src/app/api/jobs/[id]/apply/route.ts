@@ -113,7 +113,7 @@ export async function POST(
       firstName: String(form.get('firstName') || ''),
       lastName: String(form.get('lastName') || ''),
       coverLetter: form.get('coverLetter') ? String(form.get('coverLetter') || '').substring(0, 2000) : null,
-      education: String(form.get('education') || '').substring(0, 3000),
+      education: String(form.get('education') || ''),
       workExperience,
     })
     if (!parsed.success) {

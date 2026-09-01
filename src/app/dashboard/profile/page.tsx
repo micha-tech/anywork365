@@ -932,7 +932,7 @@ export default function ProfilePage() {
             <div>
               <h2 className="text-base font-semibold text-slate-900">Professional background</h2>
               <p className="mt-1 text-sm leading-6 text-slate-500">
-                Add your education, certifications and employment history for recruiters.
+                Add your qualifications, certifications and employment history for recruiters.
               </p>
             </div>
             <button

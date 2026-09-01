@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { INDUSTRY_CATEGORIES } from '@/lib/registration-options'
+import { INDUSTRY_CATEGORIES, PROFESSIONAL_QUALIFICATIONS } from '@/lib/registration-options'
 
 export const jobPostSchema = z.object({
   title: z
@@ -14,8 +14,7 @@ export const jobPostSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(200, 'Detailed job description must be at least 200 characters')
-    .max(10_000, 'Detailed job description cannot exceed 10,000 characters'),
+    .min(200, 'Detailed job description must be at least 200 characters'),
   category: z.enum(INDUSTRY_CATEGORIES, { required_error: 'Please select an industry' }),
   budget: z
     .number({ invalid_type_error: 'Budget must be a number' })
@@ -37,7 +36,9 @@ export const jobApplicationSchema = z.object({
   firstName: z.string().trim().min(2, 'First name is required').max(80),
   lastName: z.string().trim().min(2, 'Last name is required').max(80),
   coverLetter: z.string().trim().optional(),
-  education: z.string().trim().min(10, 'Please provide your education').max(3000),
+  // Keep the property name for compatibility with existing application rows.
+  // New applications store the selected professional qualification here.
+  education: z.enum(PROFESSIONAL_QUALIFICATIONS, { required_error: 'Select your professional qualification' }),
   workExperience: z.array(z.object({
     jobTitle: z.string().trim().min(2, 'Job title is required').max(160),
     employer: z.string().trim().min(2, 'Employer is required').max(180),
