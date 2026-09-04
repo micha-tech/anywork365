@@ -90,6 +90,19 @@ export const PROFESSIONAL_QUALIFICATIONS = [
   'Ph.D. – Doctor of Philosophy',
 ] as const
 
+export const INTERN_TYPES = [
+  'undergraduate',
+  'graduate',
+] as const
+
+export const JOB_LEVELS = [
+  'internship',
+  'entry-level',
+  'mid-level',
+  'senior-level',
+  'executive',
+] as const
+
 export const COMPANY_SIZES = [
   '1-10 employees',
   '11-50 employees',

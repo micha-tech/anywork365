@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { INDUSTRY_CATEGORIES, PROFESSIONAL_QUALIFICATIONS } from '@/lib/registration-options'
+import { INDUSTRY_CATEGORIES, JOB_LEVELS, PROFESSIONAL_QUALIFICATIONS } from '@/lib/registration-options'
 
 export const jobPostSchema = z.object({
   title: z
@@ -30,6 +30,7 @@ export const jobPostSchema = z.object({
   businessAddress: z.string().min(5, 'Company address is required'),
   jobType: z.enum(['full-time', 'part-time', 'contract', 'temporary', 'internship']),
   workArrangement: z.enum(['on-site', 'remote', 'hybrid']),
+  jobLevel: z.enum(JOB_LEVELS, { required_error: 'Please select a job level' }),
   closingDate: z.string().min(1, 'Closing date is required'),
 }).refine((data) => new Date(`${data.closingDate}T23:59:59`).getTime() > Date.now(), {
   message: 'Closing date must be in the future',

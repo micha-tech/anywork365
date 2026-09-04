@@ -12,6 +12,7 @@ import {
   PROFESSIONAL_QUALIFICATIONS,
   PROFESSIONAL_SERVICE_CATEGORIES,
   RECRUITMENT_FUNCTIONS,
+  INTERN_TYPES,
 } from '@/lib/registration-options'
 import {
   isGoogleUser,
@@ -30,13 +31,14 @@ import { AuthDivider, GoogleAuthButton } from './GoogleAuthButton'
 import { RegistrationFormHeader, RegistrationLegalCopy } from './RegistrationShell'
 import { getBrowserAuthRedirect, withAuthRedirect } from '@/lib/auth-redirect'
 
-type FutureRole = 'professional' | 'recruiter'
+type FutureRole = 'professional' | 'recruiter' | 'intern'
 
 export function FutureRoleRegistrationForm({ accountType }: { accountType: FutureRole }) {
   const [showPassword, setShowPassword] = useState(false)
   const [googleUser, setGoogleUser] = useState<User | null>(null)
   const [googleSubmitting, setGoogleSubmitting] = useState(false)
   const isProfessional = accountType === 'professional'
+  const isIntern = accountType === 'intern'
   const {
     register,
     handleSubmit,
@@ -191,7 +193,9 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
         title={`Create your ${accountType} account`}
         description={isProfessional
           ? 'Share your industry and professional service so relevant opportunities can find you.'
-          : 'Tell us about your company and recruitment focus so you can connect with the right talent.'}
+          : isIntern
+            ? 'Create a profile that helps you find practical experience and early-career opportunities.'
+            : 'Tell us about your company and recruitment focus so you can connect with the right talent.'}
       />
 
       {googleUser ? (
@@ -225,7 +229,7 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
           </Field>
         </div>
 
-        <Field label={isProfessional ? 'Email address' : 'Work email address'} error={errors.email?.message}>
+        <Field label={isProfessional || isIntern ? 'Email address' : 'Work email address'} error={errors.email?.message}>
           <input
             {...register('email')}
             type="email"
@@ -233,7 +237,7 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
             autoComplete="email"
             readOnly={!!googleUser}
             className={`input-field ${googleUser ? 'bg-slate-50 text-slate-600' : ''} ${errorClass(!!errors.email)}`}
-            placeholder={isProfessional ? 'you@example.com' : 'you@company.com'}
+            placeholder={isProfessional || isIntern ? 'you@example.com' : 'you@company.com'}
           />
         </Field>
 
@@ -250,7 +254,7 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
 
         <div className="rounded-xl border border-brand-100 bg-brand-50/60 p-3.5 sm:rounded-2xl sm:p-5">
           <div className="mb-4">
-            <p className="font-display text-sm font-bold text-brand-900">{isProfessional ? 'Professional information' : 'Company information'}</p>
+            <p className="font-display text-sm font-bold text-brand-900">{isProfessional ? 'Professional information' : isIntern ? 'Intern profile' : 'Company information'}</p>
             <p className="mt-1 text-xs text-slate-500">These details are saved to your {accountType} profile.</p>
           </div>
 
@@ -282,6 +286,24 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
               </Field>
               <Field label="LinkedIn or portfolio URL" optional error={errors.linkedinOrPortfolioUrl?.message}>
                 <input {...register('linkedinOrPortfolioUrl')} type="url" inputMode="url" className={`input-field ${errorClass(!!errors.linkedinOrPortfolioUrl)}`} placeholder="https://" />
+              </Field>
+            </div>
+          ) : isIntern ? (
+            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+              <Field label="Internship track" error={errors.internType?.message}>
+                <select {...register('internType')} className={`input-field appearance-none ${errorClass(!!errors.internType)}`}>
+                  <option value="">Select your track</option>
+                  {INTERN_TYPES.map((option) => <option key={option} value={option}>{option === 'undergraduate' ? 'Undergraduate intern' : 'Graduate intern'}</option>)}
+                </select>
+              </Field>
+              <Field label="School or institution" optional error={errors.schoolName?.message}>
+                <input {...register('schoolName')} className={`input-field ${errorClass(!!errors.schoolName)}`} placeholder="e.g. University of Lagos" />
+              </Field>
+              <Field label="Course or field of study" optional error={errors.fieldOfStudy?.message}>
+                <input {...register('fieldOfStudy')} className={`input-field ${errorClass(!!errors.fieldOfStudy)}`} placeholder="e.g. Computer Science" />
+              </Field>
+              <Field label="Expected graduation year" optional error={errors.graduationYear?.message}>
+                <input {...register('graduationYear', { setValueAs: (value) => value === '' ? undefined : Number(value) })} type="number" min={1950} max={2100} inputMode="numeric" className={`input-field ${errorClass(!!errors.graduationYear)}`} placeholder="e.g. 2027" />
               </Field>
             </div>
           ) : (

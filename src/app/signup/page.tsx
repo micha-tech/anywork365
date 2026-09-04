@@ -37,6 +37,13 @@ const accountTypes = [
     icon: RecruiterIcon,
     accent: 'bg-slate-100 text-slate-700 group-hover:bg-slate-800 group-hover:text-white',
   },
+  {
+    href: '/signup/intern',
+    title: 'Intern',
+    description: 'Build experience and find opportunities for your next step.',
+    icon: InternIcon,
+    accent: 'bg-[#fff0e8] text-orange-700 group-hover:bg-orange-600 group-hover:text-white',
+  },
 ] as const
 
 export default function SignupPage() {
@@ -150,6 +157,10 @@ function ProfessionalIcon({ className }: { className?: string }) {
 
 function RecruiterIcon({ className }: { className?: string }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3" /><path d="M3 19c.6-3.6 2.6-5.4 6-5.4 1.2 0 2.3.2 3.1.7" /><circle cx="17" cy="16" r="3" /><path d="m19.2 18.2 2.3 2.3" /></svg>
+}
+
+function InternIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7.5 12 4l8 3.5-8 3.5-8-3.5Z" /><path d="M7 10.5V15c2.8 2.4 7.2 2.4 10 0v-4.5" /><path d="M20 8v5" /></svg>
 }
 
 function ArrowIcon({ className }: { className?: string }) {

@@ -84,6 +84,7 @@ export function Navbar() {
   const isVendor   = user?.role === 'artisan'
   const isRecruiter = user?.role === 'recruiter'
   const isProfessional = user?.role === 'professional'
+  const isIntern = user?.role === 'intern'
   const navLinks   = isAdmin ? ADMIN_NAV : isSupport ? SUPPORT_NAV : isLoggedIn ? (isVendor ? VENDOR_AUTH_NAV : isRecruiter ? RECRUITER_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
   const initials   = getInitialsFromUser(user)
 
@@ -200,6 +201,11 @@ export function Navbar() {
                         { href: '/artisans', label: 'Artisans' },
                         { href: '/jobs', label: 'Jobs' },
                         { href: '/professionals', label: 'Professionals' },
+                        { href: '/messages', label: 'Messages' },
+                        { href: '/profile', label: 'My Profile' },
+                      ] : isIntern ? [
+                        { href: '/intern', label: 'Intern home' },
+                        { href: '/jobs', label: 'Opportunities' },
                         { href: '/messages', label: 'Messages' },
                         { href: '/profile', label: 'My Profile' },
                       ] : [

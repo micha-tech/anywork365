@@ -6,6 +6,7 @@ export function getPostLoginPath(role?: UserRole | null): string {
   if (role === 'artisan') return '/dashboard'
   if (role === 'professional') return '/professionals'
   if (role === 'recruiter') return '/dashboard/jobs'
+  if (role === 'intern') return '/intern'
   return '/artisans'
 }
 

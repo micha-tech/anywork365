@@ -192,6 +192,7 @@ export async function hardDeleteAccount(uid: string): Promise<void> {
     await conn.execute('DELETE FROM user_portfolio WHERE uid = ?', [uid])
     await conn.execute('DELETE FROM professional_profiles WHERE uid = ?', [uid])
     await conn.execute('DELETE FROM recruiter_profiles WHERE uid = ?', [uid])
+    await conn.execute('DELETE FROM intern_profiles WHERE uid = ?', [uid])
     await conn.execute('DELETE FROM businesses WHERE uid = ?', [uid])
     await conn.execute('DELETE FROM users_notifications WHERE senderUid = ? OR recieverUid = ?', [uid, uid])
     await conn.execute('DELETE FROM user_fcm_tokens WHERE uid = ?', [uid])

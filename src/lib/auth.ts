@@ -38,6 +38,7 @@ export async function getUserFromFirebase(uid: string): Promise<AuthUser | null>
       user.role === 'artisan' || user.role === 'vendor' ? 'artisan' :
       user.role === 'professional' ? 'professional' :
       user.role === 'recruiter' ? 'recruiter' :
+      user.role === 'intern' ? 'intern' :
       user.role === 'client' ? 'client' :
       user.hasBusinessAccount ? 'artisan' : 'client'
     return {

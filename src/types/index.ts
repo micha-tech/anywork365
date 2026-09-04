@@ -1,6 +1,6 @@
 // ─── User & Auth ─────────────────────────────────────────────────────────────
 
-export type UserRole = 'client' | 'artisan' | 'professional' | 'recruiter' | 'support' | 'admin'
+export type UserRole = 'client' | 'artisan' | 'professional' | 'recruiter' | 'intern' | 'support' | 'admin'
 
 export interface User {
   id: string
@@ -211,6 +211,7 @@ export type JobStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'
 
 export type JobTimeline = 'urgent' | 'this_week' | 'this_month' | 'flexible'
 export type JobType = 'full-time' | 'part-time' | 'contract' | 'temporary' | 'internship'
+export type JobLevel = 'internship' | 'entry-level' | 'mid-level' | 'senior-level' | 'executive'
 export type WorkArrangement = 'on-site' | 'remote' | 'hybrid'
 
 export interface Job {
@@ -231,6 +232,7 @@ export interface Job {
   businessAddress: string
   jobType: JobType
   workArrangement: WorkArrangement
+  jobLevel: JobLevel
   closingDate: string
   applicationCount: number
   createdAt: string
@@ -250,6 +252,7 @@ export interface JobPostPayload {
   businessAddress: string
   jobType: JobType
   workArrangement: WorkArrangement
+  jobLevel: JobLevel
   closingDate: string
 }
 

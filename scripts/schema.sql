@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
   bio             TEXT,
   googleAddress   VARCHAR(500) NOT NULL DEFAULT '',
   hasBusinessAccount TINYINT(1) NOT NULL DEFAULT 0,
-  role            ENUM('client','artisan','professional','recruiter','support','admin') DEFAULT NULL,
+  role            ENUM('client','artisan','professional','recruiter','intern','support','admin') DEFAULT NULL,
   can_switch_client_recruiter TINYINT(1) NOT NULL DEFAULT 0,
   verified        TINYINT(1) NOT NULL DEFAULT 0,
   suspended       TINYINT(1) NOT NULL DEFAULT 0,
@@ -113,6 +113,18 @@ CREATE TABLE IF NOT EXISTS recruiter_profiles (
   INDEX idx_recruiter_function (recruitment_function)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS intern_profiles (
+  id                   INT AUTO_INCREMENT PRIMARY KEY,
+  uid                  VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL UNIQUE,
+  intern_type          ENUM('undergraduate','graduate') NOT NULL,
+  school_name         VARCHAR(220) DEFAULT NULL,
+  field_of_study      VARCHAR(180) DEFAULT NULL,
+  graduation_year     SMALLINT UNSIGNED DEFAULT NULL,
+  created_at           DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at           DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_intern_type (intern_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS companies (
   company_id      INT AUTO_INCREMENT PRIMARY KEY,
   uid             VARCHAR(128) NOT NULL,
@@ -138,6 +150,7 @@ CREATE TABLE IF NOT EXISTS vacancies (
   timeline            VARCHAR(30) NOT NULL DEFAULT 'flexible',
   vacancy_location    VARCHAR(255) NOT NULL DEFAULT '',
   job_type            VARCHAR(50) NOT NULL DEFAULT '',
+  job_level           VARCHAR(40) NOT NULL DEFAULT 'mid-level',
   work_type           VARCHAR(50) NOT NULL DEFAULT '',
   years_of_experience INT DEFAULT NULL,
   required_skills     TEXT,

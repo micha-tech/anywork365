@@ -65,6 +65,7 @@ export interface VacancyRow extends RowDataPacket {
   timeline: string
   vacancy_location: string
   job_type: string
+  job_level?: string | null
   work_type: string
   years_of_experience: number | null
   required_skills: string
@@ -290,6 +291,7 @@ function resolveRole(row: UserRow): UserRole {
   if (row.role === 'artisan' || row.role === 'vendor') return 'artisan'
   if (row.role === 'professional') return 'professional'
   if (row.role === 'recruiter') return 'recruiter'
+  if (row.role === 'intern') return 'intern'
   if (row.role === 'client') return 'client'
   return row.hasBusinessAccount ? 'artisan' : 'client'
 }
@@ -733,6 +735,7 @@ export async function listVacancies(filters?: {
   search?: string
   location?: string
   job_type?: string
+  job_level?: string
   limit?: number
 }): Promise<VacancyRow[]> {
   let sql = `${VACANCY_SELECT} WHERE v.closed = 0 AND (v.closing_date IS NULL OR v.closing_date >= CURDATE())`
@@ -740,6 +743,12 @@ export async function listVacancies(filters?: {
   if (filters?.search) { sql += ' AND (v.vacancy_title LIKE ? OR v.short_description LIKE ? OR v.job_description LIKE ? OR v.company_name LIKE ?)'; params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`) }
   if (filters?.location) { sql += ' AND v.vacancy_location = ?'; params.push(filters.location) }
   if (filters?.job_type) { sql += ' AND v.category = ?'; params.push(filters.job_type) }
+  if (filters?.job_level) {
+    sql += filters.job_level === 'internship'
+      ? ' AND (v.job_level = ? OR v.job_type = \'internship\')'
+      : ' AND COALESCE(v.job_level, \'mid-level\') = ?'
+    params.push(filters.job_level)
+  }
   sql += ' ORDER BY v.date_created DESC'
   const limit = filters?.limit && filters.limit > 0 ? filters.limit : 100
   sql += ` LIMIT ${limit}`
@@ -759,6 +768,7 @@ export async function createVacancy(data: {
   timeline: string
   vacancy_location: string
   job_type: string
+  jobLevel: string
   work_type: string
   years_of_experience?: number
   required_skills: string
@@ -769,10 +779,10 @@ export async function createVacancy(data: {
   const result = await execute(
     `INSERT INTO vacancies
       (company_id, posted_by_uid, company_name, company_address, vacancy_title, category, budget, budget_min, budget_max, timeline,
-       vacancy_location, job_type, work_type, years_of_experience, required_skills, short_description, job_description, closing_date, date_created)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+       vacancy_location, job_type, job_level, work_type, years_of_experience, required_skills, short_description, job_description, closing_date, date_created)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
     [data.company_id, data.posted_by_uid, data.company_name, data.company_address, data.vacancy_title,
-      data.category, data.budget, data.budgetMin, data.budgetMax, data.timeline, data.vacancy_location, data.job_type, data.work_type,
+      data.category, data.budget, data.budgetMin, data.budgetMax, data.timeline, data.vacancy_location, data.job_type, data.jobLevel, data.work_type,
       data.years_of_experience || null, data.required_skills, data.short_description, data.job_description, data.closing_date || null]
   )
   return result.insertId
@@ -1366,6 +1376,22 @@ export async function createRecruiterProfile(data: {
   return result.insertId
 }
 
+export async function createInternProfile(data: {
+  uid: string
+  internType: 'undergraduate' | 'graduate'
+  schoolName?: string
+  fieldOfStudy?: string
+  graduationYear?: number
+}): Promise<number> {
+  const result = await execute(
+    `INSERT INTO intern_profiles
+      (uid, intern_type, school_name, field_of_study, graduation_year, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
+    [data.uid, data.internType, data.schoolName || null, data.fieldOfStudy || null, data.graduationYear || null]
+  )
+  return result.insertId
+}
+
 export async function getRecruiterProfileByUid(uid: string): Promise<RecruiterProfileRow | null> {
   return queryOne<RecruiterProfileRow[]>('SELECT * FROM recruiter_profiles WHERE uid = ?', [uid])
 }
@@ -1416,6 +1442,7 @@ export async function updateUserRole(uid: string, role: 'client' | 'recruiter'):
 export async function deleteSignupProfileByUid(uid: string): Promise<void> {
   await execute('DELETE FROM professional_profiles WHERE uid = ?', [uid])
   await execute('DELETE FROM recruiter_profiles WHERE uid = ?', [uid])
+  await execute('DELETE FROM intern_profiles WHERE uid = ?', [uid])
   await execute('DELETE FROM businesses WHERE uid = ?', [uid])
   await execute('DELETE FROM users WHERE uid = ?', [uid])
 }

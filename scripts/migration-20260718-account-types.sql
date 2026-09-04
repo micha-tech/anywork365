@@ -1,12 +1,12 @@
 ALTER TABLE users
-  MODIFY COLUMN role ENUM('client','vendor','artisan','professional','recruiter','admin') DEFAULT NULL;
+  MODIFY COLUMN role ENUM('client','vendor','artisan','professional','recruiter','intern','admin') DEFAULT NULL;
 
 UPDATE users
 SET role = 'artisan'
 WHERE role = 'vendor' OR (role IS NULL AND hasBusinessAccount = 1);
 
 ALTER TABLE users
-  MODIFY COLUMN role ENUM('client','artisan','professional','recruiter','admin') DEFAULT NULL;
+  MODIFY COLUMN role ENUM('client','artisan','professional','recruiter','intern','admin') DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS professional_profiles (
   id                            INT AUTO_INCREMENT PRIMARY KEY,

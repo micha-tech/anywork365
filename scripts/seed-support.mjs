@@ -69,7 +69,7 @@ async function main() {
 
   try {
     await connection.execute(
-      "ALTER TABLE users MODIFY COLUMN role ENUM('client','artisan','professional','recruiter','support','admin') DEFAULT NULL"
+      "ALTER TABLE users MODIFY COLUMN role ENUM('client','artisan','professional','recruiter','intern','support','admin') DEFAULT NULL"
     )
 
     const [rows] = await connection.execute(

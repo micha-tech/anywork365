@@ -275,7 +275,7 @@ export default function ProfilePage() {
 
   const initials    = getInitialsFromUser(user)
   const fullName    = user ? `${user.firstName} ${user.lastName}` : ''
-  const roleLabel   = user?.role === 'artisan' ? 'Artisan' : user?.role === 'professional' ? 'Professional' : user?.role === 'recruiter' ? 'Recruiter' : 'Client'
+  const roleLabel   = user?.role === 'artisan' ? 'Artisan' : user?.role === 'professional' ? 'Professional' : user?.role === 'recruiter' ? 'Recruiter' : user?.role === 'intern' ? 'Intern' : 'Client'
   // Show uploaded photo, else existing avatarUrl from session, else null (shows initials)
   const displayPhoto = photoUrl ?? user?.avatarUrl ?? null
 
