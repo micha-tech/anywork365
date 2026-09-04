@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { jobPostSchema, type JobPostInput } from '@/lib/validators/job'
 import { jobsApi } from '@/lib/api'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { INDUSTRY_CATEGORIES } from '@/lib/registration-options'
+import { INDUSTRY_CATEGORIES, JOB_LEVELS } from '@/lib/registration-options'
 import { NIGERIAN_STATE_NAMES } from '@/types'
 
 export default function PostJobPage() {
@@ -29,7 +29,7 @@ export default function PostJobPage() {
     formState: { errors, isSubmitting },
   } = useForm<JobPostInput>({
     resolver: zodResolver(jobPostSchema),
-    defaultValues: { jobType: 'full-time', workArrangement: 'on-site', timeline: 'flexible' },
+    defaultValues: { jobType: 'full-time', jobLevel: 'mid-level', workArrangement: 'on-site', timeline: 'flexible' },
   })
   const shortDescriptionLength = watch('shortDescription', '').length
   const detailedDescriptionLength = watch('description', '').length
@@ -107,7 +107,7 @@ export default function PostJobPage() {
               {errors.businessAddress && <p className="mt-1.5 text-xs text-amber-600">{errors.businessAddress.message}</p>}
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             <div className="form-group">
               <label className="label">Job Type *</label>
               <select
@@ -133,6 +133,13 @@ export default function PostJobPage() {
                 <option value="hybrid">Hybrid</option>
               </select>
               {errors.workArrangement && <p className="mt-1.5 text-xs text-amber-600">{errors.workArrangement.message}</p>}
+            </div>
+            <div className="form-group">
+              <label className="label">Job Level *</label>
+              <select {...register('jobLevel')} className={`input-field appearance-none ${errors.jobLevel ? 'border-amber-300' : ''}`}>
+                {JOB_LEVELS.map((level) => <option key={level} value={level}>{level === 'entry-level' ? 'Entry level' : level === 'mid-level' ? 'Mid level' : level === 'senior-level' ? 'Senior level' : level.charAt(0).toUpperCase() + level.slice(1)}</option>)}
+              </select>
+              {errors.jobLevel && <p className="mt-1.5 text-xs text-amber-600">{errors.jobLevel.message}</p>}
             </div>
             <div className="form-group">
               <label className="label">Closing Date *</label>

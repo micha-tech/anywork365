@@ -68,8 +68,10 @@ export default function VerifyEmailPage() {
     : user?.role === 'professional'
       ? '/professionals'
       : user?.role === 'recruiter'
-        ? '/dashboard/jobs'
-        : '/artisans'
+      ? '/dashboard/jobs'
+      : user?.role === 'intern'
+        ? '/intern'
+      : '/artisans'
   const destination = authRedirect || defaultDestination
   const verificationPagePath = withAuthRedirect('/verify-email', authRedirect)
 

@@ -1,4 +1,4 @@
-import type { Job, JobTimeline, JobType, WorkArrangement } from '@/types'
+import type { Job, JobLevel, JobTimeline, JobType, WorkArrangement } from '@/types'
 import type { VacancyRow } from '@/lib/queries'
 import { formatCurrency } from '@/lib/utils'
 
@@ -10,6 +10,7 @@ export function vacancyRowToJob(row: VacancyRow): Job {
   const deadlinePassed = Boolean(row.closing_date && new Date(row.closing_date).getTime() < Date.now())
   const normalizedType = row.job_type.toLowerCase().replace(/\s+/g, '-') as JobType
   const normalizedArrangement = row.work_type.toLowerCase().replace(/\s+/g, '-') as WorkArrangement
+  const normalizedLevel = (row.job_type === 'internship' ? 'internship' : row.job_level || 'mid-level') as JobLevel
   const budgetMin = Number(row.budget_min ?? row.budget ?? 0)
   const budgetMax = Number(row.budget_max ?? row.budget ?? budgetMin)
 
@@ -31,6 +32,7 @@ export function vacancyRowToJob(row: VacancyRow): Job {
     businessAddress: row.company_address || row.vacancy_location,
     jobType: JOB_TYPES.includes(normalizedType) ? normalizedType : 'full-time',
     workArrangement: WORK_ARRANGEMENTS.includes(normalizedArrangement) ? normalizedArrangement : 'on-site',
+    jobLevel: ['internship', 'entry-level', 'mid-level', 'senior-level', 'executive'].includes(normalizedLevel) ? normalizedLevel : 'mid-level',
     closingDate: row.closing_date || '',
     applicationCount: Number(row.application_count || 0),
     createdAt: row.date_created,

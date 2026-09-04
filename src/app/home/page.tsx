@@ -33,5 +33,9 @@ export default async function HomeRedirectPage() {
     redirect('/dashboard/jobs')
   }
 
+  if (session.role === 'intern') {
+    redirect('/intern')
+  }
+
   redirect('/artisans')
 }

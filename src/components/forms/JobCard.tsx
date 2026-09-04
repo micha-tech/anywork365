@@ -38,6 +38,9 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
         <span className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">
           {formatOption(job.workArrangement)}
         </span>
+        <span className={`rounded-full border px-2.5 py-1 font-semibold ${job.jobLevel === 'internship' ? 'border-orange-100 bg-orange-50 text-orange-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
+          {job.jobLevel === 'entry-level' ? 'Entry level' : job.jobLevel === 'mid-level' ? 'Mid level' : job.jobLevel === 'senior-level' ? 'Senior level' : job.jobLevel.charAt(0).toUpperCase() + job.jobLevel.slice(1)}
+        </span>
       </div>
 
       <div className="flex items-start justify-between gap-3 mb-2">

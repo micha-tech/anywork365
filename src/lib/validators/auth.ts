@@ -3,6 +3,7 @@ import { JOB_CATEGORIES } from '@/types'
 import {
   COMPANY_SIZES,
   INDUSTRY_CATEGORIES,
+  INTERN_TYPES,
   PROFESSIONAL_QUALIFICATIONS,
   PROFESSIONAL_SERVICE_CATEGORIES,
   RECRUITMENT_FUNCTIONS,
@@ -78,7 +79,7 @@ export const signupSchema = z
       .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
       .regex(/[0-9]/, 'Password must contain at least one number'),
     confirmPassword: z.string(),
-    role: z.enum(['client', 'artisan', 'professional', 'recruiter'], {
+    role: z.enum(['client', 'artisan', 'professional', 'recruiter', 'intern'], {
       required_error: 'Please select your account type',
     }),
     state: z.string().min(1, 'Please select your state'),
@@ -94,6 +95,10 @@ export const signupSchema = z
     recruitmentFunction: z.enum(RECRUITMENT_FUNCTIONS).optional(),
     position: z.string().trim().max(160).optional(),
     companyWebsite: z.union([z.literal(''), z.string().url('Please enter a valid company website URL')]).optional(),
+    internType: z.enum(INTERN_TYPES).optional(),
+    schoolName: z.string().trim().max(220).optional(),
+    fieldOfStudy: z.string().trim().max(180).optional(),
+    graduationYear: z.coerce.number().int().min(1950).max(2100).optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -142,6 +147,10 @@ export const signupSchema = z
   .refine((data) => data.role !== 'recruiter' || !!data.position, {
     message: 'Please enter your position',
     path: ['position'],
+  })
+  .refine((data) => data.role !== 'intern' || !!data.internType, {
+    message: 'Please select your internship track',
+    path: ['internType'],
   })
 
 export type LoginInput = z.infer<typeof loginSchema>

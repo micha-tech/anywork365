@@ -13,6 +13,7 @@ const ROLE_MESSAGES: Record<string, string> = {
   artisan: 'Showcase your craft, connect with nearby clients and grow a business people can trust.',
   professional: 'Present your experience clearly and connect with opportunities that match your expertise.',
   recruiter: 'Reach qualified candidates, share opportunities and manage your hiring conversations.',
+  intern: 'Build practical experience, discover opportunities and take your next career step.',
 }
 
 function escapeHtml(value: string): string {

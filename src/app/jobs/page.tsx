@@ -3,7 +3,7 @@ import { listVacancies } from '@/lib/queries'
 import { vacancyRowToJob } from '@/lib/jobs'
 import { EmptyState } from '@/components/ui'
 import { NIGERIAN_STATE_NAMES } from '@/types'
-import { INDUSTRY_CATEGORIES } from '@/lib/registration-options'
+import { INDUSTRY_CATEGORIES, JOB_LEVELS } from '@/lib/registration-options'
 import { JobCard } from '@/components/forms/JobCard'
 
 export const dynamic = 'force-dynamic'
@@ -11,17 +11,18 @@ export const dynamic = 'force-dynamic'
 const PAGE_SIZE = 10
 
 interface Props {
-  searchParams?: Promise<{ search?: string; category?: string; state?: string; page?: string }>
+  searchParams?: Promise<{ search?: string; category?: string; state?: string; level?: string; page?: string }>
 }
 
 export default async function JobsPage({ searchParams }: Props) {
-  const { search, category, state: city, page } = (await searchParams) ?? {}
+  const { search, category, state: city, level, page } = (await searchParams) ?? {}
   const currentPage = Math.max(1, parseInt(page || '1'))
 
   const vacancies = await listVacancies({
     search,
     location: city,
     job_type: category,
+    job_level: level,
   })
 
   const allJobs = vacancies.map(vacancyRowToJob)
@@ -30,7 +31,7 @@ export default async function JobsPage({ searchParams }: Props) {
   const totalCount = allJobs.length
   const hasMore = totalCount > currentPage * PAGE_SIZE
 
-  const loadMoreHref = `/jobs?${new URLSearchParams({ ...(search ? { search } : {}), ...(category ? { category } : {}), ...(city ? { state: city } : {}), page: String(currentPage + 1) }).toString()}`
+  const loadMoreHref = `/jobs?${new URLSearchParams({ ...(search ? { search } : {}), ...(category ? { category } : {}), ...(city ? { state: city } : {}), ...(level ? { level } : {}), page: String(currentPage + 1) }).toString()}`
 
   return (
     <div className="page-shell">
@@ -52,7 +53,7 @@ export default async function JobsPage({ searchParams }: Props) {
             className="input-field w-full"
             placeholder="Search by role, company, or keyword..."
           />
-          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
             <select name="category" defaultValue={category} className="input-field min-w-0 appearance-none truncate">
               <option value="">All Categories</option>
               {INDUSTRY_CATEGORIES.map((categoryOption) => <option key={categoryOption} value={categoryOption}>{categoryOption}</option>)}
@@ -63,9 +64,23 @@ export default async function JobsPage({ searchParams }: Props) {
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
+            <select name="level" defaultValue={level} className="input-field min-w-0 appearance-none truncate">
+              <option value="">All job levels</option>
+              {JOB_LEVELS.map((item) => <option key={item} value={item}>{item === 'entry-level' ? 'Entry level' : item === 'mid-level' ? 'Mid level' : item === 'senior-level' ? 'Senior level' : item.charAt(0).toUpperCase() + item.slice(1)}</option>)}
+            </select>
             <button type="submit" className="btn-primary px-5">Go</button>
           </div>
         </form>
+
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Job categories</span>
+          <Link href="/jobs" className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${!level ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600 hover:border-brand-200'}`}>All jobs</Link>
+          {JOB_LEVELS.map((item) => (
+            <Link key={item} href={`/jobs?level=${item}`} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${level === item ? 'border-brand-300 bg-brand-50 text-brand-700' : item === 'internship' ? 'border-orange-200 bg-orange-50 text-orange-700 hover:border-orange-300' : 'border-slate-200 bg-white text-slate-600 hover:border-brand-200'}`}>
+              {item === 'internship' ? 'Internship opportunities' : item === 'entry-level' ? 'Entry level' : item === 'mid-level' ? 'Mid level' : item === 'senior-level' ? 'Senior level' : 'Executive'}
+            </Link>
+          ))}
+        </div>
 
         {jobs.length > 0 ? (
           <>

@@ -6,6 +6,7 @@ import {
   createBusiness,
   createProfessionalProfile,
   createRecruiterProfile,
+  createInternProfile,
   createUser,
   deleteSignupProfileByUid,
   getUserByUid,
@@ -104,6 +105,10 @@ export async function POST(req: NextRequest) {
       recruitmentFunction,
       position,
       companyWebsite,
+      internType,
+      schoolName,
+      fieldOfStudy,
+      graduationYear,
     } = parsed.data
     const email = parsed.data.email.trim().toLowerCase()
 
@@ -171,6 +176,16 @@ export async function POST(req: NextRequest) {
         recruitmentFunction: recruitmentFunction!,
         position: position!,
         companyWebsite: companyWebsite || undefined,
+      })
+    }
+
+    if (role === 'intern') {
+      await createInternProfile({
+        uid,
+        internType: internType!,
+        schoolName,
+        fieldOfStudy,
+        graduationYear,
       })
     }
 

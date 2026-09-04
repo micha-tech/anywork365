@@ -13,11 +13,12 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get('search')
   const location = searchParams.get('city')
   const job_type = searchParams.get('type')
+  const job_level = searchParams.get('level')
   const limit = parseInt(searchParams.get('limit') || '0')
   const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const pageSize = Math.min(24, Math.max(1, parseInt(searchParams.get('pageSize') || String(limit || 8))))
 
-  const rows = await listVacancies({ search: search || undefined, location: location || undefined, job_type: job_type || undefined })
+  const rows = await listVacancies({ search: search || undefined, location: location || undefined, job_type: job_type || undefined, job_level: job_level || undefined })
   const start = (page - 1) * pageSize
   const sliced = rows.slice(start, start + pageSize)
   const jobs: Job[] = sliced.map(vacancyRowToJob)
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
       vacancy_location: parsed.data.city,
       job_type: parsed.data.jobType,
       work_type: parsed.data.workArrangement,
+      jobLevel: parsed.data.jobLevel,
       required_skills: parsed.data.description || '',
       short_description: parsed.data.shortDescription,
       job_description: parsed.data.description,
@@ -109,6 +111,7 @@ export async function POST(req: NextRequest) {
       businessAddress: parsed.data.businessAddress || '',
       jobType: parsed.data.jobType as Job['jobType'],
       workArrangement: parsed.data.workArrangement as Job['workArrangement'],
+      jobLevel: parsed.data.jobLevel as Job['jobLevel'],
       closingDate: parsed.data.closingDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       applicationCount: 0,
       createdAt: new Date().toISOString(),
