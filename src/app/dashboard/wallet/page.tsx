@@ -300,9 +300,9 @@ function WalletPageContent() {
 
   return (
     <PullToRefresh onRefresh={fetchWallet}>
-      <div className="mb-6 rounded-3xl bg-[#efffde] p-5 sm:mb-7 sm:p-6">
-        <h1 className="font-display text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">Your money</h1>
-        <p className="mt-1 text-sm text-brand-800/70">
+      <div className="mb-8">
+        <h1 className="page-heading">Your money</h1>
+        <p className="page-description">
           {isArtisan ? 'Manage your earnings and withdrawals' : 'Manage your payments'}
         </p>
       </div>
@@ -316,19 +316,18 @@ function WalletPageContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="relative overflow-hidden rounded-3xl bg-brand-800 p-4 text-white sm:p-5">
-            <div className="absolute -right-7 -top-8 h-24 w-24 rounded-full bg-[#c9f58b]/15" />
-            <p className="text-[11px] font-medium uppercase tracking-wide text-white/70">
+            <p className="text-sm font-semibold text-white/70">
               {isArtisan ? 'Available Earnings' : 'Available Balance'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 break-words">
               {formatCurrency(wallet?.availableBalance ?? 0)}
             </p>
-            <p className="text-xs text-white/60">
+            <p className="text-xs text-white/80">
               {isArtisan ? 'Ready to withdraw' : 'Ready to use'}
             </p>
           </div>
           <div className="friendly-card p-4 sm:p-5">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+            <p className="text-sm font-semibold text-slate-500">
               {isArtisan ? 'Pending Earnings' : 'In Active Bookings'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-amber-600 break-words">
@@ -341,7 +340,7 @@ function WalletPageContent() {
             </p>
           </div>
           <div className="friendly-card p-4 sm:p-5">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+            <p className="text-sm font-semibold text-slate-500">
               {isArtisan ? 'Total Earned' : 'Total Paid'}
             </p>
             <p className="font-display text-2xl sm:text-3xl font-semibold mt-1 mb-1 text-slate-900 break-words">

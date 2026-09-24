@@ -1,4 +1,6 @@
-import { forwardRef, SelectHTMLAttributes } from 'react'
+'use client'
+
+import { forwardRef, useId, SelectHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -10,7 +12,8 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, options, placeholder, className, id, ...props }, ref) => {
-    const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
+    const generatedId = useId()
+    const inputId = id ?? generatedId
 
     return (
       <div className="form-group">
@@ -23,6 +26,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             ref={ref}
             id={inputId}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : undefined}
             className={cn(
               'input-field appearance-none bg-white pr-11',
               error && 'border-amber-300 focus:border-amber-400 focus:ring-amber-400/10',
@@ -48,7 +53,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             <path d="m5 7.5 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        {error && <p className="mt-2 text-xs font-medium text-amber-700">{error}</p>}
+        {error && <p id={`${inputId}-error`} role="alert" className="field-message field-error">{error}</p>}
       </div>
     )
   }

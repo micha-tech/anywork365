@@ -1,4 +1,4 @@
-import { type HTMLAttributes, type ReactNode } from 'react'
+import { type HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
 export { Avatar } from './Avatar'
@@ -95,58 +95,6 @@ export function Stars({ rating, count }: { rating: number; count?: number }) {
   )
 }
 
-type EmptyIconName = 'bookings' | 'jobs' | 'messages' | 'wallet' | 'search'
-
-interface EmptyStateProps {
-  icon?: EmptyIconName | ReactNode
-  title: string
-  description?: string
-  action?: ReactNode
-}
-
-const emptyIcons: Record<EmptyIconName, ReactNode> = {
-  bookings: (
-    <svg className="h-8 w-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <path d="M8 2v4M16 2v4M3 10h18" />
-    </svg>
-  ),
-  jobs: (
-    <svg className="h-8 w-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="2" y="7" width="20" height="14" rx="2" />
-      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-    </svg>
-  ),
-  messages: (
-    <svg className="h-8 w-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  ),
-  wallet: (
-    <svg className="h-8 w-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="2" y="5" width="20" height="14" rx="2" />
-      <path d="M2 10h20M18 13.5h.01" />
-    </svg>
-  ),
-  search: (
-    <svg className="h-8 w-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  ),
-}
-
-export function EmptyState({ icon = 'search', title, description, action }: EmptyStateProps) {
-  const iconNode = typeof icon === 'string' ? emptyIcons[icon as EmptyIconName] ?? emptyIcons.search : icon
-
-  return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/80 px-6 py-14 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-brand-100 bg-brand-50">
-        {iconNode}
-      </div>
-      <h3 className="mb-2 text-base font-semibold tracking-[-0.015em] text-slate-900">{title}</h3>
-      {description && <p className="max-w-sm text-sm leading-6 text-slate-500">{description}</p>}
-      {action && <div className="mt-6">{action}</div>}
-    </div>
-  )
-}
+export { EmptyState } from './EmptyState'
+export { SectionHeader } from './SectionHeader'
+export { IconButton } from './IconButton'

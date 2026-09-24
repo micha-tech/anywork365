@@ -6,8 +6,8 @@ export default function ProfessionalRegistrationPage() {
     <RegistrationShell
       role="Professional"
       title="Create your professional profile"
-      description="Add your experience and skills so recruiters can assess your background."
-      benefits={['Add your experience and qualifications', 'See relevant opportunities', 'Connect with recruiters']}
+      description="Showcase your expertise, attract clients and grow your professional practice."
+      benefits={['Showcase your services and experience', 'Get discovered by paying clients', 'Connect with businesses and opportunities']}
       imageSrc="/images/registration-professional.avif"
       imageAlt="A professional ready for new career opportunities"
       imagePosition="center center"

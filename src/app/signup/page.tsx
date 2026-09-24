@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { StoryArt } from '@/components/ui/StoryArt'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
 import { AuthDivider } from '@/components/auth/GoogleAuthButton'
 import { isGoogleUser, onAuthChange, signOut as signOutFirebase } from '@/lib/firebase/auth'
@@ -26,7 +27,7 @@ const accountTypes = [
   {
     href: '/signup/professional',
     title: 'Professional',
-    description: 'Create a profile and apply for job opportunities.',
+    description: 'Showcase your services and win paying clients.',
     icon: ProfessionalIcon,
     accent: 'bg-[#e8f5f3] text-brand-600 group-hover:bg-brand-600 group-hover:text-white',
   },
@@ -74,7 +75,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[radial-gradient(circle_at_50%_0%,rgba(201,245,139,0.2),transparent_28rem),#fbfcf8] px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
+    <div className="min-h-dvh bg-surface-base px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
       <main className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-4xl items-center justify-center sm:min-h-[calc(100dvh-5rem)]">
         <section className="w-full">
           <div className="py-2 sm:py-4">
@@ -82,11 +83,12 @@ export default function SignupPage() {
               <BrandWordmark priority className="w-[245px] sm:w-[285px]" />
             </div>
 
-            <div className="mx-auto max-w-xl">
+            <div className="mx-auto max-w-2xl">
+              <StoryArt kind="people" priority className="mx-auto mb-6 w-56 rounded-3xl sm:w-72" />
               <div className="text-center">
                 <h2 className="font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">Choose an account type</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500 sm:text-base">
-                  Choose the option that best describes how you want to use Anywork365.
+                  Find help, grow your business or take the next step in your career.
                 </p>
               </div>
 
@@ -113,14 +115,14 @@ export default function SignupPage() {
                   <Link
                     key={href}
                     href={withAuthRedirect(href, authRedirect)}
-                    className="group flex min-h-[82px] items-center gap-4 rounded-3xl border border-slate-200 bg-white p-3.5 shadow-[0_8px_24px_rgba(15,79,74,0.04)] transition-all duration-200 hover:-translate-y-1 hover:border-brand-300 hover:shadow-[0_15px_34px_rgba(15,79,74,0.11)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 sm:p-4"
+                    className="friendly-card-interactive group flex min-h-[112px] items-center gap-4 p-5 focus-visible:ring-4 focus-visible:ring-brand-500/20"
                   >
-                    <span className={`flex h-12 w-12 flex-shrink-0 rotate-[-3deg] items-center justify-center rounded-2xl transition-all duration-200 group-hover:rotate-0 sm:h-14 sm:w-14 ${accent}`}>
+                    <span className={`flex h-12 w-12 flex-shrink-0  items-center justify-center rounded-2xl transition-all duration-200 group-hover:rotate-0 sm:h-14 sm:w-14 ${accent}`}>
                       <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block font-display text-base font-bold text-slate-900 sm:text-lg">{title}</span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-slate-500 sm:text-sm">{description}</span>
+                      <span className="mt-1 block text-sm leading-relaxed text-slate-500">{description}</span>
                     </span>
                     <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-all group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white" aria-hidden="true">
                       <ArrowIcon className="h-4 w-4" />

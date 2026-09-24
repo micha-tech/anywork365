@@ -33,7 +33,7 @@ export function ModerationShell({
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7f7] text-slate-900">
+    <div className="min-h-screen bg-surface-base text-slate-900">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[252px] flex-col border-r border-slate-200 bg-white lg:flex">
         <div className="flex h-[76px] items-center border-b border-slate-200 px-6">
           <BrandWordmark href="/home" className="w-[178px]" priority />

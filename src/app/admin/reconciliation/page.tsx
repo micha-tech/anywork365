@@ -37,7 +37,7 @@ export default function AdminReconciliationPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-slate-900">Reconciliation</h1>
+      <h1 className="page-heading">Reconciliation</h1>
 
       <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit text-sm">
         {(['transactions', 'escrows', 'withdrawals'] as Tab[]).map((t) => (

@@ -1,7 +1,7 @@
 import { listVendors } from '@/lib/queries'
 import { ProCard } from '@/components/forms/ProCard'
 import { ProfessionalFilters } from '@/components/forms/ProfessionalFilters'
-import { EmptyState } from '@/components/ui'
+import { EmptyState, SectionHeader } from '@/components/ui'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -31,17 +31,8 @@ export default async function ArtisansPage({
 
   return (
     <main className="page-shell">
-      <div className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
-        <header className="relative overflow-hidden rounded-3xl bg-brand-800 p-6 text-white sm:p-9">
-          <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-[#c9f58b]/15" />
-          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="font-display text-3xl font-bold tracking-[-0.04em] sm:text-5xl">Find the right hands</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70 sm:text-base">Browse artisans by skill, location and experience.</p>
-          </div>
-          <Link href="/nearby" className="inline-flex min-h-11 w-fit items-center rounded-full bg-[#c9f58b] px-5 py-2 text-sm font-bold text-brand-900 transition-all hover:-translate-y-0.5 hover:bg-[#d8ffad]">Find nearby</Link>
-          </div>
-        </header>
+      <div className="w-full">
+        <SectionHeader page title="Find the right hands" description="Local skills. People who can help. Find an artisan for the job you have in mind." action={<Link href="/nearby" className="btn-primary">Find nearby</Link>} />
 
         <div className="mt-8 sm:mt-10">
         <ProfessionalFilters category={category} state={state} lga={lga} search={search} />
@@ -57,11 +48,8 @@ export default async function ArtisansPage({
                 ...(lga ? { lga } : {}),
                 ...(search ? { search } : {}),
               }).toString()}`}
-              className={`flex min-h-10 flex-shrink-0 items-center rounded-full border px-4 text-sm font-semibold transition-colors ${
-                category === item || (item === 'All' && !category)
-                  ? 'border-brand-700 bg-brand-700 text-white'
-                  : 'border-slate-200 bg-white text-slate-500 hover:border-brand-200 hover:text-brand-600'
-              }`}
+              aria-current={category === item || (item === 'All' && !category) ? 'page' : undefined}
+              className="segment"
             >
               {item}
             </a>

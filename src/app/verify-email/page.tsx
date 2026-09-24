@@ -1,5 +1,7 @@
 'use client'
 
+import { StoryArt } from '@/components/ui/StoryArt'
+
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -213,10 +215,10 @@ export default function VerifyEmailPage() {
   return (
     <div className="min-h-dvh bg-surface-base flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md text-center">
-        <div className="mb-8 text-6xl">✉️</div>
+        <StoryArt kind="inbox" className="mx-auto mb-6 w-40" />
 
         <div className="card">
-          <h1 className="font-display text-xl sm:text-2xl font-semibold text-center mb-1">Verify your email</h1>
+          <h1 className="page-heading text-center mb-1">Verify your email</h1>
           <p className="text-sm text-slate-500 text-center mt-3 mb-2 leading-relaxed">
             We sent a verification email to <strong className="text-slate-900">{user?.email}</strong>
           </p>

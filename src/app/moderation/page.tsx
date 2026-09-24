@@ -165,7 +165,7 @@ export default function ModerationPage() {
             <span className="text-slate-300">/</span>
             <span>{copy.title}</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-950">{copy.title}</h1>
+          <h1 className="page-heading">{copy.title}</h1>
           <p className="mt-1 max-w-3xl text-sm text-slate-500">{copy.description}</p>
         </div>
         <div className="flex flex-wrap gap-2">

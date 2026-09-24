@@ -18,8 +18,6 @@ const jakarta = Plus_Jakarta_Sans({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
   themeColor: '#0F4F4A',
   minimumScale: 1,
@@ -79,12 +77,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               background: '#ffffff',
               color: '#0f172a',
               border: '1px solid #e2e8f0',
-              borderRadius: '14px',
+              borderRadius: '20px',
               padding: '14px 18px',
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: 1.5,
-              boxShadow: '0 16px 40px rgba(15,23,42,0.14), 0 2px 8px rgba(15,23,42,0.06)',
+              boxShadow: 'var(--elevation-3)',
               WebkitFontSmoothing: 'antialiased',
             },
             success: {

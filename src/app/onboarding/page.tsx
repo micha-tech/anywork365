@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { StoryArt } from '@/components/ui/StoryArt'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
 
 const ONBOARDING_KEY = 'anywork365_onboarding_seen'
@@ -115,115 +115,23 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex min-h-dvh flex-col overflow-hidden bg-slate-950 text-white"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
-      <div className="absolute inset-0">
-        {slides.map((slide, i) => (
-          <div
-            key={slide.image}
-            className="absolute inset-0"
-            style={{
-              opacity: i === active ? 1 : 0,
-              transform: i === active ? 'scale(1)' : 'scale(1.035)',
-              transition: 'opacity 0.7s ease, transform 1.6s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-            aria-hidden={i !== active}
-          >
-            {i <= active + 1 && (
-              <Image
-                src={slide.image}
-                alt=""
-                fill
-                sizes="100vw"
-                className={`${slide.align} object-cover`}
-                priority={i === 0}
-              />
-            )}
-          </div>
-        ))}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,31,30,0.42)_0%,rgba(4,31,30,0.08)_34%,rgba(4,31,30,0.54)_62%,rgba(3,15,14,0.96)_100%)]" />
-        <div className="absolute inset-x-0 top-0 h-36 bg-[linear-gradient(180deg,rgba(2,6,23,0.58),rgba(2,6,23,0))]" />
-      </div>
-
-      <div className="relative z-10 flex items-center justify-between px-5 pt-safe">
-        <div className="mt-4 inline-flex min-h-[46px] items-center rounded-lg bg-white px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.18)]">
-          <BrandWordmark href="" priority className="w-[170px]" />
+    <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-white text-slate-900" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <header className="mx-auto flex w-full max-w-lg shrink-0 items-center justify-between gap-4 px-5 pb-2 pt-[max(1.25rem,env(safe-area-inset-top))]">
+        <BrandWordmark href="" priority className="w-44" />
+        <button onClick={complete} className="btn-ghost">Skip</button>
+      </header>
+      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+        <div key={active} className="animate-setup-step flex flex-1 flex-col justify-center py-6" aria-live="polite">
+          <StoryArt kind={active === 0 || active === 3 ? 'people' : active === 1 ? 'work' : 'inbox'} priority className="mx-auto mb-8 max-h-[30dvh] w-full object-contain" />
+          <p className="mb-3 text-sm font-semibold text-brand-500">A better way to work together</p>
+          <h1 className="page-heading">{slides[active].title}</h1>
+          <p className="page-description">{slides[active].description}</p>
         </div>
-        <button
-          onClick={complete}
-          className="mt-4 min-h-[44px] rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white active:scale-95"
-        >
-          Skip
-        </button>
-      </div>
-
-      <div className="relative z-10 flex flex-1 flex-col justify-end px-5 pb-safe">
-        <div className="mx-auto w-full max-w-md pb-6">
-          <div className="mb-5 flex items-center gap-2" aria-label="Slide indicator">
-            {slides.map((_, i) => (
-              <span
-                key={i}
-                className="block h-1.5 rounded-full transition-all duration-500"
-                style={{
-                  width: i === active ? 30 : 7,
-                  background: i === active ? '#F59E0B' : 'rgba(255,255,255,0.42)',
-                }}
-              />
-            ))}
-          </div>
-
-        {slides.map((slide, i) => {
-          const offset = i < active ? -18 : 18
-          return (
-            <div
-              key={slide.title}
-              className={i === active ? 'relative' : 'pointer-events-none absolute inset-x-5 bottom-[9.75rem]'}
-              style={{
-                opacity: i === active ? 1 : 0,
-                transform: i === active ? 'translateY(0)' : `translateY(${offset}px)`,
-                transition: 'opacity 0.52s ease, transform 0.52s cubic-bezier(0.16, 1, 0.3, 1)',
-                pointerEvents: i === active ? 'auto' : 'none',
-              }}
-              aria-live={i === active ? 'polite' : undefined}
-            >
-              <div className="max-w-[21.5rem]">
-                <h1 className="font-display text-[clamp(2rem,8vw,3rem)] font-extrabold leading-[1.02] text-white text-balance">
-                  {slide.title}
-                </h1>
-                <p className="mt-4 text-[15px] leading-relaxed text-white/80 text-balance">
-                  {slide.description}
-                </p>
-              </div>
-            </div>
-          )
-        })}
-
-        <button
-          onClick={goNext}
-          className="mt-7 flex h-14 w-full items-center justify-center rounded-lg bg-brand-500 text-base font-bold text-white shadow-[0_18px_44px_rgba(15,79,74,0.35)] transition-all duration-200 hover:bg-brand-600 active:scale-[0.98]"
-        >
-          {isLast ? 'Log in' : 'Continue'}
-        </button>
-
-        {isLast ? (
-          <button
-            onClick={createAccount}
-            className="mt-3 flex min-h-[48px] w-full items-center justify-center rounded-lg border border-white/20 bg-white/10 text-sm font-bold text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-[0.98]"
-          >
-            Create account
-          </button>
-        ) : (
-          <button
-            onClick={complete}
-            className="mt-3 min-h-[44px] w-full rounded-lg text-sm font-semibold text-white/70 transition-all hover:bg-white/10 hover:text-white active:scale-[0.98]"
-          >
-            Skip to login
-          </button>
-        )}
+        <div className="mb-6 flex justify-center gap-2" aria-label={`Step ${active + 1} of ${slides.length}`}>
+          {slides.map((slide, i) => <button key={slide.title} aria-label={`Go to step ${i + 1}`} aria-current={i === active ? 'step' : undefined} onClick={() => setActive(i)} className="flex h-11 min-w-8 items-center justify-center"><span className={`h-2 rounded-full ${i === active ? 'w-7 bg-brand-500' : 'w-2 bg-slate-300'}`} /></button>)}
         </div>
+        <button onClick={goNext} className="btn-primary w-full text-base">{isLast ? 'Log in' : 'Continue'}</button>
+        <button onClick={isLast ? createAccount : complete} className="btn-ghost mt-3 w-full">{isLast ? 'Create account' : 'Skip to login'}</button>
       </div>
     </div>
   )
@@ -232,7 +140,7 @@ export default function OnboardingPage() {
 function OnboardingSplash() {
   return (
     <div className="fixed inset-0 z-50 flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-brand-900 px-6 text-center text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(59,166,159,0.32),transparent_36%),linear-gradient(180deg,#0F4F4A_0%,#041f1e_100%)]" />
+
       <div className="relative flex flex-col items-center">
         <div className="mb-7 flex min-h-[76px] items-center justify-center rounded-xl bg-white px-5 py-4 shadow-[0_22px_60px_rgba(0,0,0,0.24)]">
           <BrandWordmark href="" priority className="w-[280px] max-w-[78vw]" />

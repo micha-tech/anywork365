@@ -376,8 +376,8 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
 
       <Modal open={bookOpen} onClose={() => setBookOpen(false)} title={`Tell ${displayName} what you need`}>
         <form onSubmit={handleBook} className="min-w-0">
-          <div className="mb-5 flex items-start gap-3 rounded-2xl bg-[#efffde] p-4">
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-[#c9f58b] text-brand-900">
+          <div className="mb-5 flex items-start gap-3 rounded-2xl bg-brand-50 p-4">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-100 text-brand-900">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 3v3m10-3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="m9 14 2 2 4-4" />
@@ -435,14 +435,14 @@ export default function ArtisanDetailPage({ params }: { params: Promise<{ id: st
             <button
               type="button"
               onClick={() => setBookOpen(false)}
-              className="inline-flex h-11 flex-none items-center justify-center rounded-full px-3.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200 sm:px-5"
+              className="btn-ghost flex-none"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={bookingLoading}
-              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-full bg-brand-500 px-4 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(15,79,74,0.16)] transition-all hover:-translate-y-0.5 hover:bg-brand-600 active:scale-[0.98] active:bg-brand-700 disabled:pointer-events-none disabled:opacity-50 sm:flex-none sm:px-6"
+              className="btn-primary min-w-0 flex-1 sm:flex-none"
             >
               {bookingLoading ? 'Sending...' : 'Send booking request'}
             </button>

@@ -66,7 +66,7 @@ export default function AdminDisputesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-slate-900">Disputes ({total})</h1>
+      <h1 className="page-heading">Disputes ({total})</h1>
 
       <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
         className="border border-slate-300 rounded-xl px-3 py-2 text-sm">

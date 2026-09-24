@@ -53,7 +53,7 @@ function NotificationBell({ unreadCount, onClick }: { unreadCount: number; onCli
   return (
     <button
       onClick={onClick}
-      className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-500 transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-brand-600"
+      className="icon-button relative"
       aria-label="Notifications"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -131,21 +131,21 @@ export function Navbar() {
 
   return (
     <>
-      <header className="navbar sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
+      <header className="navbar sticky top-0 z-50 border-b border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 h-16">
 
             <BrandLogo size="md" priority imageClassName="object-contain" />
 
-            <nav className="hidden items-center gap-1 rounded-full border border-slate-200/70 bg-slate-50/70 p-1 md:flex">
+            <nav className="hidden items-center gap-1 p-1 md:flex">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'relative rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-150',
+                    'relative min-h-11 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-colors duration-150',
                     pathname.startsWith(link.href)
-                      ? 'bg-white font-semibold text-brand-700 shadow-sm'
+                      ? 'bg-brand-50 font-bold text-brand-500'
                       : 'text-slate-600 hover:bg-white/70 hover:text-brand-600'
                   )}
                 >
@@ -268,7 +268,8 @@ export function Navbar() {
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 aria-label="Toggle menu"
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-brand-600"
+                aria-expanded={menuOpen}
+                className="icon-button"
               >
                 {menuOpen ? (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -289,8 +290,8 @@ export function Navbar() {
       </header>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden" style={{ top: '64px' }}>
-          <div className="absolute inset-0 bg-slate-950/30 backdrop-blur-[2px]" onClick={() => setMenuOpen(false)} />
+        <div className="fixed inset-0 z-[45] overflow-y-auto md:hidden" style={{ top: 'calc(64px + env(safe-area-inset-top, 0px))' }}>
+          <div className="absolute inset-0 bg-slate-950/30" onClick={() => setMenuOpen(false)} />
           <div className="relative rounded-b-3xl border-b border-slate-200 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.10)]">
             <nav className="flex flex-col gap-1 px-4 py-4">
               {navLinks.map((link) => (

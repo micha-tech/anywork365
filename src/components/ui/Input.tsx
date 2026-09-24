@@ -1,4 +1,6 @@
-import { forwardRef, InputHTMLAttributes } from 'react'
+'use client'
+
+import { forwardRef, useId, InputHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -9,7 +11,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, className, id, ...props }, ref) => {
-    const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
+    const generatedId = useId()
+    const inputId = id ?? generatedId
 
     return (
       <div className="form-group">
@@ -21,6 +24,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           className={cn(
             'input-field',
             error && 'border-amber-300 focus:border-amber-400 focus:ring-amber-400/10',
@@ -29,10 +34,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {error && (
-          <p className="mt-2 text-xs font-medium text-amber-700">{error}</p>
+          <p id={`${inputId}-error`} role="alert" className="field-message field-error">{error}</p>
         )}
         {hint && !error && (
-          <p className="mt-2 text-xs leading-5 text-slate-500">{hint}</p>
+          <p id={`${inputId}-hint`} className="field-message">{hint}</p>
         )}
       </div>
     )

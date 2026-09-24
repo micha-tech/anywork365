@@ -584,7 +584,7 @@ export default function ProfilePage() {
     <>
       <div className="mb-5 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-xl sm:text-2xl font-semibold">My Profile</h1>
+          <h1 className="page-heading">My Profile</h1>
           <p className="text-sm text-slate-500 mt-1">Manage your personal information</p>
         </div>
         {(user?.role === 'artisan' || user?.role === 'professional') && (
@@ -598,7 +598,7 @@ export default function ProfilePage() {
 
       {user?.role === 'professional' && (
         <section className="mb-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="relative h-32 overflow-hidden bg-[linear-gradient(120deg,#064e3b_0%,#0f766e_50%,#2dd4bf_100%)] sm:h-52">
+          <div className="relative h-32 overflow-hidden bg-brand-500 sm:h-52">
             {currentCover && (
               <Image
                 src={currentCover}
@@ -932,7 +932,7 @@ export default function ProfilePage() {
             <div>
               <h2 className="text-base font-semibold text-slate-900">Professional background</h2>
               <p className="mt-1 text-sm leading-6 text-slate-500">
-                Add your qualifications, certifications and employment history for recruiters.
+                Add your qualifications, certifications and work history so clients can hire with confidence.
               </p>
             </div>
             <button

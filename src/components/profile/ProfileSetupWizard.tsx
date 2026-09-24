@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/ui'
+import { StoryArt } from '@/components/ui/StoryArt'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
 import { notifyCurrentUserChanged } from '@/hooks/useCurrentUser'
 import { getLocalGovernments } from '@/lib/nigeria-locations'
@@ -263,7 +264,7 @@ export function ProfileSetupWizard() {
         <aside className="border-b border-slate-200 bg-slate-50/70 px-4 py-6 sm:px-6 lg:border-b-0 lg:border-r lg:py-10">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-600">Profile setup</p>
           <h1 className="mt-2 font-display text-xl font-bold text-slate-950">
-            {data.role === 'artisan' ? 'Get ready for booking requests' : 'Build a profile recruiters can trust'}
+            {data.role === 'artisan' ? 'Get ready for booking requests' : 'Show clients what you do best'}
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             {data.role === 'artisan'
@@ -316,7 +317,7 @@ export function ProfileSetupWizard() {
                 </button>
               )}
               <p className="text-sm font-semibold text-brand-600">Step {step + 1} of {steps.length}</p>
-              <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{steps[step].title}</h2>
+              <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">{steps[step].title}</h2>
               <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">{steps[step].description}</p>
 
               <div className="mt-8">
@@ -429,7 +430,7 @@ function stepDefinitions(role: SetupRole) {
         { shortTitle: 'Profile photo', title: 'Add a professional profile photo', description: 'A clear, recent photo makes your profile more credible and easier for recruiters to remember.' },
         { shortTitle: 'Introduction', title: 'Complete your professional introduction', description: 'Help recruiters understand where you are based and what you bring to an opportunity.' },
         { shortTitle: 'Career headline', title: 'Sharpen your professional headline', description: 'Review the role, specialty and experience recruiters will see first.' },
-        { shortTitle: 'Background', title: 'Add qualifications and work experience', description: 'A concise work history gives recruiters the evidence they need to assess your profile.' },
+        { shortTitle: 'Background', title: 'Add qualifications and work experience', description: 'A concise work history helps clients and businesses understand the value you bring.' },
         { shortTitle: 'Cover image', title: 'Finish with a professional cover image', description: 'Choose a simple image connected to your work, industry or professional identity.' },
       ]
 }
@@ -594,7 +595,7 @@ function ProfessionalBackgroundStep({ value, saving, onContinue }: { value: Prof
 function CoverStep({ data, inputRef, saving, onFile }: { data: SetupData; inputRef: React.RefObject<HTMLInputElement | null>; saving: boolean; onFile: (file?: File) => void }) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200">
-      <div className="relative flex aspect-[4/1] min-h-40 items-center justify-center overflow-hidden bg-[linear-gradient(120deg,#0F4F4A,#1F6F68,#72c7c3)] px-6 text-center text-sm font-semibold text-white">
+      <div className="relative flex aspect-[4/1] min-h-40 items-center justify-center overflow-hidden bg-brand-500 px-6 text-center text-sm font-semibold text-white">
         {data.professional?.coverImageUrl && (
           <Image src={data.professional.coverImageUrl} alt="Current professional cover" fill unoptimized className="object-cover" />
         )}
@@ -613,15 +614,15 @@ function CoverStep({ data, inputRef, saving, onFile }: { data: SetupData; inputR
 function CompletionView({ data, publicProfileHref, exitHref }: { data: SetupData; publicProfileHref: string; exitHref: string }) {
   return (
     <section className="animate-setup-step mx-auto max-w-2xl py-4 sm:py-10">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-2xl text-brand-700">✓</span>
-      <p className="mt-6 text-sm font-bold uppercase tracking-[0.16em] text-brand-600">Profile setup complete</p>
-      <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+      <StoryArt kind="ready" className="w-40" />
+      <p className="mt-6 text-sm font-bold text-brand-500">Profile setup complete</p>
+      <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
         {data.role === 'artisan' ? 'You’re ready to be discovered by clients' : 'Your profile is ready to stand out'}
       </h2>
       <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
         {data.role === 'artisan'
           ? 'Clients can now understand your services, location and experience before sending a booking request.'
-          : 'Recruiters can now review a clear professional story, from your qualifications and experience to your specialty.'}
+          : 'Clients and businesses can now see a clear professional story, from your qualifications and experience to your specialty.'}
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <Link href={publicProfileHref} className="btn-primary px-6">View my public profile</Link>

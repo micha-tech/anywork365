@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Avatar, VerifiedBusinessBadge } from '@/components/ui'
+import { Avatar, VerifiedBusinessBadge, EmptyState } from '@/components/ui'
 import { BUSINESS_CATEGORY_GROUPS } from '@/types'
 import { getCurrentLocation, LocationAccessError } from '@/lib/client-geolocation'
 import { getInitials } from '@/lib/utils'
@@ -114,9 +114,7 @@ export function NearbyArtisans() {
               </div>
             </>
           ) : (
-            <div className="soft-panel py-12 text-center">
-              <p className="font-semibold text-slate-800">No artisans near you at the moment</p>
-            </div>
+            <EmptyState icon="search" title="No artisans near you at the moment" />
           )}
         </div>
       )}

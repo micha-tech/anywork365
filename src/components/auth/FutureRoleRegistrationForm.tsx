@@ -192,7 +192,7 @@ export function FutureRoleRegistrationForm({ accountType }: { accountType: Futur
       <RegistrationFormHeader
         title={`Create your ${accountType} account`}
         description={isProfessional
-          ? 'Share your industry and professional service so relevant opportunities can find you.'
+          ? 'Showcase your expertise and professional services so clients can find and hire you.'
           : isIntern
             ? 'Create a profile that helps you find practical experience and early-career opportunities.'
             : 'Tell us about your company and recruitment focus so you can connect with the right talent.'}

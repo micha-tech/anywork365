@@ -118,14 +118,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-start bg-[radial-gradient(circle_at_50%_0%,rgba(201,245,139,0.24),transparent_26rem),linear-gradient(180deg,#ffffff_0%,#f7f8f3_100%)] px-4 py-6 sm:justify-center sm:py-10">
+    <div className="flex min-h-dvh flex-col items-center justify-start bg-surface-base px-4 py-6 sm:justify-center sm:py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex justify-center sm:mb-8">
           <BrandWordmark priority className="w-[245px] sm:w-[285px]" />
         </div>
 
         <div className="card p-5 sm:p-8">
-          <h1 className="mb-1 text-center font-display text-2xl font-bold tracking-tight sm:text-3xl">Welcome back</h1>
+          <h1 className="mb-1 text-center font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Welcome back</h1>
           <p className="text-sm text-slate-500 text-center mb-6 sm:mb-8">Log in to find artisans, view jobs and manage your bookings.</p>
 
           <GoogleAuthButton onClick={handleGoogleSignIn} loading={googleSubmitting} />
@@ -133,9 +133,10 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="form-group">
-              <label className="label">Email address</label>
+              <label htmlFor="login-email" className="label">Email address</label>
               <input
                 {...register('email')}
+                id="login-email"
                 type="email"
                 inputMode="email"
                 autoComplete="email"
@@ -147,7 +148,7 @@ export default function LoginPage() {
 
             <div className="form-group">
               <div className="flex items-center justify-between mb-1.5">
-                <label className="label mb-0">Password</label>
+                <label htmlFor="login-password" className="label mb-0">Password</label>
                 <button
                   type="button"
                   onClick={handleForgotPassword}
@@ -160,6 +161,7 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   {...register('password')}
+                  id="login-password"
                   type={showPw ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="Enter your password"

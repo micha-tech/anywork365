@@ -247,11 +247,9 @@ export default function DashboardPage() {
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             {isVendorDashboard && (
-              <span className="friendly-pill mb-3 bg-white/10 text-[#d8ffad] ring-1 ring-inset ring-white/10">
-                <SparkleIcon className="h-3.5 w-3.5" /> Artisan workspace
-              </span>
+              <p className="mb-3 text-sm font-semibold text-white/80">Your workspace</p>
             )}
-            <h1 className="font-display text-2xl font-bold tracking-[-0.04em] text-white sm:text-4xl">{greeting}</h1>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">{greeting}</h1>
             <p className="mt-2 text-sm leading-6 text-white/70 sm:text-base">
               {isClientDashboard
                 ? 'Search for an artisan or review your bookings.'
@@ -279,10 +277,10 @@ export default function DashboardPage() {
             </form>
           ) : isVendorDashboard ? (
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Link href="/dashboard/bookings" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#c9f58b] px-5 py-2.5 text-sm font-bold text-brand-900 shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#d8ffad]">
+              <Link href="/dashboard/bookings" className="btn-outline">
                 Open requests
               </Link>
-              <Link href="/dashboard/my-business" className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15">
+              <Link href="/dashboard/my-business" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/40 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10">
                 Edit profile
               </Link>
             </div>
@@ -637,15 +635,6 @@ function StoreIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 10h16l-1 10H5L4 10Z" />
       <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-    </svg>
-  )
-}
-
-function SparkleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m12 3 1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4L12 3Z" />
-      <path d="M19 15v4M21 17h-4" />
     </svg>
   )
 }

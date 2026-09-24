@@ -43,7 +43,7 @@ export default async function RecruiterApplicationsPage({
       <div className="mb-6 rounded-3xl border border-brand-100 bg-[#efffde] p-5 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Job applications</h1>
+            <h1 className="page-heading">Job applications</h1>
             <p className="mt-1 text-sm text-slate-600">Review candidates who applied to your published jobs.</p>
           </div>
           <Link href="/dashboard/jobs" className="btn-ghost px-4 py-2.5 text-sm">Manage jobs</Link>

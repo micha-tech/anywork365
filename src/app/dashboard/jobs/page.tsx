@@ -34,7 +34,7 @@ export default async function MyJobsPage({
       <div className="mb-6 rounded-3xl border border-brand-100 bg-[#efffde] p-5 shadow-[0_10px_30px_rgba(15,79,74,0.05)] sm:mb-7 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-xl font-semibold text-slate-900 sm:text-2xl">Posted Jobs</h1>
+            <h1 className="page-heading">Posted Jobs</h1>
             <p className="mt-1 text-sm text-slate-600">Manage hiring posts connected to your business.</p>
           </div>
           <Link href="/dashboard/post-job" className="btn-primary text-sm flex-shrink-0">Post job</Link>

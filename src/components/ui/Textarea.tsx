@@ -1,4 +1,6 @@
-import { forwardRef, TextareaHTMLAttributes } from 'react'
+'use client'
+
+import { forwardRef, useId, TextareaHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -9,7 +11,8 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, hint, className, id, ...props }, ref) => {
-    const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
+    const generatedId = useId()
+    const inputId = id ?? generatedId
 
     return (
       <div className="form-group">
@@ -21,6 +24,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           id={inputId}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           className={cn(
             'input-field resize-y min-h-[96px]',
             error && 'border-amber-300 focus:border-amber-400',
@@ -28,8 +33,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           )}
           {...props}
         />
-        {error && <p className="mt-1.5 text-xs text-amber-600">{error}</p>}
-        {hint && !error && <p className="mt-1.5 text-xs text-slate-500">{hint}</p>}
+        {error && <p id={`${inputId}-error`} role="alert" className="field-message field-error">{error}</p>}
+        {hint && !error && <p id={`${inputId}-hint`} className="field-message">{hint}</p>}
       </div>
     )
   }

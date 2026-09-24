@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { VerifiedBusinessBadge } from '@/components/ui'
@@ -152,11 +153,11 @@ function ChatPageContent() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-144px)] md:h-[calc(100dvh-64px)] bg-[#ECE5DD] overflow-hidden">
+    <div className="fixed inset-x-0 bottom-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] top-[calc(4rem+env(safe-area-inset-top,0px))] flex min-h-0 overflow-hidden bg-surface-base md:static md:h-[calc(100dvh-64px)]">
       {/* Conversations List - hide on mobile when a conversation is selected */}
       <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-[400px] bg-white flex-col`}>
-        <div className="p-4 bg-[#F0F2F5] border-b border-gray-200">
-          <h1 className="font-semibold text-lg text-[#111]">Messages</h1>
+        <div className="p-4 bg-surface-50 border-b border-gray-200">
+          <h1 className="font-extrabold text-2xl tracking-tight text-slate-900">Messages</h1>
         </div>
 
         {connectionIssue && !selectedConv && (
@@ -173,19 +174,8 @@ function ChatPageContent() {
         )}
         
         {conversations.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center p-4 text-center">
-            <div>
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#E0E0E0] flex items-center justify-center">
-                <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <p className="text-sm text-gray-500">No messages yet</p>
-              <p className="text-xs text-gray-400 mt-1">Start a conversation with an artisan</p>
-              <Link href="/artisans" className="mt-4 inline-block text-sm text-[#00A884] hover:underline">
-                Browse Artisans
-              </Link>
-            </div>
+          <div className="flex-1 overflow-y-auto">
+            <EmptyState icon="messages" title="Your next conversation starts here" description="Reach out to an artisan to talk through your job." action={<Link href="/artisans" className="btn-outline">Browse artisans</Link>} />
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto overscroll-contain">
@@ -200,7 +190,7 @@ function ChatPageContent() {
                     selectedConv?.id === conv.id ? 'bg-[#E5F3EF]' : ''
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#00A884] flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden">
+                  <div className="w-12 h-12 rounded-full bg-brand-500 flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden">
                     <span className="leading-none">{initials}</span>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -222,7 +212,7 @@ function ChatPageContent() {
                     </p>
                   </div>
                   {(conv.unreadCount[user?.id ?? ''] ?? 0) > 0 && (
-                    <span className="w-5 h-5 rounded-full bg-[#00A884] text-white text-xs flex items-center justify-center flex-shrink-0">
+                    <span className="w-5 h-5 rounded-full bg-brand-500 text-white text-xs flex items-center justify-center flex-shrink-0">
                       {conv.unreadCount[user?.id ?? '']}
                     </span>
                   )}
@@ -234,11 +224,11 @@ function ChatPageContent() {
       </div>
 
       {/* Chat Window - show on mobile when a conversation is selected */}
-      <div className={`${selectedConv ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
+      <div className={`${selectedConv ? 'flex' : 'hidden md:flex'} min-h-0 min-w-0 flex-1 flex-col`}>
         {!selectedConv ? (
-          <div className="flex-1 flex items-center justify-center bg-[#ECE5DD]">
+          <div className="flex-1 flex items-center justify-center bg-surface-base">
             <div className="text-center">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-[#DFDCD7] flex items-center justify-center">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-surface-200 flex items-center justify-center">
                 <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
@@ -250,7 +240,7 @@ function ChatPageContent() {
         ) : (
           <>
             {/* Chat Header */}
-            <div className="p-4 bg-[#F0F2F5] border-b border-gray-200 flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-surface-50 p-4">
               <Link href="/messages" className="md:hidden p-2 hover:bg-gray-100 rounded-full">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -261,7 +251,7 @@ function ChatPageContent() {
                 const initials = other ? getInitials(other.firstName, other.lastName) : '?'
                 return (
                   <>
-                    <div className="w-10 h-10 rounded-full bg-[#00A884] flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden">
+                    <div className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden">
                       <span className="leading-none">{initials}</span>
                     </div>
                     <div>
@@ -277,7 +267,7 @@ function ChatPageContent() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[#ECE5DD] overscroll-contain">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain bg-surface-base p-4 scroll-momentum">
               {connectionIssue && (
                 <div className="mx-auto flex max-w-xl items-center justify-between gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm">
                   <span>{connectionIssue}</span>
@@ -294,14 +284,14 @@ function ChatPageContent() {
                 </div>
               )}
               <div className="flex justify-center my-4">
-                <span className="text-xs text-gray-400 bg-[#DFDCD7] px-4 py-1 rounded-full">
+                <span className="text-xs text-gray-400 bg-surface-200 px-4 py-1 rounded-full">
                   Messages are end-to-end encrypted
                 </span>
               </div>
               
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-[#00A884] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : messages.length === 0 ? (
                 <div className="text-center py-8">
@@ -317,7 +307,7 @@ function ChatPageContent() {
                     <div key={msg.id}>
                       {showTime && (
                         <div className="flex justify-center my-4">
-                          <span className="text-xs text-gray-400 bg-[#DFDCD7] px-3 py-1 rounded-full">
+                          <span className="text-xs text-gray-400 bg-surface-200 px-3 py-1 rounded-full">
                             {new Date(msg.createdAt).toLocaleString()}
                           </span>
                         </div>
@@ -326,7 +316,7 @@ function ChatPageContent() {
                         <div
                           className={`max-w-[70%] rounded-2xl px-4 py-2.5 shadow-sm ${
                             isMe
-                              ? 'bg-[#DCF8C6] rounded-br-md'
+                              ? 'bg-brand-100 rounded-br-md'
                               : 'bg-white rounded-bl-md'
                           }`}
                         >
@@ -356,25 +346,25 @@ function ChatPageContent() {
             </div>
 
             {/* Input Area */}
-            <div className="p-3 bg-[#F0F2F5] flex items-end gap-2">
-              <button className="p-2 text-gray-500 hover:bg-gray-200 rounded-full transition-colors">
+            <div className="flex shrink-0 items-end gap-2 bg-surface-50 p-3">
+              <button type="button" className="shrink-0 rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-200">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
-              <form onSubmit={handleSend} className="flex-1 flex gap-2">
+              <form onSubmit={handleSend} className="flex min-w-0 flex-1 gap-2">
                 <input
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 px-4 py-2.5 rounded-full bg-white border border-gray-200 focus:outline-none focus:border-[#00A884]"
+                  className="min-w-0 flex-1 rounded-full border border-gray-200 bg-white px-4 py-2.5 focus:border-brand-500 focus:outline-none"
                   disabled={sending}
                 />
                 <button
                   type="submit"
                   disabled={sending || !newMessage.trim()}
-                  className="p-2.5 bg-[#00A884] text-white rounded-full hover:bg-[#009078] transition-colors disabled:opacity-50"
+                  className="shrink-0 rounded-full bg-brand-500 p-2.5 text-white transition-colors hover:bg-[#009078] disabled:opacity-50"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9 2zm0 0v-8" />
@@ -392,7 +382,7 @@ function ChatPageContent() {
 export default function ChatPage() {
   return (
     <Suspense fallback={
-      <div className="flex h-[calc(100dvh-144px)] md:h-[calc(100dvh-64px)] items-center justify-center bg-[#ECE5DD]">
+      <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] top-[calc(4rem+env(safe-area-inset-top,0px))] flex items-center justify-center bg-surface-base md:static md:h-[calc(100dvh-64px)]">
         <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>

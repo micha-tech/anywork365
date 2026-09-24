@@ -48,7 +48,7 @@ export function RegistrationShell({
   )
 
   return (
-    <div className="min-h-dvh bg-[#f5f8f7]">
+    <div className="min-h-dvh bg-surface-base">
       <header className="flex min-h-[68px] items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
         <BrandWordmark priority className="w-[190px] max-w-[calc(100vw-6.5rem)]" />
         <AuthRedirectLink href="/login" className="inline-flex min-h-[44px] flex-shrink-0 items-center px-1 text-sm font-semibold text-brand-700">
@@ -77,8 +77,9 @@ export function RegistrationShell({
           </div>
         </div>
 
-        <section className="grid items-start sm:px-6 lg:grid-cols-[minmax(0,0.88fr)_minmax(560px,1.12fr)] lg:gap-7 lg:px-0">
-          <div className="relative h-[560px] overflow-hidden bg-slate-900 text-white sm:h-[600px] sm:rounded-3xl sm:shadow-[0_18px_50px_rgba(15,23,42,0.14)] lg:hidden">
+        <section className="grid items-start sm:px-6 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-7 lg:px-0">
+          <div className="overflow-hidden bg-brand-500 text-white sm:rounded-3xl sm:shadow-card-md lg:hidden">
+            <div className="relative h-56 sm:h-64">
             <Image
               src={imageSrc}
               alt={imageAlt}
@@ -88,13 +89,13 @@ export function RegistrationShell({
               className="object-cover"
               style={{ objectPosition: imagePosition }}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,24,23,0.1)_0%,rgba(3,24,23,0.03)_35%,rgba(3,24,23,0.88)_72%,rgba(3,15,14,0.98)_100%)]" />
-            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+            </div>
+            <div className="p-5 sm:p-6">
               {marketingCopy}
             </div>
           </div>
 
-          <aside className="relative hidden overflow-hidden rounded-3xl bg-slate-900 text-white shadow-[0_18px_50px_rgba(15,23,42,0.16)] lg:sticky lg:top-8 lg:block lg:h-[calc(100dvh-4rem)] lg:min-h-[680px] lg:max-h-[880px]">
+          <aside className="relative hidden overflow-hidden rounded-3xl bg-slate-900 text-white shadow-card-lg lg:sticky lg:top-8 lg:block lg:h-[calc(100dvh-4rem)] lg:min-h-[680px] lg:max-h-[880px]">
             <Image
               src={imageSrc}
               alt={imageAlt}
@@ -110,7 +111,7 @@ export function RegistrationShell({
             </div>
           </aside>
 
-          <div className="bg-white px-4 pb-8 pt-6 sm:mt-5 sm:rounded-3xl sm:border sm:border-slate-200/80 sm:p-8 sm:shadow-[0_18px_50px_rgba(15,23,42,0.07)] lg:mt-0 lg:p-10 xl:p-12">
+          <div className="bg-white px-4 pb-8 pt-6 sm:mt-5 sm:rounded-3xl sm:border sm:border-slate-200/80 sm:p-8 sm:shadow-card-md lg:mt-0 lg:p-10 xl:p-12">
             {children}
           </div>
         </section>

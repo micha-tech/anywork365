@@ -113,7 +113,7 @@ export function ArtisanLiveLocation() {
   }
 
   return (
-    <section className={`mb-6 overflow-hidden rounded-3xl border shadow-[0_12px_34px_rgba(15,79,74,0.06)] ${sharing ? 'border-brand-300 bg-[linear-gradient(135deg,#efffde_0%,#ffffff_70%)]' : 'border-slate-200 bg-white'}`}>
+    <section className={`mb-6 overflow-hidden rounded-3xl border shadow-card-md ${sharing ? 'border-brand-300 bg-brand-50' : 'border-slate-200 bg-white'}`}>
       <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="flex min-w-0 items-start gap-3.5">
           <div className={`relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${sharing ? 'bg-brand-700 text-[#d8ffad]' : 'bg-slate-100 text-slate-500'}`}>
@@ -142,7 +142,7 @@ export function ArtisanLiveLocation() {
           disabled={busy}
           onClick={sharing ? stopSharing : startSharing}
           aria-pressed={sharing}
-          className={`min-h-11 w-full flex-shrink-0 justify-center rounded-full px-5 sm:w-auto ${sharing ? 'btn-outline border-slate-300 text-slate-700' : 'btn-primary'}`}
+          className={`min-h-12 w-full flex-shrink-0 justify-center rounded-2xl px-5 sm:w-auto ${sharing ? 'btn-outline border-slate-300 text-slate-700' : 'btn-primary'}`}
         >
           {busy ? 'Please wait...' : sharing ? 'Pause sharing' : 'Show me nearby'}
         </button>

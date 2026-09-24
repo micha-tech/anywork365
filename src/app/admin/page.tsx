@@ -35,7 +35,7 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900">Admin Overview</h1>
+      <h1 className="page-heading">Admin Overview</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Total Users" value={stats?.users.total ?? 0} sub={`${stats?.users.artisans ?? 0} artisans`} />

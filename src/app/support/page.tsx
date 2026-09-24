@@ -211,7 +211,7 @@ export default function SupportDashboardPage() {
     <div className="mx-auto max-w-[1600px] px-4 py-6 md:px-7 lg:px-8 lg:py-8">
       <section className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+          <h1 className="page-heading">
             Profile setup progress
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">

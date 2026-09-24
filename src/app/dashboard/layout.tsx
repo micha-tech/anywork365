@@ -26,7 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {(session.role === 'artisan' || session.role === 'recruiter') && <DashboardSidebar />}
 
       {/* Main content */}
-      <main className="relative flex-1 overflow-y-auto bg-[radial-gradient(circle_at_100%_0%,rgba(114,199,195,0.12),transparent_26rem),linear-gradient(180deg,#fbfdfc_0%,#f5f8f7_100%)] px-4 py-5 pb-28 sm:px-8 sm:py-8 sm:pb-8">
+      <main className="relative min-w-0 flex-1 bg-surface-base px-5 py-8 sm:px-8 sm:py-10">
         <div className="mx-auto w-full max-w-7xl">{children}</div>
       </main>
     </div>

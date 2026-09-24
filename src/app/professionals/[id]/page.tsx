@@ -52,7 +52,7 @@ export default async function ProfessionalProfilePage({
         </Link>
 
         <header className="overflow-hidden border-b border-slate-200 bg-white">
-          <div className="relative h-28 overflow-hidden bg-[linear-gradient(120deg,#064e3b_0%,#0f766e_50%,#2dd4bf_100%)] sm:h-44">
+          <div className="relative h-28 overflow-hidden bg-brand-500 sm:h-44">
             {coverUrl && (
               <Image
                 src={coverUrl}
@@ -187,7 +187,7 @@ export default async function ProfessionalProfilePage({
                             className="aspect-[3/2] w-full object-cover"
                           />
                         ) : (
-                          <div className="flex aspect-[3/2] items-center justify-center bg-[linear-gradient(135deg,#ecfdf5_0%,#ccfbf1_100%)] px-6 text-center font-display text-lg font-semibold text-brand-800">
+                          <div className="flex aspect-[3/2] items-center justify-center bg-brand-50 px-6 text-center font-display text-lg font-semibold text-brand-800">
                             {item.title}
                           </div>
                         )}

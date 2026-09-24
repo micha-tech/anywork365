@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface NotificationItem {
   id: number
@@ -56,7 +57,7 @@ export default function NotificationsPage() {
     <div className="max-w-3xl">
       <div className="mb-5 flex items-start justify-between gap-4 sm:mb-7">
         <div>
-          <h1 className="font-display text-xl font-semibold sm:text-2xl">Notifications</h1>
+          <h1 className="page-heading">Notifications</h1>
           <p className="mt-1 text-sm text-slate-500">Booking requests, status changes, and account updates</p>
         </div>
         {unreadCount > 0 && (
@@ -78,10 +79,7 @@ export default function NotificationsPage() {
           ))}
         </div>
       ) : notifications.length === 0 ? (
-        <div className="border-y border-slate-200 py-12 text-center">
-          <p className="text-sm font-medium text-slate-700">No notifications yet</p>
-          <p className="mt-1 text-sm text-slate-500">Booking updates will appear here.</p>
-        </div>
+        <EmptyState icon="messages" title="You’re all caught up" description="Booking and account updates will appear here." />
       ) : (
         <div className="divide-y divide-slate-200 border-y border-slate-200">
           {notifications.map((notification) => (

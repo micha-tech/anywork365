@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { SectionHeader } from '@/components/ui/SectionHeader'
 import { startChatConversation } from '@/lib/chat-client'
 
 interface BookingQuote {
@@ -533,14 +534,14 @@ export default function BookingsPage() {
 
   const statusColors: Record<string, string> = {
     pending: 'bg-amber-100 text-amber-800',
-    awaiting_payment: 'bg-violet-100 text-violet-800',
+    awaiting_payment: 'bg-brand-100 text-brand-800',
     confirmed: 'bg-brand-100 text-brand-700',
     completed: 'bg-emerald-100 text-emerald-800',
     cancelled: 'bg-slate-100 text-slate-600',
   }
   const statusAccents: Record<string, string> = {
     pending: 'bg-amber-400',
-    awaiting_payment: 'bg-violet-400',
+    awaiting_payment: 'bg-brand-400',
     confirmed: 'bg-brand-400',
     completed: 'bg-emerald-400',
     cancelled: 'bg-slate-300',
@@ -567,35 +568,15 @@ export default function BookingsPage() {
     <>
       <PullToRefresh onRefresh={loadBookings}>
       <div className="mb-5 sm:mb-7">
-        <div className="friendly-hero p-5 sm:p-7">
-          <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0">
-              <span className="friendly-pill mb-3 bg-white/10 text-[#d8ffad] ring-1 ring-inset ring-white/10">
-                <SparkIcon /> {activeBookings.length} active
-              </span>
-              <h1 className="font-display text-2xl font-bold tracking-[-0.04em] sm:text-4xl">
-                {isVendor ? 'Your work, all in one place' : 'Keep every job moving'}
-              </h1>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-white/70 sm:text-base">
-                {isVendor ? 'Review requests, share quotes and stay on top of every job.' : 'Compare quotes, pay securely and follow each booking.'}
-              </p>
-            </div>
-            <div className="hidden h-20 w-20 items-center justify-center rounded-[2rem] bg-[#c9f58b] text-brand-900 shadow-lg sm:flex">
-              <BookingsHeroIcon />
-            </div>
-          </div>
-        </div>
+        <SectionHeader page title={isVendor ? 'Your work, all together' : 'Keep every job moving'} description={isVendor ? 'Review requests, share quotes and follow each job.' : 'Review quotes, make payments and follow each booking.'} action={<span className="badge badge-neutral">{activeBookings.length} active</span>} />
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-none sm:mx-0 sm:px-0">
           {bookingTabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setStatusFilter(tab.key)}
-              className={`flex-shrink-0 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all sm:text-sm ${
-                statusFilter === tab.key
-                  ? 'border-brand-700 bg-brand-700 text-white shadow-[0_6px_16px_rgba(15,79,74,0.16)]'
-                  : 'border-slate-200 bg-white text-slate-500 hover:-translate-y-0.5 hover:border-brand-300 hover:text-brand-600'
-              }`}
+              aria-pressed={statusFilter === tab.key}
+              className="segment"
             >
               {tab.label}
               <span className="ml-1.5 text-xs opacity-70">{tab.count}</span>
@@ -668,8 +649,7 @@ export default function BookingsPage() {
             <BookingTimeline status={b.status} />
 
             {latestQuote && (
-              <div className="relative mt-5 overflow-hidden rounded-2xl border border-brand-100 bg-[linear-gradient(135deg,#f5fbfa_0%,#ffffff_65%)] p-4 sm:p-5">
-                <div className="absolute -right-5 -top-6 h-20 w-20 rounded-full bg-[#c9f58b]/25" />
+              <div className="relative mt-5 overflow-hidden rounded-2xl border border-brand-100 bg-surface-50 p-4 sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-brand-600"><QuoteIcon /> Artisan quote</p>
@@ -706,13 +686,13 @@ export default function BookingsPage() {
             )}
 
             {b.status === 'awaiting_payment' && (
-              <div className="mt-4 flex items-start gap-3 rounded-2xl border border-violet-200 bg-violet-50 p-3.5 sm:p-4">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><PaymentIcon /></div>
+              <div className="mt-4 flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-3.5 sm:p-4">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700"><PaymentIcon /></div>
                 <div>
-                <p className="text-sm font-semibold text-violet-950">
+                <p className="text-sm font-semibold text-brand-900">
                   {isVendor ? 'Awaiting client payment' : 'Payment required'}
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-violet-700">
+                <p className="mt-1 text-xs leading-relaxed text-brand-700">
                   {isVendor
                     ? 'We\u2019ll notify you when it\u2019s confirmed.'
                     : b.payment?.status === 'active'
@@ -875,8 +855,7 @@ export default function BookingsPage() {
       >
         {paymentBooking && (
           <div>
-            <div className="relative mb-5 overflow-hidden rounded-3xl border border-brand-100 bg-[#efffde] p-5">
-              <div className="absolute -right-4 -top-8 h-24 w-24 rounded-full bg-[#c9f58b]" />
+            <div className="relative mb-5 overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 p-5">
               <div className="relative flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wide text-brand-700">
                 <span>Amount due</span>
                 <span>Booking #{paymentBooking.id}</span>
@@ -957,7 +936,7 @@ export default function BookingsPage() {
                   disabled={paymentSubmitting !== null}
                   className="friendly-choice group disabled:opacity-50"
                 >
-                  <span className="friendly-icon bg-[#efffde] text-brand-700"><WalletChoiceIcon /></span>
+                  <span className="friendly-icon bg-brand-50 text-brand-700"><WalletChoiceIcon /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-bold text-slate-950">Anywork365 balance</span>
                     <span className="mt-0.5 block text-xs text-slate-500">Pay instantly from your available balance.</span>
@@ -1025,8 +1004,7 @@ export default function BookingsPage() {
       <Modal open={quoteBooking !== null} onClose={() => !quoteSubmitting && setQuoteBooking(null)} title="Build your quote">
         {quoteBooking && (
           <form onSubmit={handleSendQuote}>
-            <div className="relative mb-5 overflow-hidden rounded-3xl border border-brand-100 bg-[linear-gradient(135deg,#efffde_0%,#ffffff_75%)] p-4 sm:p-5">
-              <div className="absolute -right-5 -top-8 h-24 w-24 rounded-full bg-[#c9f58b]/35" />
+            <div className="relative mb-5 overflow-hidden rounded-3xl border border-brand-100 bg-surface-50 p-4 sm:p-5">
               <p className="relative flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-brand-700"><QuoteIcon /> Request #{quoteBooking.id}</p>
               <p className="relative mt-2 text-sm font-medium leading-6 text-slate-800">{quoteBooking.description}</p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
@@ -1183,24 +1161,6 @@ export default function BookingsPage() {
       </Modal>
       </PullToRefresh>
     </>
-  )
-}
-
-function SparkIcon() {
-  return (
-    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="m12 3 1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4L12 3Z" />
-      <path strokeLinecap="round" d="M19 15v4M21 17h-4" />
-    </svg>
-  )
-}
-
-function BookingsHeroIcon() {
-  return (
-    <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7 3v3m10-3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="m9 14 2 2 4-4" />
-    </svg>
   )
 }
 

@@ -6,12 +6,12 @@ import { cn } from '@/lib/utils'
 
 const AVATAR_COLORS = [
   'bg-brand-500',
-  'bg-blue-600',
-  'bg-purple-600',
-  'bg-amber-500',
-  'bg-rose-500',
-  'bg-teal-600',
-  'bg-indigo-600',
+  'bg-[#496b58]',
+  'bg-[#4e6372]',
+  'bg-[#82613b]',
+  'bg-[#82584c]',
+  'bg-[#3c6a63]',
+  'bg-[#62674e]',
 ]
 
 interface AvatarProps {
@@ -38,7 +38,7 @@ export function Avatar({ initials, src, size = 'md', colorIndex = 0, className }
   return (
     <div
       className={cn(
-        'flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white',
+        'flex flex-shrink-0 items-center justify-center overflow-hidden rounded-[28%] font-bold text-white',
         sizeMap[size],
         color,
         className

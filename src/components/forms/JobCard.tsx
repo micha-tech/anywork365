@@ -20,14 +20,14 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
     : 'Open until filled'
 
   return (
-    <div className={`card min-w-0 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-md sm:p-5 ${
+    <div className={`friendly-card-interactive min-w-0 p-5 sm:p-6 ${
       job.timeline === 'urgent' ? 'border-l-4 border-l-red-500' : ''
     }`}>
       <div className="mb-3 flex items-start justify-between gap-2">
         <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold border ${
           job.jobType === 'full-time'
-            ? 'bg-blue-50 text-blue-700 border-blue-100'
-            : 'bg-purple-50 text-purple-700 border-purple-100'
+            ? 'bg-slate-100 text-slate-700 border-slate-200'
+            : 'bg-slate-100 text-slate-700 border-slate-200'
         }`}>
           {formatOption(job.jobType)}
         </span>
@@ -45,7 +45,7 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
 
       <div className="flex items-start justify-between gap-3 mb-2">
         <Link href={`/jobs/${job.id}`} className="flex-1 min-w-0">
-          <h3 className="font-medium text-slate-900 hover:text-brand-500 transition-colors text-sm sm:text-base leading-snug">
+          <h3 className="font-extrabold text-slate-900 hover:text-brand-500 transition-colors text-lg leading-snug">
             {job.title}
           </h3>
         </Link>
@@ -84,7 +84,7 @@ export function JobCard({ job, showApply = true }: JobCardProps) {
           <span className="text-xs text-slate-500 truncate">Applications close {deadlineDate}</span>
           <Link
             href={`/jobs/${job.id}`}
-            className="btn-primary min-h-[36px] flex-shrink-0 px-4 py-2 text-xs"
+            className="btn-outline flex-shrink-0 px-4 py-2 text-sm"
           >
             Apply
           </Link>

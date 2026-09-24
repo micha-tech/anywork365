@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import Image from 'next/image'
+import { StoryArt } from '@/components/ui/StoryArt'
 import Link from 'next/link'
 import { JOB_CATEGORIES, NIGERIAN_STATE_NAMES } from '@/types'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -54,137 +54,35 @@ function HeartIcon({ filled = false, className = '' }: { filled?: boolean; class
 }
 
 function HeroSection({ user, loading }: { user: AuthUser | null; loading: boolean }) {
-  const [searchFocused, setSearchFocused] = useState(false)
-
   return (
-    <section className="relative overflow-hidden bg-[#fbfcf8]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_84%_24%,rgba(201,245,139,0.34),transparent_24rem)]" />
-      <div className="absolute inset-x-0 bottom-0 h-px bg-slate-100" />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
-          <div className="space-y-6">
-            <div>
-              <h1 className="max-w-2xl font-display text-4xl font-extrabold leading-[1.04] tracking-[-0.055em] text-slate-950 sm:text-5xl lg:text-[4rem]">
-                Get good work done. Find work worth doing.
-              </h1>
+    <section className="border-b border-slate-200 bg-white">
+      <div className="mx-auto grid max-w-7xl items-center gap-8 px-5 py-10 sm:px-8 sm:py-16 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:py-20">
+        <div>
+          <p className="mb-4 text-sm font-bold text-brand-500">Good people. Great work.</p>
+          <h1 className="max-w-2xl font-display text-4xl font-extrabold leading-[1.08] tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-[3.5rem]">A little help.<br />A world of possibility.</h1>
+          <p className="mt-5 max-w-lg text-base leading-relaxed text-slate-600 sm:text-lg">Find the right hands for your next project, or put your skills to work.</p>
+          <form action="/artisans" method="GET" className="mt-8 space-y-3">
+            <label htmlFor="home-service" className="label">What can we help with?</label>
+            <div className="relative">
+              <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+              <input id="home-service" type="search" name="search" placeholder="Try plumbing, tailoring, painting…" className="input-field pl-12" />
             </div>
-
-            <p className="max-w-xl text-lg text-slate-600 leading-relaxed">
-              Hire trusted local talent, manage each job in one place, or find your next opportunity.
-            </p>
-
-            <form action="/artisans" method="GET" className="flex flex-col gap-2 rounded-[1.75rem] border border-slate-200 bg-white p-2 shadow-[0_18px_45px_rgba(15,79,74,0.08)] sm:flex-row">
-              <div className={`relative flex-1 transition-all duration-200 ${searchFocused ? 'scale-[1.01]' : ''}`}>
-                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  name="search"
-                  placeholder="What service do you need?"
-                  className="h-[52px] w-full rounded-full border border-transparent bg-slate-50 pl-12 pr-4 text-[16px] text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-brand-300 focus:bg-white focus:ring-4 focus:ring-brand-500/10"
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                />
-              </div>
-              <select
-                name="state"
-                className="h-[52px] rounded-full border border-transparent bg-slate-50 px-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-brand-300 focus:bg-white focus:ring-4 focus:ring-brand-500/10 sm:w-40"
-              >
+            <div className="flex gap-3">
+              <select aria-label="State" name="state" className="input-field min-w-0 flex-1">
                 <option value="">All states</option>
-                {NIGERIAN_STATE_NAMES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
+                {NIGERIAN_STATE_NAMES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
-              <button
-                type="submit"
-                className="h-[52px] whitespace-nowrap rounded-full bg-brand-700 px-7 text-sm font-bold text-white shadow-[0_10px_22px_rgba(15,79,74,0.16)] transition-all hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-[0_14px_28px_rgba(15,79,74,0.20)] active:scale-[0.98]"
-              >
-                Search
-              </button>
-            </form>
-
-            {!loading && !user && (
-              <div className="flex flex-wrap gap-3">
-                <Link href="/signup" className="flex h-[48px] items-center justify-center rounded-full bg-brand-700 px-6 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(15,79,74,0.16)] transition-all hover:-translate-y-0.5 hover:bg-brand-800 active:scale-[0.98]">
-                  Create account
-                </Link>
-                <Link href="/login" className="flex h-[48px] items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">
-                  Sign In
-                </Link>
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center gap-6">
-              {[
-                { text: 'Detailed profiles' },
-                { text: 'Ratings from clients' },
-                { text: 'Protected payments' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-slate-500">
-                  <div className="w-5 h-5 rounded-full bg-brand-50 flex items-center justify-center">
-                    <CheckIcon className="w-3 h-3 text-brand-500" />
-                  </div>
-                  <span className="font-medium">{item.text}</span>
-                </div>
-              ))}
+              <button type="submit" className="btn-primary shrink-0 px-6">Find an artisan</button>
             </div>
+          </form>
+          {!loading && !user && <p className="mt-6 text-sm text-slate-600">Here to offer your skills? <Link href="/signup" className="font-bold text-brand-500 underline underline-offset-4">Join Anywork365</Link></p>}
+          <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-600 sm:text-sm">
+            {['Local expertise', 'Clear quotes', 'Booking updates'].map(label => <span key={label} className="inline-flex items-center gap-2"><CheckIcon className="h-4 w-4 text-brand-500" />{label}</span>)}
           </div>
-
-          <div className="flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-[420px]">
-              <div className="absolute inset-x-8 inset-y-10 rounded-[3rem] bg-[#c9f58b]/55" />
-
-              <div className="relative z-10">
-                  <Image
-                  src="/phone-hand.webp"
-                  alt="Anywork365 mobile app"
-                  width={480}
-                  height={620}
-                  priority
-                  sizes="(max-width: 768px) 100vw, 480px"
-                  className="w-full h-auto object-contain"
-                  style={{ filter: 'drop-shadow(0 22px 36px rgba(15,79,74,0.14))' }}
-                />
-              </div>
-
-              <div className="absolute top-[18%] -left-2 z-20 flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-card-md sm:left-0">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#efffde]">
-                  <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-800">Job Completed</p>
-                  <p className="text-[10px] text-slate-400">2 hours ago</p>
-                </div>
-              </div>
-
-              <div className="absolute bottom-[28%] -right-1 z-20 rounded-2xl border border-slate-100 bg-white p-3 shadow-card-md sm:right-0">
-                <div className="flex items-center gap-1">
-                  {[1,2,3,4,5].map((s) => (
-                    <svg key={s} className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.798 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.798-2.034a1 1 0 00-1.175 0l-2.798 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-[10px] text-slate-400 mt-0.5">4.9/5 from 2,000+ reviews</p>
-              </div>
-
-              <div className="absolute bottom-[8%] -left-2 z-20 rounded-2xl border border-slate-100 bg-white p-3 shadow-card-md sm:left-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-800">500+ Artisans</p>
-                    <p className="text-[10px] text-slate-400">Ready to help</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        </div>
+        <div className="mx-auto w-full max-w-lg">
+          <StoryArt kind="people" priority className="w-full" />
+          <p className="mt-4 text-center text-sm text-slate-500">Different skills. One place to connect.</p>
         </div>
       </div>
     </section>
@@ -413,7 +311,7 @@ export default function HomePage() {
               Book an artisan, offer your services, apply for jobs or recruit candidates.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="flex h-[52px] items-center justify-center rounded-full bg-[#c9f58b] px-8 text-sm font-bold text-brand-900 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#d8ffad] active:scale-[0.98]">
+              <Link href="/signup" className="btn-outline px-8">
                 Create account
               </Link>
               <Link href="/artisans" className="flex h-[52px] items-center justify-center rounded-full border border-white/30 px-8 text-sm font-semibold text-white transition-all hover:bg-white/10 active:scale-[0.98]">

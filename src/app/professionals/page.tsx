@@ -1,5 +1,5 @@
 import { listProfessionalProfiles } from '@/lib/queries'
-import { EmptyState } from '@/components/ui'
+import { EmptyState, SectionHeader } from '@/components/ui'
 import { ProfessionalCard } from '@/components/professionals/ProfessionalCard'
 import { ProfessionalDirectoryFilters } from '@/components/professionals/ProfessionalDirectoryFilters'
 import Link from 'next/link'
@@ -21,12 +21,8 @@ export default async function ProfessionalsPage({
 
   return (
     <main className="page-shell">
-      <div className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-12">
-        <header className="relative overflow-hidden rounded-3xl bg-[#efffde] p-6 sm:p-9">
-          <div className="absolute -right-10 -top-12 h-44 w-44 rounded-full bg-[#c9f58b]/55" />
-          <h1 className="relative page-heading text-brand-900">Meet your next great hire</h1>
-          <p className="relative page-intro text-brand-800/70">Explore professionals across industries, roles and specialist services.</p>
-        </header>
+      <div className="w-full">
+        <SectionHeader page title="Expertise for your next big idea" description="Meet skilled professionals and businesses. Explore their experience, services and work." />
 
         <ProfessionalDirectoryFilters search={search} industry={industry} state={state} />
 

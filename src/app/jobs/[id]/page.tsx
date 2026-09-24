@@ -114,7 +114,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-5">
           <div className="card">
             <div className="flex items-start justify-between gap-3 mb-4">
-              <h1 className="font-display text-lg sm:text-xl font-semibold text-slate-900 leading-snug">
+              <h1 className="page-heading">
                 {job.title}
               </h1>
               <Badge variant={job.status === 'open' ? 'green' : 'gray'} className="flex-shrink-0 capitalize">

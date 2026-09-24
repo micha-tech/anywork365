@@ -113,7 +113,7 @@ export function DualClientRecruiterAccount({ user }: { user: AuthUser }) {
   }
 
   return (
-    <section id="account-mode" className="card mb-5 scroll-mt-24 border-brand-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0f9f9_100%)]">
+    <section id="account-mode" className="card mb-5 scroll-mt-24 border-brand-100 bg-white">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">

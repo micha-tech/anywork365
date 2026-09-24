@@ -14,7 +14,7 @@ export default async function InternHomePage() {
       <div className="mx-auto max-w-5xl">
         <section className="rounded-3xl border border-brand-100 bg-[#efffde] p-6 sm:p-10">
           <p className="text-sm font-semibold text-brand-700">Your intern space</p>
-          <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">
+          <h1 className="page-heading">
             Keep learning. Find your next opportunity.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">

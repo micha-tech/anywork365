@@ -1,65 +1,22 @@
-export function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-}: {
-  icon?: 'bookings' | 'jobs' | 'messages' | 'wallet' | 'search'
+import type { ReactNode } from 'react'
+import { StoryArt } from './StoryArt'
+
+export interface EmptyStateProps {
+  icon?: 'bookings' | 'jobs' | 'messages' | 'wallet' | 'search' | ReactNode
   title: string
   description?: string
-  action?: React.ReactNode
-}) {
-  const icons: Record<string, React.ReactNode> = {
-    bookings: (
-      <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-        <rect x="3" y="4" width="18" height="18" rx="2" />
-        <line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-        <path d="M8 14h.01" /><circle cx="8" cy="14" r=".5" fill="#94a3b8" />
-        <path d="M12 14h.01" /><circle cx="12" cy="14" r=".5" fill="#94a3b8" />
-        <path d="M16 14h.01" /><circle cx="16" cy="14" r=".5" fill="#94a3b8" />
-      </svg>
-    ),
-    jobs: (
-      <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-        <rect x="2" y="7" width="20" height="14" rx="2" />
-        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-        <line x1="12" y1="12" x2="12" y2="17" />
-        <line x1="9.5" y1="14.5" x2="14.5" y2="14.5" />
-      </svg>
-    ),
-    messages: (
-      <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      </svg>
-    ),
-    wallet: (
-      <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-        <rect x="2" y="5" width="20" height="14" rx="2" />
-        <path d="M16 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0" />
-        <line x1="2" y1="10" x2="22" y2="10" />
-      </svg>
-    ),
-    search: (
-      <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-    ),
-  }
+  action?: ReactNode
+}
 
+export function EmptyState({ icon = 'search', title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center px-4 py-10 text-center sm:px-6 sm:py-16">
-      <div className="mb-4 flex h-14 w-14 rotate-[-4deg] items-center justify-center rounded-2xl bg-[#efffde] text-brand-600 sm:h-16 sm:w-16 [&_svg]:stroke-brand-600">
-        {icon ? icons[icon] : (
-          <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-            <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><circle cx="12" cy="8" r=".5" fill="#94a3b8" />
-          </svg>
-        )}
-      </div>
-      <h3 className="mb-1 font-display text-base font-bold text-slate-900">{title}</h3>
-      {description && <p className="max-w-xs text-sm text-slate-500">{description}</p>}
-      {action && <div className="mt-4">{action}</div>}
+    <div className="empty-state">
+      {typeof icon === 'string' ? (
+        <StoryArt kind={icon === 'messages' ? 'inbox' : 'work'} className="w-36 sm:w-44" />
+      ) : <div className="friendly-icon h-16 w-16">{icon}</div>}
+      <h3>{title}</h3>
+      {description && <p>{description}</p>}
+      {action && <div className="mt-6">{action}</div>}
     </div>
   )
 }

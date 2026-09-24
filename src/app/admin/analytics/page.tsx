@@ -35,7 +35,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900">Analytics</h1>
+      <h1 className="page-heading">Analytics</h1>
 
       <Section title="Users">
         <Bar label="Total" value={stats.users.total} max={stats.users.total} />
