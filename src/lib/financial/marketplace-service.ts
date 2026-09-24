@@ -160,6 +160,7 @@ export async function createJobFundingInTransaction(
     actor: LedgerActor
     requestId: string
     sessionFingerprint: string
+    installmentNo?: number
   }
 ): Promise<JobFundingInitialization> {
   if (input.amountMinor <= BigInt(0)) {
@@ -181,13 +182,14 @@ export async function createJobFundingInTransaction(
 
   const [jobResult] = await conn.execute<ResultSetHeader>(
     `INSERT INTO job_funds (
-       booking_id, quote_id, client_uid, artisan_uid, currency, expected_amount_kobo,
+       booking_id, quote_id, installment_no, client_uid, artisan_uid, currency, expected_amount_kobo,
        locked_account_id, status, fee_rule_id, platform_fee_kobo,
        initiated_request_id, initiated_session_fingerprint
-     ) VALUES (?, ?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?, ?, ?)`,
+     ) VALUES (?, ?, ?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?, ?, ?)`,
     [
       input.bookingId,
       input.quoteId,
+      input.installmentNo ?? 1,
       input.clientUid,
       input.artisanUid,
       input.amountMinor.toString(),
@@ -261,6 +263,7 @@ export async function createWalletFundedJobInTransaction(
     actor: LedgerActor
     requestId: string
     sessionFingerprint: string
+    installmentNo?: number
   }
 ): Promise<WalletFundedJob> {
   if (input.amountMinor <= BigInt(0)) {
@@ -282,13 +285,14 @@ export async function createWalletFundedJobInTransaction(
 
   const [jobResult] = await conn.execute<ResultSetHeader>(
     `INSERT INTO job_funds (
-       booking_id, quote_id, client_uid, artisan_uid, currency, expected_amount_kobo,
+       booking_id, quote_id, installment_no, client_uid, artisan_uid, currency, expected_amount_kobo,
        locked_account_id, status, fee_rule_id, platform_fee_kobo,
        initiated_request_id, initiated_session_fingerprint
-     ) VALUES (?, ?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?, ?, ?)`,
+     ) VALUES (?, ?, ?, ?, ?, 'NGN', ?, ?, 'awaiting_funding', ?, ?, ?, ?)`,
     [
       input.bookingId,
       input.quoteId,
+      input.installmentNo ?? 1,
       input.clientUid,
       input.artisanUid,
       input.amountMinor.toString(),
@@ -301,7 +305,7 @@ export async function createWalletFundedJobInTransaction(
   )
 
   const posted = await ledger.postInTransaction(conn, {
-    idempotencyKey: `job-wallet-lock:${input.bookingId}`,
+    idempotencyKey: `job-wallet-lock:${input.bookingId}:${input.installmentNo ?? 1}`,
     transactionType: 'job_wallet_funds_locked',
     amountMinor: input.amountMinor,
     userUid: input.clientUid,
@@ -341,6 +345,11 @@ export async function createWalletFundedJobInTransaction(
      WHERE id = ?`,
     [posted.id, jobResult.insertId]
   )
+  await releaseFundedInstallmentImmediatelyInTransaction(conn, {
+    jobFundId: jobResult.insertId,
+    bookingId: input.bookingId,
+    actor: input.actor,
+  })
   await writeAudit(conn, {
     actor: input.actor,
     action: 'job_funding.locked_from_verified_wallet',
@@ -679,6 +688,11 @@ export async function confirmExternalPayment(
        WHERE id = ?`,
       [posted.id, jobFund.id]
     )
+    await releaseFundedInstallmentImmediatelyInTransaction(conn, {
+      jobFundId: jobFund.id,
+      bookingId: intent.booking_id,
+      actor,
+    })
     await conn.execute(
       `UPDATE booking_payment_accounts
        SET status = 'paid', paid_at = COALESCE(?, NOW()), updated_at = NOW()
@@ -722,6 +736,59 @@ export async function confirmExternalPayment(
   } finally {
     conn.release()
   }
+}
+
+async function releaseFundedInstallmentImmediatelyInTransaction(
+  conn: PoolConnection,
+  input: { jobFundId: number; bookingId: number; actor: LedgerActor }
+): Promise<void> {
+  const [rows] = await conn.execute<JobFundRow[]>(
+    'SELECT * FROM job_funds WHERE id = ? FOR UPDATE',
+    [input.jobFundId]
+  )
+  const fund = rows[0]
+  if (!fund || fund.status === 'released') return
+  if (fund.status !== 'locked') {
+    throw new FinancialError('INVALID_STATE', 'Confirmed instalment is not available for release', 409)
+  }
+  const amount = minorFromDatabase(fund.expected_amount_kobo)
+  await assertVerifiedJobFundingInTransaction(conn, fund, amount)
+  const fee = minorFromDatabase(fund.platform_fee_kobo)
+  const earnings = amount - fee
+  if (earnings <= BigInt(0)) throw new FinancialError('INVALID_AMOUNT', 'Fee consumes job funds')
+
+  const posted = await ledger.postInTransaction(conn, {
+    idempotencyKey: `installment-release:${fund.id}`,
+    transactionType: 'job_funds_released',
+    amountMinor: amount,
+    userUid: fund.artisan_uid,
+    bookingId: input.bookingId,
+    description: `Booking #${input.bookingId} payment available for withdrawal`,
+    actor: input.actor,
+    entries: [
+      { account: accounts.clientLockedJobFunds(input.bookingId), deltaMinor: -amount },
+      { account: accounts.artisanAvailableEarnings(fund.artisan_uid), deltaMinor: earnings },
+      { account: accounts.platformCommissionRevenue(), deltaMinor: fee },
+    ],
+    metadata: { jobFundId: fund.id, feeMinor: fee.toString(), earningsMinor: earnings.toString() },
+    outbox: {
+      eventType: 'earnings.available',
+      aggregateType: 'job_fund',
+      aggregateId: String(fund.id),
+      payload: {
+        bookingId: input.bookingId,
+        artisanUid: fund.artisan_uid,
+        amountMinor: earnings.toString(),
+      },
+    },
+  })
+  await conn.execute(
+    `UPDATE job_funds
+     SET status = 'released', release_transaction_id = ?, locked_amount_kobo = 0,
+         released_amount_kobo = expected_amount_kobo, released_at = NOW(), updated_at = NOW()
+     WHERE id = ?`,
+    [posted.id, fund.id]
+  )
 }
 
 export async function markPayWithTransferRejected(

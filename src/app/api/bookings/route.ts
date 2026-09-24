@@ -42,6 +42,8 @@ type BookingResponse = {
   quotes: Array<{
     id: number
     amount: number
+    paymentOption: 'full' | 'part'
+    upfrontAmount: number
     scope: string
     estimatedDuration: string | null
     proposedStartDate: string | null
@@ -62,6 +64,8 @@ type BookingResponse = {
     status: string
     expiresAt: string
   } | null
+  paidAmount: number
+  amountDue: number
 }
 
 export async function GET() {
@@ -110,6 +114,8 @@ export async function GET() {
         refundStatus: r.refundStatus,
         quotes: [],
         payment: null,
+        paidAmount: 0,
+        amountDue: 0,
       }))
     }
   } else {
@@ -137,6 +143,8 @@ export async function GET() {
       refundStatus: r.refundStatus,
       quotes: [],
       payment: null,
+      paidAmount: 0,
+      amountDue: 0,
     }))
   }
 
@@ -147,6 +155,8 @@ export async function GET() {
     bookingQuotes.push({
       id: quote.id,
       amount: Number(quote.amount),
+      paymentOption: quote.payment_option,
+      upfrontAmount: Number(quote.upfront_amount),
       scope: quote.scope,
       estimatedDuration: quote.estimated_duration,
       proposedStartDate: quote.proposed_start_date,
@@ -192,10 +202,22 @@ export async function GET() {
       bookings.map((booking) => booking.id)
     )
     const payments = new Map(paymentRows.map((payment) => [payment.booking_id, payment]))
+    const paidRows = await query<(RowDataPacket & { booking_id: number; paid_kobo: string | number })[]>(
+      `SELECT booking_id, COALESCE(SUM(funded_amount_kobo), 0) AS paid_kobo
+       FROM job_funds
+       WHERE booking_id IN (${placeholders})
+         AND status IN ('locked', 'released')
+       GROUP BY booking_id`,
+      bookings.map((booking) => booking.id)
+    )
+    const paidByBooking = new Map(paidRows.map((row) => [row.booking_id, Number(row.paid_kobo) / 100]))
     bookings = bookings.map((booking) => {
       const payment = payments.get(booking.id)
+      const paidAmount = paidByBooking.get(booking.id) ?? 0
       return {
         ...booking,
+        paidAmount,
+        amountDue: Math.max(0, booking.budget - paidAmount),
         payment: payment ? {
           reference: payment.provider_reference,
           amount: Number(payment.amount_kobo) / 100,

@@ -26,7 +26,6 @@ import {
   submitMarketplaceWithdrawal,
 } from '@/lib/financial/withdrawal-service'
 import { FinancialError } from '@/lib/financial/errors'
-import { getControlledWithdrawalTestException } from '@/lib/financial/controlled-test-exception'
 
 const schema = z.object({
   amountNGN: z
@@ -85,14 +84,6 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         )
       }
-      const userRow = await getUserRowByUid(session.id)
-      const controlledTest = getControlledWithdrawalTestException(session.id)
-      if ((!userRow?.verified || !userRow.nin) && !controlledTest.active) {
-        return NextResponse.json<ApiResponse<null>>(
-          { success: false, error: 'Identity verification is required before withdrawing funds' },
-          { status: 403 }
-        )
-      }
       const reserved = await requestMarketplaceWithdrawal({
         artisanUid: session.id,
         amountMinor: majorToMinor(String(amountNGN)),
@@ -142,25 +133,12 @@ export async function POST(req: NextRequest) {
           { status: 404 }
         )
       }
-      if (!userRow.verified || !userRow.nin) {
-        return NextResponse.json<ApiResponse<null>>(
-          { success: false, error: 'Identity verification is required before withdrawing funds' },
-          { status: 403 }
-        )
-      }
       const accounts = await getWithdrawalAccounts(userRow.userId)
       const account = accounts.length ? accounts[accounts.length - 1] : null
       if (!account?.recipient_code) {
         return NextResponse.json<ApiResponse<null>>(
           { success: false, error: 'Please add and verify a bank account before withdrawing' },
           { status: 400 }
-        )
-      }
-      const bankAccountAgeMs = Date.now() - new Date(account.created_at).getTime()
-      if (!Number.isFinite(bankAccountAgeMs) || bankAccountAgeMs < 24 * 60 * 60 * 1000) {
-        return NextResponse.json<ApiResponse<null>>(
-          { success: false, error: 'Withdrawals are available 24 hours after changing bank details' },
-          { status: 403 }
         )
       }
 

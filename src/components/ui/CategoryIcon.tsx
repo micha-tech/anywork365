@@ -1,10 +1,26 @@
 'use client'
 
+import Image from 'next/image'
 import { type ReactNode } from 'react'
 
 interface CategoryIconProps {
   category: string
   size?: number
+}
+
+const CATEGORY_ART: Partial<Record<string, string>> = {
+  'Carpentry & Furniture': '/images/categories/carpentry.webp',
+  'Plumbing Services': '/images/categories/plumbing.webp',
+  'Electrical Installation & Repairs': '/images/categories/electrical.webp',
+  'Painting & Wall Finishing': '/images/categories/painting.webp',
+  'Masonry, Tiling & Flooring': '/images/categories/flooring.webp',
+  'Roofing & Waterproofing': '/images/categories/roofing.webp',
+  'Welding & Metal Fabrication': '/images/categories/welding.webp',
+  'Aluminium & Glass Works': '/images/categories/glass.webp',
+  'POP, Ceiling & Partitioning': '/images/categories/ceiling.webp',
+  'Interior Decoration & Space Styling': '/images/categories/interior.webp',
+  'HVAC / AC Installation & Repairs': '/images/categories/hvac.webp',
+  'Generator, Inverter & Solar Services': '/images/categories/solar.webp',
 }
 
 const ICONS: Record<string, ReactNode> = {
@@ -131,6 +147,27 @@ const ICONS: Record<string, ReactNode> = {
 }
 
 export function CategoryIcon({ category, size = 48 }: CategoryIconProps) {
+  const art = CATEGORY_ART[category]
+
+  if (art) {
+    return (
+      <div
+        className="relative flex shrink-0 items-center justify-center"
+        style={{ width: size, height: size }}
+        aria-hidden="true"
+      >
+        <Image
+          src={art}
+          alt=""
+          width={240}
+          height={240}
+          sizes={`${size}px`}
+          className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.06]"
+        />
+      </div>
+    )
+  }
+
   return (
     <div
       className="flex items-center justify-center rounded-lg bg-brand-500 text-white shadow-[0_10px_22px_rgba(15,79,74,0.16)]"

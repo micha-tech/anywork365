@@ -48,4 +48,26 @@ Original 3D artwork belongs on welcome/onboarding and contextual empty states. N
 
 ## Validation
 
-Record automated checks and actual browser coverage at the end of implementation. Authenticated production records must not be edited merely to obtain screenshots.
+Validated against a local production build on 24 September 2026.
+
+### Automated checks
+
+- `npm run build`: passes, including Next.js route and TypeScript checks. Existing lint warnings remain; this is not a warning-free build.
+- `npm run test:ui`: 8 passing tests for shared action states, accessible field IDs/error descriptions, heading levels, empty-state consistency and illustration assets.
+- `npm run test:chat`: 5 passing tests.
+- `npm run test:financial`: 15 passing tests; the database-concurrency test is skipped because `FINANCIAL_TEST_DATABASE` is not configured. This does not certify live payment processing or concurrency.
+- `git diff --check`: passes.
+
+### Browser coverage
+
+Checked the home page, onboarding, login, account selection, professional registration, artisan directory, jobs and internship filter, plus an actual job's application dialog. Viewports included 320px and 390px phones, a 768px tablet and a 1440px desktop. Inspected pages had no horizontal document overflow. Mobile registration now separates the photo from its copy instead of obscuring the person's face.
+
+At 320px, the application sheet stays inside the viewport, both footer actions are reachable, Tab/Shift+Tab stay within the dialog, and Escape restores focus to Apply Now and unlocks body scrolling. The sheet is above the bottom navigation. No application was submitted.
+
+### Scope and remaining release checks
+
+The shared system is used across discovery, account setup, profiles, dashboards, booking/quotes, wallet, chat, notifications and administrative screens. Backend routes, database schema and payment logic are unchanged. No migration is needed for this redesign.
+
+Authenticated dashboards, bookings and payment states were reviewed in source and covered by shared-component/regression tests, but were not exercised end-to-end with a signed-in test account. Before release, check those states with staging accounts, including quote acceptance/rejection, transfer pending/success/failure, long conversations and long profile forms. No production records or financial transactions were changed for visual QA. This work has not been deployed by the agent.
+
+Original illustration prompts and asset delivery details are in [illustration-prompts.md](./illustration-prompts.md); optimised assets are in `public/images/story/`.

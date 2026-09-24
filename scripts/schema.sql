@@ -220,6 +220,8 @@ CREATE TABLE IF NOT EXISTS booking_quotes (
   booking_id INT NOT NULL,
   artisan_uid VARCHAR(128) NOT NULL,
   amount DECIMAL(15,2) NOT NULL,
+  payment_option ENUM('full', 'part') NOT NULL DEFAULT 'full',
+  upfront_amount DECIMAL(15,2) NOT NULL,
   scope TEXT NOT NULL,
   estimated_duration VARCHAR(120) DEFAULT NULL,
   proposed_start_date DATE DEFAULT NULL,

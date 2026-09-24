@@ -7,7 +7,7 @@ import { getConnection } from '@/lib/db'
 import { checkRateLimit } from '@/lib/wallet'
 import { createDbNotification } from '@/lib/queries'
 import { sendPushNotification } from '@/lib/notifications'
-import { holdBookingFunds, isMoneyV2Enabled, nairaToKobo } from '@/lib/money'
+import { holdBookingFunds, isMoneyV2Enabled } from '@/lib/money'
 import {
   confirmExternalPayment,
   createJobFundingInTransaction,
@@ -35,6 +35,8 @@ type PaymentBookingRow = RowDataPacket & {
 type AcceptedQuoteRow = RowDataPacket & {
   id: number
   amount: number | string
+  payment_option: 'full' | 'part'
+  upfront_amount: number | string
 }
 
 type BookingPaymentAccountRow = RowDataPacket & {
@@ -253,15 +255,7 @@ export async function POST(
         { status: 403 }
       )
     }
-    if (booking.bookingStatus === 'Confirmed') {
-      await conn.commit()
-      return NextResponse.json<ApiResponse<unknown>>({
-        success: true,
-        data: { bookingId, status: 'confirmed' },
-        message: 'This booking is already paid.',
-      })
-    }
-    if (booking.bookingStatus !== 'Awaiting Payment') {
+    if (!['Awaiting Payment', 'Confirmed'].includes(booking.bookingStatus)) {
       await conn.rollback()
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'Accept an artisan quote before making payment.' },
@@ -270,7 +264,7 @@ export async function POST(
     }
 
     const [quoteRows] = await conn.execute<AcceptedQuoteRow[]>(
-      `SELECT id, amount FROM booking_quotes
+      `SELECT id, amount, payment_option, upfront_amount FROM booking_quotes
        WHERE booking_id = ? AND status = 'accepted'
        ORDER BY id DESC LIMIT 1 FOR UPDATE`,
       [bookingId]
@@ -280,28 +274,41 @@ export async function POST(
       throw new FinancialError('INVALID_STATE', 'The accepted quote does not match this booking.', 409)
     }
 
+    const [paidRows] = await conn.execute<(RowDataPacket & { paid_kobo: string | number })[]>(
+      `SELECT COALESCE(SUM(funded_amount_kobo), 0) AS paid_kobo
+       FROM job_funds
+       WHERE booking_id = ? AND status IN ('locked', 'released')
+       FOR UPDATE`,
+      [bookingId]
+    )
+    const totalMinor = majorToMinor(String(quote.amount))
+    const paidMinor = minorFromDatabase(paidRows[0]?.paid_kobo ?? 0)
+    if (paidMinor >= totalMinor) {
+      await conn.commit()
+      return NextResponse.json<ApiResponse<unknown>>({
+        success: true,
+        data: { bookingId, status: 'paid', paidAmount: Number(paidMinor) / 100, amountDue: 0 },
+        message: 'This quote is fully paid.',
+      })
+    }
+    const firstPaymentMinor = quote.payment_option === 'part'
+      ? majorToMinor(String(quote.upfront_amount))
+      : totalMinor
+    const installmentNo = paidMinor > BigInt(0) ? 2 : 1
+    const amountDueMinor = installmentNo === 1 ? firstPaymentMinor : totalMinor - paidMinor
+
     if (parsed.data.method === 'wallet') {
       const useMarketplaceFinance = isMarketplaceFinanceEnabled()
       const useMoneyV2 = !useMarketplaceFinance && isMoneyV2Enabled()
 
       if (useMarketplaceFinance) {
-        const [existingFunds] = await conn.execute<RowDataPacket[]>(
-          `SELECT id FROM job_funds WHERE booking_id = ? FOR UPDATE`,
-          [bookingId]
-        )
-        if (existingFunds[0]) {
-          throw new FinancialError(
-            'INVALID_STATE',
-            'A bank transfer is already open for this booking.',
-            409
-          )
-        }
         await createWalletFundedJobInTransaction(conn, {
           bookingId,
           quoteId: quote.id,
           clientUid: session.id,
           artisanUid: booking.artisanUid,
-          amountMinor: majorToMinor(String(quote.amount)),
+          amountMinor: amountDueMinor,
+          installmentNo,
           actor: { type: 'user', id: session.id },
           requestId,
           sessionFingerprint,
@@ -311,14 +318,14 @@ export async function POST(
           bookingId,
           clientUid: session.id,
           artisanUid: booking.artisanUid,
-          amountKobo: nairaToKobo(Number(quote.amount)),
+          amountKobo: Number(amountDueMinor),
         })
       } else {
         await holdLegacyBookingFunds(conn, {
           bookingId,
           clientUid: session.id,
           artisanUid: booking.artisanUid,
-          amount: Number(quote.amount),
+          amount: Number(amountDueMinor) / 100,
         })
       }
 
@@ -371,7 +378,7 @@ export async function POST(
         if (
           Number(active.quote_id) !== quote.id ||
           active.client_uid !== session.id ||
-          minorFromDatabase(active.amount_kobo) !== majorToMinor(String(quote.amount)) ||
+          minorFromDatabase(active.amount_kobo) !== amountDueMinor ||
           active.currency !== 'NGN'
         ) {
           throw new FinancialError(
@@ -404,7 +411,9 @@ export async function POST(
         [bookingId]
       )
       const [existingFunds] = await conn.execute<RowDataPacket[]>(
-        `SELECT id FROM job_funds WHERE booking_id = ? FOR UPDATE`,
+        `SELECT id FROM job_funds
+         WHERE booking_id = ? AND status IN ('awaiting_funding', 'funding_pending')
+         ORDER BY id DESC LIMIT 1 FOR UPDATE`,
         [bookingId]
       )
       initialization = existingFunds[0]
@@ -423,7 +432,8 @@ export async function POST(
             clientUid: session.id,
             artisanUid: booking.artisanUid,
             customerEmail: booking.clientEmail,
-            amountMinor: majorToMinor(String(quote.amount)),
+            amountMinor: amountDueMinor,
+            installmentNo,
             actor: { type: 'user', id: session.id },
             requestId,
             sessionFingerprint,

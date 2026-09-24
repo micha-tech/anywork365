@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { StoryArt } from '@/components/ui/StoryArt'
 import { BrandWordmark } from '@/components/layout/BrandLogo'
 
 const ONBOARDING_KEY = 'anywork365_onboarding_seen'
@@ -11,32 +11,28 @@ const AUTH_ENTRY_PATH = '/login'
 
 const slides = [
   {
-    image: '/images/onboarding-plumber.jpg',
+    image: '/images/onboarding-discover-v2.webp',
     title: 'Find artisans in your area',
     description:
       'Search for plumbers, electricians, cleaners, installers and repair services near you. Compare profiles and reviews before you choose.',
-    align: 'object-center',
   },
   {
-    image: '/images/onboarding-carpenter.jpg',
+    image: '/images/onboarding-compare-v2.webp',
     title: 'Compare and book',
     description:
       'Review services, message an artisan and agree on the job before work starts.',
-    align: 'object-center',
   },
   {
-    image: '/images/onboarding-engineers.jpg',
+    image: '/images/onboarding-manage-v2.webp',
     title: 'Manage the booking from start to finish',
     description:
       'Use chat, booking updates and booking-linked payments until the work is complete.',
-    align: 'object-[48%_center]',
   },
   {
-    image: '/images/onboarding-mechanic.jpg',
+    image: '/images/onboarding-offer-v2.webp',
     title: 'Offer your services',
     description:
       'Create a profile, show previous work and receive booking requests from clients.',
-    align: 'object-center',
   },
 ]
 
@@ -122,7 +118,15 @@ export default function OnboardingPage() {
       </header>
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         <div key={active} className="animate-setup-step flex flex-1 flex-col justify-center py-6" aria-live="polite">
-          <StoryArt kind={active === 0 || active === 3 ? 'people' : active === 1 ? 'work' : 'inbox'} priority className="mx-auto mb-8 max-h-[30dvh] w-full object-contain" />
+          <Image
+            src={slides[active].image}
+            alt=""
+            width={768}
+            height={512}
+            sizes="(max-width: 767px) 88vw, 480px"
+            priority
+            className="mx-auto mb-8 max-h-[30dvh] w-full object-contain"
+          />
           <p className="mb-3 text-sm font-semibold text-brand-500">A better way to work together</p>
           <h1 className="page-heading">{slides[active].title}</h1>
           <p className="page-description">{slides[active].description}</p>

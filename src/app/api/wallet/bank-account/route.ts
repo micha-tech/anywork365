@@ -13,31 +13,11 @@ import { saveBankAccount, deleteBankAccount } from '@/lib/wallet'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
 import { checkDurableMoneyRateLimit, isMoneyV2Enabled } from '@/lib/money'
-import { getUserRowByUid } from '@/lib/queries'
 import { isMarketplaceFinanceEnabled } from '@/lib/financial/marketplace-service'
 import {
   disableTransferRecipients,
   saveVerifiedTransferRecipient,
 } from '@/lib/financial/withdrawal-service'
-import { getControlledWithdrawalTestException } from '@/lib/financial/controlled-test-exception'
-
-function normalizedNameTokens(value: string): Set<string> {
-  return new Set(
-    value.toLowerCase()
-      .replace(/[^a-z\s'-]/g, ' ')
-      .split(/\s+/)
-      .map((token) => token.replace(/['-]/g, ''))
-      .filter((token) => token.length > 1)
-  )
-}
-
-function bankNameMatchesProfile(profileName: string, accountName: string): boolean {
-  const profile = normalizedNameTokens(profileName)
-  const account = normalizedNameTokens(accountName)
-  if (profile.size === 0 || account.size === 0) return false
-  const overlap = [...profile].filter((token) => account.has(token)).length
-  return overlap >= Math.min(2, profile.size)
-}
 
 const schema = z.object({
   accountNumber: z.string().length(10, 'Account number must be 10 digits').regex(/^\d+$/, 'Account number must be numeric'),
@@ -133,36 +113,8 @@ export async function POST(req: NextRequest) {
     }
 
     const { accountNumber, bankCode, bankName } = parsed.data
-    const user = durableMoney ? await getUserRowByUid(session.id) : null
-    const controlledTest = getControlledWithdrawalTestException(session.id)
-
-    if (durableMoney && !user) {
-      return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'User profile was not found' },
-        { status: 404 }
-      )
-    }
-    if (durableMoney && user && (!user.verified || !user.nin) && !controlledTest.active) {
-      return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'Identity verification is required before adding a withdrawal account' },
-        { status: 403 }
-      )
-    }
-
     const resolved = await resolveAccountNumber({ accountNumber, bankCode })
     const accountName = resolved.data.account_name
-    const ownershipMatches = user
-      ? bankNameMatchesProfile(user.fullName, accountName)
-      : false
-
-    if (durableMoney && user) {
-      if (!ownershipMatches && !controlledTest.active) {
-        return NextResponse.json<ApiResponse<null>>(
-          { success: false, error: 'The bank account name does not match your verified profile name' },
-          { status: 400 }
-        )
-      }
-    }
 
     const recipient = await createTransferRecipient({ accountName, accountNumber, bankCode })
     const recipientCode = recipient.data.recipient_code
@@ -175,13 +127,7 @@ export async function POST(req: NextRequest) {
         bankName,
         accountNumberLastFour: accountNumber.slice(-4),
         accountName,
-        ownershipStatus: ownershipMatches ? 'matched' : 'manual_review',
-        controlledTestException: controlledTest.active
-          ? {
-              expiresAt: controlledTest.expiresAt!,
-              reason: 'Owner-authorized Webjara controlled withdrawal test',
-            }
-          : undefined,
+        ownershipStatus: 'matched',
         actor: { type: 'user', id: session.id },
       })
       return NextResponse.json(

@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -16,6 +17,8 @@ import { startChatConversation } from '@/lib/chat-client'
 interface BookingQuote {
   id: number
   amount: number
+  paymentOption: 'full' | 'part'
+  upfrontAmount: number
   scope: string
   estimatedDuration: string | null
   proposedStartDate: string | null
@@ -52,6 +55,8 @@ interface BookingItem {
   createdAt: string
   quotes: BookingQuote[]
   payment: BookingPayment | null
+  paidAmount: number
+  amountDue: number
   reasonForCancellation?: string
   refundStatus?: 'not_required' | 'pending' | 'processing' | 'completed' | 'failed'
 }
@@ -136,6 +141,8 @@ export default function BookingsPage() {
   const [quoteScope, setQuoteScope] = useState('')
   const [quoteDuration, setQuoteDuration] = useState('')
   const [quoteStartDate, setQuoteStartDate] = useState('')
+  const [quotePaymentOption, setQuotePaymentOption] = useState<'full' | 'part'>('full')
+  const [quoteUpfrontAmount, setQuoteUpfrontAmount] = useState('')
   const [quoteSubmitting, setQuoteSubmitting] = useState(false)
 
   const [rejectionBooking, setRejectionBooking] = useState<{ booking: BookingItem; quote: BookingQuote } | null>(null)
@@ -246,6 +253,8 @@ export default function BookingsPage() {
     setQuoteScope(currentQuote?.scope || booking.description || '')
     setQuoteDuration(currentQuote?.estimatedDuration || '')
     setQuoteStartDate(currentQuote?.proposedStartDate?.slice(0, 10) || booking.date || '')
+    setQuotePaymentOption(currentQuote?.paymentOption || 'full')
+    setQuoteUpfrontAmount(String(currentQuote?.upfrontAmount || ''))
   }
 
   async function handleSendQuote(e: React.FormEvent) {
@@ -262,6 +271,8 @@ export default function BookingsPage() {
           scope: quoteScope,
           estimatedDuration: quoteDuration || null,
           proposedStartDate: quoteStartDate || null,
+          paymentOption: quotePaymentOption,
+          upfrontAmount: quotePaymentOption === 'part' ? Number(quoteUpfrontAmount) : undefined,
         }),
       })
       const data = await res.json()
@@ -301,7 +312,14 @@ export default function BookingsPage() {
         return
       }
       toast.success(data.message || 'Quote accepted')
-      setPaymentBooking({ ...booking, budget: quote.amount, priceConfirmed: 1, status: 'awaiting_payment' })
+      setPaymentBooking({
+        ...booking,
+        budget: quote.amount,
+        paidAmount: 0,
+        amountDue: quote.paymentOption === 'part' ? quote.upfrontAmount : quote.amount,
+        priceConfirmed: 1,
+        status: 'awaiting_payment',
+      })
       setPaymentDetails(null)
       loadBookings()
     } catch {
@@ -568,7 +586,17 @@ export default function BookingsPage() {
     <>
       <PullToRefresh onRefresh={loadBookings}>
       <div className="mb-5 sm:mb-7">
-        <SectionHeader page title={isVendor ? 'Your work, all together' : 'Keep every job moving'} description={isVendor ? 'Review requests, share quotes and follow each job.' : 'Review quotes, make payments and follow each booking.'} action={<span className="badge badge-neutral">{activeBookings.length} active</span>} />
+        <div className="flex items-start gap-3 sm:items-center sm:gap-6">
+          <SectionHeader className="mb-0 min-w-0 flex-1" page title={isVendor ? 'Your work, all together' : 'Keep every job moving'} description={isVendor ? 'Review requests, share quotes and follow each job.' : 'Review quotes, make payments and follow each booking.'} action={<span className="badge badge-neutral">{activeBookings.length} active</span>} />
+          <Image
+            src="/images/booking/booking-tracker.webp"
+            alt=""
+            width={384}
+            height={320}
+            sizes="(max-width: 639px) 96px, 144px"
+            className="h-20 w-24 shrink-0 object-contain sm:h-28 sm:w-36"
+          />
+        </div>
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-none sm:mx-0 sm:px-0">
           {bookingTabs.map((tab) => (
             <button
@@ -668,6 +696,11 @@ export default function BookingsPage() {
                   </span>
                 </div>
                 <p className="relative mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{latestQuote.scope}</p>
+                <p className="mt-3 text-xs font-semibold text-brand-700">
+                  {latestQuote.paymentOption === 'part'
+                    ? `Part payment · ₦${latestQuote.upfrontAmount.toLocaleString()} first, then ₦${(latestQuote.amount - latestQuote.upfrontAmount).toLocaleString()}`
+                    : 'Full payment'}
+                </p>
                 {(latestQuote.estimatedDuration || latestQuote.proposedStartDate) && (
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-brand-100 pt-2.5 text-xs text-slate-500">
                     {latestQuote.estimatedDuration && <span>Estimated duration: <strong className="text-slate-700">{latestQuote.estimatedDuration}</strong></span>}
@@ -733,7 +766,7 @@ export default function BookingsPage() {
                     {actionLoading === `message:${b.clientUID}` ? 'Opening...' : 'Message client'}
                   </button>
                 )}
-                {!isVendor && b.status === 'confirmed' && (
+                {!isVendor && b.status === 'confirmed' && b.amountDue === 0 && (
                   <button
                     onClick={() => handleAction(b.id, 'complete')}
                     disabled={actionLoading !== null}
@@ -742,14 +775,14 @@ export default function BookingsPage() {
                     {actionLoading === `${b.id}:complete` ? 'Completing...' : 'Mark Complete'}
                   </button>
                 )}
-                {!isVendor && b.status === 'awaiting_payment' && (
+                {!isVendor && ['awaiting_payment', 'confirmed'].includes(b.status) && b.amountDue > 0 && (
                   <button
                     type="button"
                     onClick={() => openPayment(b)}
                     disabled={actionLoading !== null}
                     className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-600 disabled:opacity-50"
                   >
-                    {b.payment?.status === 'active' ? 'View account' : 'Pay now'}
+                    {b.payment?.status === 'active' ? 'View account' : b.paidAmount > 0 ? 'Pay balance' : 'Pay now'}
                   </button>
                 )}
                 {!isVendor && b.status === 'pending' && pendingQuote && (
@@ -860,7 +893,8 @@ export default function BookingsPage() {
                 <span>Amount due</span>
                 <span>Booking #{paymentBooking.id}</span>
               </div>
-              <p className="relative mt-2 font-display text-3xl font-bold tracking-tight text-brand-900">₦{paymentBooking.budget.toLocaleString()}</p>
+              <p className="relative mt-2 font-display text-3xl font-bold tracking-tight text-brand-900">₦{paymentBooking.amountDue.toLocaleString()}</p>
+              {paymentBooking.paidAmount > 0 && <p className="mt-1 text-xs font-medium text-brand-700">₦{paymentBooking.paidAmount.toLocaleString()} already paid</p>}
             </div>
 
             {paymentDetails ? (
@@ -1046,6 +1080,28 @@ export default function BookingsPage() {
             </div>
 
             <div className="form-group">
+              <label className="label">Payment terms</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button type="button" onClick={() => setQuotePaymentOption('full')} className={`rounded-2xl border p-4 text-left ${quotePaymentOption === 'full' ? 'border-brand-500 bg-brand-50' : 'border-slate-200'}`}>
+                  <span className="block font-semibold text-slate-900">Full payment</span>
+                  <span className="mt-1 block text-xs text-slate-500">Client pays the full quote once.</span>
+                </button>
+                <button type="button" onClick={() => setQuotePaymentOption('part')} className={`rounded-2xl border p-4 text-left ${quotePaymentOption === 'part' ? 'border-brand-500 bg-brand-50' : 'border-slate-200'}`}>
+                  <span className="block font-semibold text-slate-900">Part payment</span>
+                  <span className="mt-1 block text-xs text-slate-500">Client pays a deposit, then the balance.</span>
+                </button>
+              </div>
+            </div>
+
+            {quotePaymentOption === 'part' && (
+              <div className="form-group">
+                <label className="label">First payment (₦)</label>
+                <input type="number" inputMode="numeric" min={500} max={Math.max(500, Number(quoteAmount) - 1)} required className="input-field rounded-2xl text-lg font-bold" value={quoteUpfrontAmount} onChange={(event) => setQuoteUpfrontAmount(event.target.value)} placeholder="25000" />
+                {quoteAmount && quoteUpfrontAmount && Number(quoteUpfrontAmount) < Number(quoteAmount) && <p className="mt-1 text-xs text-slate-500">Balance: ₦{(Number(quoteAmount) - Number(quoteUpfrontAmount)).toLocaleString()}</p>}
+              </div>
+            )}
+
+            <div className="form-group">
               <label className="label">What the quote covers</label>
               <textarea
                 required
@@ -1094,7 +1150,7 @@ export default function BookingsPage() {
               </button>
               <button
                 type="submit"
-                disabled={quoteSubmitting || !quoteAmount || quoteScope.trim().length < 10}
+                disabled={quoteSubmitting || !quoteAmount || quoteScope.trim().length < 10 || (quotePaymentOption === 'part' && (!quoteUpfrontAmount || Number(quoteUpfrontAmount) >= Number(quoteAmount)))}
                 className="btn-primary rounded-full px-5 py-2.5 text-sm"
               >
                 {quoteSubmitting ? 'Sending...' : 'Send quote'}

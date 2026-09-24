@@ -108,6 +108,8 @@ export interface BookingQuoteRow extends RowDataPacket {
   booking_id: number
   artisan_uid: string
   amount: number
+  payment_option: 'full' | 'part'
+  upfront_amount: number
   scope: string
   estimated_duration: string | null
   proposed_start_date: string | null
@@ -823,7 +825,7 @@ export async function getBookingQuotesByBookingIds(bookingIds: number[]): Promis
 
   const placeholders = bookingIds.map(() => '?').join(', ')
   return query<BookingQuoteRow[]>(
-    `SELECT id, booking_id, artisan_uid, amount, scope, estimated_duration,
+    `SELECT id, booking_id, artisan_uid, amount, payment_option, upfront_amount, scope, estimated_duration,
             proposed_start_date, status, rejection_reason, rejection_note,
             responded_at, created_at, updated_at
      FROM booking_quotes

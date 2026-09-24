@@ -75,9 +75,19 @@ export async function POST(
   }
   const parsed = z.object({
     amount: z.number().int().min(1000, 'Minimum quote is ₦1,000').max(10_000_000, 'Maximum quote is ₦10,000,000'),
+    paymentOption: z.enum(['full', 'part']).default('full'),
+    upfrontAmount: z.number().int().min(500, 'Minimum first payment is ₦500').optional(),
     scope: z.string().trim().min(10, 'Add a little more detail about what the quote covers.').max(2000, 'Scope must be under 2000 characters.'),
     estimatedDuration: z.string().trim().max(120).optional().nullable(),
     proposedStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose a valid proposed start date').optional().nullable(),
+  }).superRefine((value, context) => {
+    if (value.paymentOption === 'part') {
+      if (!value.upfrontAmount) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ['upfrontAmount'], message: 'Enter the first payment amount.' })
+      } else if (value.upfrontAmount >= value.amount) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ['upfrontAmount'], message: 'The first payment must be less than the full quote.' })
+      }
+    }
   }).safeParse(body)
   if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
@@ -130,13 +140,15 @@ export async function POST(
     )
     const [result] = await conn.execute<ResultSetHeader>(
       `INSERT INTO booking_quotes (
-         booking_id, artisan_uid, amount, scope, estimated_duration,
+         booking_id, artisan_uid, amount, payment_option, upfront_amount, scope, estimated_duration,
          proposed_start_date, status, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW(), NOW())`,
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), NOW())`,
       [
         bookingId,
         session.id,
         parsed.data.amount,
+        parsed.data.paymentOption,
+        parsed.data.paymentOption === 'part' ? parsed.data.upfrontAmount! : parsed.data.amount,
         parsed.data.scope,
         parsed.data.estimatedDuration || null,
         parsed.data.proposedStartDate || null,
@@ -176,6 +188,8 @@ export async function POST(
         id: quoteId,
         bookingId,
         amount: parsed.data.amount,
+        paymentOption: parsed.data.paymentOption,
+        upfrontAmount: parsed.data.paymentOption === 'part' ? parsed.data.upfrontAmount : parsed.data.amount,
         scope: parsed.data.scope,
         estimatedDuration: parsed.data.estimatedDuration || null,
         proposedStartDate: parsed.data.proposedStartDate || null,

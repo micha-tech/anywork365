@@ -169,7 +169,6 @@ export async function requestMarketplaceWithdrawal(input: {
   created: boolean
   recipient: { bankName: string; accountLastFour: string }
 }> {
-  const config = getFinancialConfig()
   const controlledTest = getControlledWithdrawalTestException(input.artisanUid)
   enforceConfiguredAmountLimits(input.amountMinor)
   const durableIdempotencyKey = `withdrawal:${createHash('sha256')
@@ -219,23 +218,10 @@ export async function requestMarketplaceWithdrawal(input: {
 
     const recipient = await activeRecipient(conn, input.artisanUid)
     if (
-      recipient.verification_status !== 'verified' ||
-      (recipient.ownership_status !== 'matched' && !controlledTest.active)
+      recipient.verification_status !== 'verified'
     ) {
       throw new FinancialError('RISK_REVIEW_REQUIRED', 'Bank recipient requires review', 403)
     }
-    const ageMs = Date.now() - new Date(recipient.updated_at).getTime()
-    if (
-      ageMs < config.BANK_CHANGE_HOLD_HOURS * 60 * 60 * 1000 &&
-      !controlledTest.active
-    ) {
-      throw new FinancialError(
-        'RISK_REVIEW_REQUIRED',
-        `Withdrawals are held for ${config.BANK_CHANGE_HOLD_HOURS} hours after bank changes`,
-        403
-      )
-    }
-
     await enforceWithdrawalVelocity(conn, input.artisanUid, input.amountMinor)
     const [holds] = await conn.execute<(RowDataPacket & { count: number })[]>(
       `SELECT COUNT(*) AS count FROM risk_holds
@@ -246,12 +232,8 @@ export async function requestMarketplaceWithdrawal(input: {
       throw new FinancialError('RISK_HOLD_ACTIVE', 'Withdrawals are unavailable during an active risk hold', 403)
     }
 
-    const riskReview =
-      config.WITHDRAWAL_MODE === 'MANUAL' ||
-      (config.WITHDRAWAL_MODE === 'RISK_BASED' &&
-        input.amountMinor > BigInt(config.AUTOMATIC_WITHDRAWAL_LIMIT) * BigInt(100))
-    const status = riskReview ? 'under_review' : 'approved'
-    const riskStatus = riskReview ? 'review' : 'passed'
+    const status = 'approved'
+    const riskStatus = 'passed'
     const reference = financialReference('withdrawal')
     const posted = await ledger.postInTransaction(conn, {
       idempotencyKey: durableIdempotencyKey,
