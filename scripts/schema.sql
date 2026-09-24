@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
   deleted         TINYINT(1) NOT NULL DEFAULT 0,
   INDEX idx_users_email (email),
   INDEX idx_users_role_deleted (role, deleted)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS user_portfolio (
   id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS user_portfolio (
   projectUrl  VARCHAR(1000) DEFAULT NULL,
   createdAt   DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_user_portfolio_uid_created (uid, createdAt DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS businesses (
   businessId        INT AUTO_INCREMENT PRIMARY KEY,
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   INDEX idx_businesses_category_rating (category, rating DESC, deleted),
   INDEX idx_businesses_rating_deleted (rating DESC, reviews DESC, deleted),
   FULLTEXT INDEX ft_businesses_search (businessName, description, category)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS artisan_live_locations (
   uid             VARCHAR(128) NOT NULL PRIMARY KEY,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS artisan_live_locations (
   updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_artisan_live_locations_active (sharing_enabled, updated_at),
   INDEX idx_artisan_live_locations_coordinates (latitude, longitude)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS professional_profiles (
   id                            INT AUTO_INCREMENT PRIMARY KEY,
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS professional_profiles (
   updated_at                    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_professional_industry (industry_category),
   INDEX idx_professional_service (professional_service_category)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS recruiter_profiles (
   id                   INT AUTO_INCREMENT PRIMARY KEY,
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS recruiter_profiles (
   updated_at           DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_recruiter_industry (industry_category),
   INDEX idx_recruiter_function (recruitment_function)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS intern_profiles (
   id                   INT AUTO_INCREMENT PRIMARY KEY,
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS intern_profiles (
   created_at           DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at           DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_intern_type (intern_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS companies (
   company_id      INT AUTO_INCREMENT PRIMARY KEY,
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS companies (
   company_email   VARCHAR(255) DEFAULT NULL,
   company_phone   VARCHAR(50) DEFAULT NULL,
   INDEX idx_companies_uid (uid)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS vacancies (
   vacancy_id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS vacancies (
   INDEX idx_vacancies_posted_by (posted_by_uid, date_created DESC),
   INDEX idx_vacancies_deadline (closed, closing_date, date_created DESC),
   INDEX idx_vacancies_location_type (vacancy_location, job_type, closed, date_created DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS vacancy_applications (
   application_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS vacancy_applications (
   INDEX idx_vacancy_applications_vacancy_id (vacancy_id),
   INDEX idx_vacancy_applications_uid (uid),
   INDEX idx_applications_status_date (status, applied_date DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS bookings (
   bookingId              INT AUTO_INCREMENT PRIMARY KEY,
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   INDEX idx_bookings_bookingStatus (bookingStatus),
   INDEX idx_bookings_business_status (businessId, bookingStatus),
   INDEX idx_bookings_client_status (clientUID, bookingStatus)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS booking_quotes (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS booking_quotes (
   INDEX idx_booking_quotes_artisan_status (artisan_uid, status),
   CONSTRAINT fk_booking_quotes_booking
     FOREIGN KEY (booking_id) REFERENCES bookings (bookingId) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS booking_payment_accounts (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS booking_payment_accounts (
     FOREIGN KEY (booking_id) REFERENCES bookings (bookingId) ON DELETE CASCADE,
   CONSTRAINT fk_booking_payment_quote
     FOREIGN KEY (quote_id) REFERENCES booking_quotes (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS reviews (
   reviewId   INT AUTO_INCREMENT PRIMARY KEY,
@@ -276,7 +276,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   dateAdded  DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_reviews_businessId (businessId),
   INDEX idx_reviews_bookingId (bookingId)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS business_ratings (
   id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -286,7 +286,7 @@ CREATE TABLE IF NOT EXISTS business_ratings (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_user_business_rating (userUid, businessId),
   INDEX idx_business_ratings_businessId (businessId)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS business_verifications (
   id                       INT AUTO_INCREMENT PRIMARY KEY,
@@ -302,7 +302,7 @@ CREATE TABLE IF NOT EXISTS business_verifications (
   submitted_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
   reviewed_at              DATETIME DEFAULT NULL,
   INDEX idx_business_verifications_businessId (businessId)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS favorites (
   id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -311,7 +311,7 @@ CREATE TABLE IF NOT EXISTS favorites (
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_favorites_uid (uid),
   UNIQUE KEY uk_user_business_fav (uid, business_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS wallets (
   id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -323,7 +323,7 @@ CREATE TABLE IF NOT EXISTS wallets (
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_wallets_user_id (user_id),
   INDEX idx_wallets_type (wallet_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS wallet_ledger (
   id             INT AUTO_INCREMENT PRIMARY KEY,
@@ -337,7 +337,7 @@ CREATE TABLE IF NOT EXISTS wallet_ledger (
   INDEX idx_wallet_ledger_wallet_id (wallet_id),
   INDEX idx_wallet_ledger_created (wallet_id, created_at DESC),
   INDEX idx_wallet_ledger_balance (wallet_id, direction, amount)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS wallet_escrow (
   id                INT AUTO_INCREMENT PRIMARY KEY,
@@ -351,7 +351,7 @@ CREATE TABLE IF NOT EXISTS wallet_escrow (
   released_at       DATETIME DEFAULT NULL,
   INDEX idx_wallet_escrow_booking_id (booking_id),
   INDEX idx_wallet_escrow_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS wallet_transactions (
   id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -361,7 +361,7 @@ CREATE TABLE IF NOT EXISTS wallet_transactions (
   metadata   JSON DEFAULT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_wallet_transactions_reference (reference)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS withdrawal_accounts (
   id             INT AUTO_INCREMENT PRIMARY KEY,
@@ -374,7 +374,7 @@ CREATE TABLE IF NOT EXISTS withdrawal_accounts (
   created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_withdrawal_accounts_user_id (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS withdrawals (
   id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -387,7 +387,7 @@ CREATE TABLE IF NOT EXISTS withdrawals (
   INDEX idx_withdrawals_wallet_id (wallet_id),
   INDEX idx_withdrawals_user_id (user_id),
   INDEX idx_withdrawals_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS users_notifications (
   id               INT AUTO_INCREMENT PRIMARY KEY,
@@ -399,7 +399,7 @@ CREATE TABLE IF NOT EXISTS users_notifications (
   dateCreated      DATETIME DEFAULT CURRENT_TIMESTAMP,
   seenByReciever   TINYINT(1) NOT NULL DEFAULT 0,
   INDEX idx_users_notifications_recieverUid (recieverUid)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS user_fcm_tokens (
   id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -408,7 +408,7 @@ CREATE TABLE IF NOT EXISTS user_fcm_tokens (
   is_active  TINYINT(1) DEFAULT 1,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_user_fcm_tokens_uid (uid)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS disputes (
   id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -425,7 +425,7 @@ CREATE TABLE IF NOT EXISTS disputes (
   updatedAt   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_disputes_bookingId (bookingId),
   INDEX idx_disputes_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS admin_audit_log (
   id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -437,4 +437,4 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
   createdAt  DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_admin_audit_log_adminUid (adminUid),
   INDEX idx_admin_audit_log_createdAt (createdAt)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
