@@ -274,15 +274,18 @@ export async function POST(
       throw new FinancialError('INVALID_STATE', 'The accepted quote does not match this booking.', 409)
     }
 
-    const [paidRows] = await conn.execute<(RowDataPacket & { paid_kobo: string | number })[]>(
-      `SELECT COALESCE(SUM(funded_amount_kobo), 0) AS paid_kobo
+    const [paidRows] = await conn.execute<(RowDataPacket & { funded_amount_kobo: string | number })[]>(
+      `SELECT funded_amount_kobo
        FROM job_funds
        WHERE booking_id = ? AND status IN ('locked', 'released')
        FOR UPDATE`,
       [bookingId]
     )
     const totalMinor = majorToMinor(String(quote.amount))
-    const paidMinor = minorFromDatabase(paidRows[0]?.paid_kobo ?? 0)
+    const paidMinor = paidRows.reduce(
+      (sum, row) => sum + minorFromDatabase(row.funded_amount_kobo),
+      BigInt(0)
+    )
     if (paidMinor >= totalMinor) {
       await conn.commit()
       return NextResponse.json<ApiResponse<unknown>>({

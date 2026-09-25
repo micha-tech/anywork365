@@ -160,12 +160,12 @@ function WalletPageContent() {
         if (data.success) {
           setResolvedName(data.data.accountName)
         } else {
-          setBankLookupError(data.error ?? 'Unable to verify bank account details.')
+          setBankLookupError(data.error ?? 'Unable to confirm these bank details.')
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setBankLookupError('Unable to verify bank account details.')
+          setBankLookupError('Unable to confirm these bank details.')
         }
       })
       .finally(() => {
@@ -196,7 +196,7 @@ function WalletPageContent() {
       })
       const data = await res.json()
       if (data.success) {
-        toast.success('Bank account verified')
+        toast.success('Bank account added')
         setAccountNumber('')
         setBankCode('')
         setResolvedName('')
@@ -204,7 +204,7 @@ function WalletPageContent() {
         fetchWallet()
         setActiveTab('overview')
       } else {
-        toast.error(data.error ?? 'Couldn\u2019t verify bank account')
+        toast.error(data.error ?? 'Couldn\u2019t add bank account')
       }
     } catch {
       toast.error('Network error')
@@ -381,7 +381,7 @@ function WalletPageContent() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-amber-800">Add a bank account to withdraw</p>
-            <p className="text-xs text-amber-700 mt-0.5">Your earnings will stay in your wallet until you add a verified bank account.</p>
+            <p className="text-xs text-amber-700 mt-0.5">Add where you want your available earnings sent.</p>
           </div>
           <button
             onClick={() => setActiveTab('bank')}
@@ -396,7 +396,7 @@ function WalletPageContent() {
         <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">
           <span className="text-green-600 text-lg leading-none mt-0.5">?</span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-green-800">Bank account verified</p>
+            <p className="text-sm font-medium text-green-800">Bank account added</p>
             <p className="text-xs text-green-700 break-words">
               {wallet.bankName} ****{wallet.bankAccountNumber?.slice(-4)}
             </p>
@@ -629,13 +629,13 @@ function WalletPageContent() {
         <div className="card max-w-xl">
           <h2 className="font-medium text-base mb-1">Bank Account</h2>
           <p className="text-sm text-slate-500 mb-5">
-            Add your bank account to receive withdrawals. We verify your account with Paystack.
+            Add the bank account where you want to receive withdrawals.
           </p>
 
           {wallet?.isVerified && (
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-5 flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-medium text-green-800">Verified bank account</p>
+                <p className="text-sm font-medium text-green-800">Withdrawal bank account</p>
                 <p className="text-xs text-green-700 mt-0.5 break-words">
                   {wallet.bankName} - ****{wallet.bankAccountNumber?.slice(-4)}
                 </p>

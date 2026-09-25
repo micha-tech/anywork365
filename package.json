@@ -28,6 +28,8 @@
     "finance:v4:verify:staging": "tsx scripts/verify-wallet-v4-staging.ts",
     "finance:v5:migrate:dry": "node scripts/migrate-payment-integrity-v5.mjs",
     "finance:v5:migrate": "node scripts/migrate-payment-integrity-v5.mjs --apply",
+    "finance:v6:migrate:dry": "node scripts/migrate-quote-payments-v6.mjs",
+    "finance:v6:migrate": "node scripts/migrate-quote-payments-v6.mjs --apply",
     "moderation:migrate:dry": "node scripts/migrate-moderation-console.mjs",
     "moderation:migrate": "node scripts/migrate-moderation-console.mjs --apply",
     "test:financial": "tsc -p tests/financial/tsconfig.json && node --test \".test-build/tests/financial/*.test.js\"",

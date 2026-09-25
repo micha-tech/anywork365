@@ -424,7 +424,9 @@ export async function createJobPaymentRetryInTransaction(
   }
 ): Promise<JobFundingInitialization> {
   const [fundRows] = await conn.execute<JobFundRow[]>(
-    `SELECT * FROM job_funds WHERE booking_id = ? FOR UPDATE`,
+    `SELECT * FROM job_funds
+     WHERE booking_id = ? AND status IN ('awaiting_funding', 'funding_pending')
+     ORDER BY id DESC LIMIT 1 FOR UPDATE`,
     [input.bookingId]
   )
   const jobFund = fundRows[0]
