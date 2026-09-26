@@ -17,8 +17,7 @@ git clone https://github.com/YOUR_USER/anywork365.git .
 # ── Env file ──────────────────────────────────────────────
 # Upload your .env manually, then:
 #   nano .env
-# Paste all your Vercel env vars. ENSURE MYSQL_HOST
-# points to your managed-database EU host.
+# Paste the environment variables for the database provider you are using.
 
 # ── Firewall ──────────────────────────────────────────────
 ufw allow 80/tcp

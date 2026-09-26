@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getVerifiedSession } from '@/lib/auth'
 import { getOrCreateWallet, requestWithdrawal, rollbackWithdrawal } from '@/lib/wallet'
-import { initiateTransfer } from '@/lib/paystack'
+import { getPaystackBalance, initiateTransfer } from '@/lib/paystack'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
 import { getUserRowByUid, getWithdrawalAccounts } from '@/lib/queries'
@@ -82,6 +82,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json<ApiResponse<null>>(
           { success: false, error: 'A unique idempotency key is required' },
           { status: 400 }
+        )
+      }
+      const providerBalances = await getPaystackBalance()
+      const ngnTransferBalance = providerBalances.data.find((item) => item.currency === 'NGN')?.balance ?? 0
+      if (BigInt(ngnTransferBalance) < majorToMinor(String(amountNGN))) {
+        return NextResponse.json<ApiResponse<null>>(
+          { success: false, error: 'Withdrawals are temporarily unavailable. Please try again after the payout account is funded.' },
+          { status: 503 }
         )
       }
       const reserved = await requestMarketplaceWithdrawal({

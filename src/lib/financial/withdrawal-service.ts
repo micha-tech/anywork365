@@ -493,12 +493,21 @@ export async function submitMarketplaceWithdrawal(
     return { status: 'processing', transferCode: transfer.transferCode }
   } catch (error) {
     // An ambiguous provider timeout is never auto-refunded or automatically resubmitted.
+    const failure = safeError(error)
     await execute(
       `UPDATE marketplace_withdrawal_requests
        SET status = 'under_review', risk_status = 'review', failure_reason = ?, updated_at = NOW()
        WHERE id = ? AND status = 'processing'`,
-      [safeError(error).slice(0, 500), claimed.withdrawal.id]
+      [failure.slice(0, 500), claimed.withdrawal.id]
     )
+    if (isConclusivePreTransferRejection(failure)) {
+      await cancelUnsubmittedMarketplaceWithdrawal(
+        claimed.withdrawal.internal_reference,
+        { type: 'system', id: 'automatic-provider-rejection-recovery' },
+        'Paystack rejected the transfer before creating it because the platform transfer balance was insufficient'
+      )
+      return { status: 'cancelled', transferCode: null }
+    }
     return { status: 'under_review', transferCode: null }
   }
 }

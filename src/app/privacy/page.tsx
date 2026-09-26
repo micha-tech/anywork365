@@ -28,7 +28,7 @@ We also collect data automatically: device information, IP address, browser type
   },
   {
     title: 'Data Storage & Security',
-    content: `Your data is stored securely on cloud infrastructure provided by managed-database (MySQL) and Google Cloud Platform (Firebase). We implement industry-standard security measures including encryption in transit (TLS) and at rest, rate limiting on sensitive endpoints, and regular security audits.
+    content: `Your data is stored securely using managed cloud infrastructure and Google Cloud Platform (Firebase). We implement industry-standard security measures including encryption in transit (TLS) and at rest, rate limiting on sensitive endpoints, and regular security audits.
 
 We retain your data for as long as your account is active or as needed to provide our services. You can permanently delete your account and associated data from the Account Info section of your profile. Contact support@anywork365.ng if you cannot access your account.`,
   },
@@ -37,7 +37,6 @@ We retain your data for as long as your account is active or as needed to provid
     content: `We use the following third-party services:
 • Firebase (Google) — authentication, push notifications
 • Paystack — payment processing and bank account verification
-• managed-database — MySQL database hosting
 • Vercel — application hosting
 
 Each service provider has its own privacy policy governing the handling of your data.`,
