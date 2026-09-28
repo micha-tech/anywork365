@@ -71,10 +71,14 @@ export function assertMarketplacePaymentLink(
     intent.clientUid === jobFund.clientUid &&
     jobFund.artisanUid === booking.artisanUid &&
     jobFund.artisanUid === quote.artisanUid
+  // An intent funds one job-fund instalment, while the quote and booking hold
+  // the full agreed price. For part payments those values are intentionally
+  // different; the instalment must be positive and may not exceed the total.
   const sameValue =
     intent.amountMinor === jobFund.amountMinor &&
-    intent.amountMinor === quote.amountMinor &&
-    intent.amountMinor === booking.amountMinor &&
+    intent.amountMinor > 0n &&
+    intent.amountMinor <= quote.amountMinor &&
+    quote.amountMinor === booking.amountMinor &&
     intent.currency === jobFund.currency
 
   if (!sameIdentity || !sameValue || quote.status !== 'accepted') {

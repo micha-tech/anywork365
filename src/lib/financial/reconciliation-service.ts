@@ -88,8 +88,14 @@ export async function runFinancialReconciliation(
          OR BINARY jf.artisan_uid <> BINARY q.artisan_uid
          OR BINARY jf.artisan_uid <> BINARY bus.uid
          OR mpi.amount_kobo <> jf.expected_amount_kobo
-         OR mpi.amount_kobo <> ROUND(q.amount * 100)
-         OR mpi.amount_kobo <> ROUND(b.amountAgreed * 100)
+         OR mpi.amount_kobo <= 0
+         OR mpi.amount_kobo > ROUND(q.amount * 100)
+         OR ROUND(q.amount * 100) <> ROUND(b.amountAgreed * 100)
+         OR (
+           SELECT COALESCE(SUM(jf_total.expected_amount_kobo), 0)
+           FROM job_funds jf_total
+           WHERE jf_total.booking_id = mpi.booking_id
+         ) > ROUND(q.amount * 100)
          OR (
            mpi.status IN (
              'initialized','pending','succeeded','refunded',

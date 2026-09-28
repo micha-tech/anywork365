@@ -100,6 +100,30 @@ test('accepts a complete quote-to-provider payment chain', () => {
   assert.doesNotThrow(() => assertMarketplaceProviderPayment(context, verification()))
 })
 
+test('accepts an instalment linked to a larger accepted quote and booking total', () => {
+  const context = link()
+  context.quote.amountMinor = 6_666_500n
+  context.booking.amountMinor = 6_666_500n
+
+  assert.doesNotThrow(() =>
+    assertMarketplacePaymentLink(context, { requirePaymentAccount: true })
+  )
+  assert.doesNotThrow(() => assertMarketplaceProviderPayment(context, verification()))
+})
+
+test('rejects an instalment above the accepted quote total', () => {
+  const context = link()
+  context.intent.amountMinor = 6_666_501n
+  context.jobFund.amountMinor = 6_666_501n
+  context.account!.amountMinor = 6_666_501n
+  context.quote.amountMinor = 6_666_500n
+  context.booking.amountMinor = 6_666_500n
+
+  expectFinancialFailure(() =>
+    assertMarketplacePaymentLink(context, { requirePaymentAccount: true })
+  )
+})
+
 test('rejects cross-booking, cross-client, cross-artisan and amount tampering', () => {
   const cases: MarketplacePaymentLink[] = []
   const wrongBooking = link()
