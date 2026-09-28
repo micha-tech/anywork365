@@ -16,6 +16,7 @@ build/
 .env.production.local
 .env.production
 .env.vercel
+certs/*.pem
 # .env.example is intentionally NOT ignored — it's safe to commit
 
 # Vercel

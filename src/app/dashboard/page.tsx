@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, type ComponentType, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
@@ -243,8 +244,12 @@ export default function DashboardPage() {
 
   return (
     <PullToRefresh onRefresh={fetchDashboard}>
-      <div className="friendly-hero mb-6 p-5 sm:p-8">
-        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="friendly-hero mb-7 p-5 sm:p-8">
+        <div className="pointer-events-none absolute -bottom-20 -right-16 h-64 w-64 rounded-full bg-[#d8ffad]/10" />
+        {isVendorDashboard && (
+          <Image src="/images/booking/booking-tracker.webp" alt="" width={220} height={220} priority className="pointer-events-none absolute -bottom-8 right-5 hidden h-48 w-48 object-contain opacity-95 lg:block" />
+        )}
+        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between lg:pr-52">
           <div className="max-w-2xl">
             {isVendorDashboard && (
               <p className="mb-3 text-sm font-semibold text-white/80">Your workspace</p>
@@ -461,7 +466,7 @@ export default function DashboardPage() {
       )}
 
       {isVendorDashboard && (
-        <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:p-5">
+        <div className="solid-3d-card mb-6 p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg ${
@@ -503,9 +508,9 @@ export default function DashboardPage() {
               <Link
                 key={card.href}
                 href={card.href}
-                className="friendly-card-interactive group flex items-center gap-3 p-4"
+                className="solid-3d-card solid-3d-card-interactive group flex items-center gap-3 p-4"
               >
-                <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${tone.icon}`}>
+                <div className={`solid-3d-icon h-11 w-11 ${tone.icon}`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -530,11 +535,11 @@ export default function DashboardPage() {
           const Icon = m.icon
           const tone = metricToneStyles[m.tone]
           return (
-          <div key={m.label} className="friendly-card relative overflow-hidden p-4 sm:p-5">
+          <div key={m.label} className="solid-3d-card relative overflow-hidden p-4 sm:p-5">
             <div className={`absolute -right-7 -top-8 h-20 w-20 rounded-full opacity-30 ${tone.icon.split(' ')[0]}`} />
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 leading-tight">{m.label}</p>
-              <div className={`relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl ${tone.icon}`}>
+              <div className={`solid-3d-icon relative h-9 w-9 ${tone.icon}`}>
                 <Icon className="h-4 w-4" />
               </div>
             </div>
@@ -564,9 +569,9 @@ export default function DashboardPage() {
               <Link
                 key={a.href}
                 href={a.href}
-                className="friendly-card-interactive group flex items-center gap-3 p-3.5 text-left"
+                className="solid-3d-card solid-3d-card-interactive group flex items-center gap-3 p-3.5 text-left"
               >
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white">
+                <div className="solid-3d-icon h-11 w-11 bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-white">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -579,7 +584,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="friendly-card p-5 sm:p-6">
+      <div className="solid-3d-card p-5 sm:p-6">
         <div className="mb-4 flex items-center gap-3">
           <h2 className="font-display text-base font-bold text-slate-900">Recent Activity</h2>
         </div>

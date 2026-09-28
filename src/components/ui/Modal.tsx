@@ -70,7 +70,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className={cn(
-        'bg-white w-full min-w-0 max-w-full max-h-[92dvh] overflow-x-hidden overflow-y-auto scroll-momentum',
+        'bg-white w-full min-w-0 max-w-full max-h-[92dvh] overflow-x-hidden overflow-y-auto scroll-momentum border border-[#d6dfd7]',
         'rounded-t-[var(--radius-sheet)] sm:rounded-[var(--radius-surface)] outline-none',
         sizeMap[size],
         'shadow-dialog',

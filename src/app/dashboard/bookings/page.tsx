@@ -888,18 +888,21 @@ export default function BookingsPage() {
       >
         {paymentBooking && (
           <div>
-            <div className="relative mb-5 overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 p-5">
-              <div className="relative flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wide text-brand-700">
-                <span>Amount due</span>
-                <span>Booking #{paymentBooking.id}</span>
+            <div className="solid-3d-card relative mb-5 flex min-h-32 items-center justify-between overflow-hidden p-5">
+              <div className="relative z-10 min-w-0">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-wide text-brand-700">
+                  <span>Amount due</span>
+                  <span className="text-slate-400">Booking #{paymentBooking.id}</span>
+                </div>
+                <p className="mt-2 font-display text-3xl font-extrabold tracking-tight text-brand-900">₦{paymentBooking.amountDue.toLocaleString()}</p>
+                {paymentBooking.paidAmount > 0 && <p className="mt-1 text-xs font-medium text-brand-700">₦{paymentBooking.paidAmount.toLocaleString()} already paid</p>}
               </div>
-              <p className="relative mt-2 font-display text-3xl font-bold tracking-tight text-brand-900">₦{paymentBooking.amountDue.toLocaleString()}</p>
-              {paymentBooking.paidAmount > 0 && <p className="mt-1 text-xs font-medium text-brand-700">₦{paymentBooking.paidAmount.toLocaleString()} already paid</p>}
+              <Image src="/images/booking/book-pay.webp" alt="" width={132} height={110} className="-mb-4 -mr-3 hidden h-28 w-32 object-contain sm:block" />
             </div>
 
             {paymentDetails ? (
               <div>
-                <div className="relative overflow-hidden rounded-3xl border border-brand-700 bg-brand-800 p-5 text-white shadow-[0_18px_40px_rgba(4,31,30,0.18)]">
+                <div className="solid-3d-balance p-5">
                   <div className="absolute -bottom-12 -right-8 h-36 w-36 rounded-full bg-brand-400/15" />
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -968,7 +971,7 @@ export default function BookingsPage() {
                   type="button"
                   onClick={() => handlePayment('wallet')}
                   disabled={paymentSubmitting !== null}
-                  className="friendly-choice group disabled:opacity-50"
+                  className="solid-3d-choice group disabled:opacity-50"
                 >
                   <span className="friendly-icon bg-brand-50 text-brand-700"><WalletChoiceIcon /></span>
                   <span className="min-w-0 flex-1">
@@ -982,7 +985,7 @@ export default function BookingsPage() {
                   type="button"
                   onClick={() => handlePayment('bank_transfer')}
                   disabled={paymentSubmitting !== null}
-                  className="friendly-choice group disabled:opacity-50"
+                  className="solid-3d-choice group disabled:opacity-50"
                 >
                   <span className="friendly-icon bg-amber-50 text-amber-700"><BankIcon /></span>
                   <span className="min-w-0 flex-1">

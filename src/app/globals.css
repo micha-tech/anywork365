@@ -124,6 +124,58 @@
   .friendly-icon { @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-500; }
   .friendly-pill { @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold; }
 
+  /* Solid 3D surface language used across dashboard and money flows. */
+  .solid-3d-card {
+    position: relative;
+    border: 1px solid #d6dfd7;
+    border-bottom-color: #bccabd;
+    background: linear-gradient(155deg, #ffffff 0%, #fbfcf9 72%, #f0f4ee 100%);
+    border-radius: var(--radius-card);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%), 0 3px 0 #d7dfd7, 0 13px 28px rgb(27 44 34 / 8%);
+  }
+  .solid-3d-card-interactive {
+    transition: transform 160ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+  .solid-3d-card-interactive:hover {
+    border-color: #9fb5a4;
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 95%), 0 5px 0 #cbd7cc, 0 18px 34px rgb(27 44 34 / 11%);
+  }
+  .solid-3d-card-interactive:active { transform: translateY(2px); box-shadow: inset 0 1px 2px rgb(27 44 34 / 7%), 0 1px 0 #cbd7cc; }
+  .solid-3d-balance {
+    position: relative;
+    overflow: hidden;
+    color: white;
+    border: 1px solid #083d39;
+    border-radius: var(--radius-card);
+    background: linear-gradient(145deg, #17645d 0%, #0f4f4a 55%, #093b38 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 17%), inset 0 -1px 0 rgb(0 0 0 / 15%), 0 4px 0 #062f2c, 0 18px 36px rgb(8 61 57 / 20%);
+  }
+  .solid-3d-well {
+    border: 1px solid #d8e0d7;
+    border-radius: var(--radius-control);
+    background: #eef2ec;
+    box-shadow: inset 0 2px 5px rgb(27 44 34 / 8%), 0 1px 0 white;
+  }
+  .solid-3d-icon {
+    @apply flex shrink-0 items-center justify-center;
+    border: 1px solid rgb(255 255 255 / 80%);
+    border-radius: 18px;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 80%), 0 3px 0 rgb(27 44 34 / 10%), 0 8px 16px rgb(27 44 34 / 8%);
+  }
+  .solid-3d-choice {
+    @apply relative flex w-full items-center gap-3 p-4 text-left;
+    min-height: 78px;
+    border: 1px solid #d6dfd7;
+    border-bottom-color: #b8c7b9;
+    border-radius: 20px;
+    background: linear-gradient(155deg, white, #f8faf6);
+    box-shadow: inset 0 1px 0 white, 0 3px 0 #d2dbd2, 0 10px 20px rgb(27 44 34 / 7%);
+    transition: transform 160ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+  .solid-3d-choice:hover { border-color: #8fac98; transform: translateY(-1px); box-shadow: inset 0 1px 0 white, 0 4px 0 #c6d3c7, 0 14px 26px rgb(27 44 34 / 10%); }
+  .solid-3d-choice:active { transform: translateY(2px); box-shadow: inset 0 2px 4px rgb(27 44 34 / 7%), 0 1px 0 #c6d3c7; }
+
   .page-shell { @apply mx-auto min-h-screen w-full max-w-7xl px-5 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12; }
   .page-heading { font-size: clamp(1.875rem, 3.4vw, 2.75rem); font-weight: 800; line-height: 1.15; letter-spacing: -.04em; color: var(--text-primary); }
   .page-intro, .page-description { @apply mt-3 max-w-2xl text-base leading-relaxed; color: var(--text-secondary); }
@@ -131,7 +183,7 @@
   .section-header { @apply mb-8 flex flex-wrap items-end justify-between gap-4; }
   .section-header-copy { @apply min-w-0 max-w-2xl; }
   .quiet-link { @apply inline-flex min-h-11 items-center rounded-xl px-3 py-2 text-sm font-bold text-brand-500 transition-colors hover:bg-brand-50; }
-  .friendly-hero { @apply relative overflow-hidden text-white; border-radius: var(--radius-surface); background: var(--brand-ink); box-shadow: var(--elevation-2); }
+  .friendly-hero { @apply relative overflow-hidden text-white; border: 1px solid #083d39; border-radius: var(--radius-surface); background: linear-gradient(145deg, #17645d, var(--brand-ink) 60%, #093b38); box-shadow: inset 0 1px 0 rgb(255 255 255 / 14%), 0 4px 0 #062f2c, var(--elevation-3); }
   .story-header { @apply mb-8 flex items-center justify-between gap-6; }
   .story-header .story-art { @apply hidden shrink-0 sm:block; }
   .story-art { @apply h-auto object-contain; }

@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -300,11 +301,15 @@ function WalletPageContent() {
 
   return (
     <PullToRefresh onRefresh={fetchWallet}>
-      <div className="mb-8">
-        <h1 className="page-heading">Your money</h1>
-        <p className="page-description">
-          {isArtisan ? 'Manage your earnings and withdrawals' : 'Manage your payments'}
-        </p>
+      <div className="solid-3d-card mb-8 flex min-h-40 items-center justify-between overflow-hidden px-5 py-6 sm:px-8">
+        <div className="relative z-10 max-w-xl">
+          <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.16em] text-brand-600">Money, made clear</p>
+          <h1 className="page-heading">Your money</h1>
+          <p className="page-description mt-2">
+            {isArtisan ? 'See what you earned, what is on the way, and withdraw with confidence.' : 'Keep payments, booking funds, and receipts in one calm place.'}
+          </p>
+        </div>
+        <Image src={isArtisan ? '/images/story/work.webp' : '/images/booking/book-pay.webp'} alt="" width={190} height={150} priority className="hidden h-36 w-44 object-contain sm:block" />
       </div>
 
       {loadingData || userLoading ? (
@@ -315,7 +320,8 @@ function WalletPageContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="relative overflow-hidden rounded-3xl bg-brand-800 p-4 text-white sm:p-5">
+          <div className="solid-3d-balance p-5 sm:p-6">
+            <div className="pointer-events-none absolute -bottom-12 -right-8 h-36 w-36 rounded-full bg-[#d8ffad]/10" />
             <p className="text-sm font-semibold text-white/70">
               {isArtisan ? 'Available Earnings' : 'Available Balance'}
             </p>
@@ -326,7 +332,7 @@ function WalletPageContent() {
               {isArtisan ? 'Ready to withdraw' : 'Ready to use'}
             </p>
           </div>
-          <div className="friendly-card p-4 sm:p-5">
+          <div className="solid-3d-card p-4 sm:p-5">
             <p className="text-sm font-semibold text-slate-500">
               {isArtisan ? 'Pending Earnings' : 'In Active Bookings'}
             </p>
@@ -339,7 +345,7 @@ function WalletPageContent() {
                 : 'Payments held for active work'}
             </p>
           </div>
-          <div className="friendly-card p-4 sm:p-5">
+          <div className="solid-3d-card p-4 sm:p-5">
             <p className="text-sm font-semibold text-slate-500">
               {isArtisan ? 'Total Earned' : 'Total Paid'}
             </p>
@@ -367,7 +373,7 @@ function WalletPageContent() {
                 ['Secured for Bookings', wallet.escrowBalance ?? 0],
               ]
           ).map(([label, value]) => (
-            <div key={String(label)} className="rounded-2xl border border-slate-200 bg-white px-3 py-3">
+            <div key={String(label)} className="solid-3d-well px-3 py-3">
               <p className="text-[11px] uppercase tracking-wide text-slate-500">{label}</p>
               <p className="mt-1 text-sm font-semibold text-slate-900">
                 {formatCurrency(Number(value))}
@@ -419,8 +425,8 @@ function WalletPageContent() {
         </div>
       )}
 
-      <div className="-mx-4 sm:mx-0 mb-6 border-b border-slate-200 px-4 sm:px-0 overflow-x-auto scrollbar-none">
-        <div className="flex min-w-max gap-1 sm:gap-0">
+      <div className="mb-6 overflow-x-auto scrollbar-none">
+        <div className="solid-3d-well flex min-w-max gap-1 p-1.5">
           {([
             { id: 'overview', label: 'Transactions' },
             ...(isArtisan
@@ -433,10 +439,10 @@ function WalletPageContent() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 sm:px-5 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
+              className={`rounded-xl px-4 py-2.5 text-sm font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'border-brand-500 text-brand-500'
-                  : 'border-transparent text-slate-500 hover:text-slate-900'
+                  ? 'bg-brand-800 text-white shadow-[inset_0_1px_0_rgb(255_255_255/16%),0_3px_0_#083d39]'
+                  : 'text-slate-500 hover:bg-white hover:text-slate-900'
               }`}
             >
               {tab.label}
@@ -446,7 +452,7 @@ function WalletPageContent() {
       </div>
 
       {activeTab === 'overview' && (
-        <div className="card">
+        <div className="solid-3d-card p-5 sm:p-6">
           <h2 className="font-medium text-base mb-4">Transaction History</h2>
           {txHistory.length === 0 ? (
             <div className="text-center py-12">
@@ -526,7 +532,7 @@ function WalletPageContent() {
       )}
 
       {activeTab === 'fund' && !isArtisan && (
-        <div className="card max-w-xl">
+        <div className="solid-3d-card max-w-xl p-5 sm:p-6">
           <h2 className="font-medium text-base mb-1">Add Money</h2>
           <p className="text-sm text-slate-500 mb-5">
             Top up securely with Paystack.
@@ -570,7 +576,7 @@ function WalletPageContent() {
       )}
 
       {activeTab === 'withdraw' && isArtisan && (
-        <div className="card max-w-xl">
+        <div className="solid-3d-card max-w-xl p-5 sm:p-6">
           <h2 className="font-medium text-base mb-1">Withdraw Funds</h2>
           <p className="text-sm text-slate-500 mb-5">Funds arrive in your bank account within 1-2 business days.</p>
 
@@ -584,9 +590,9 @@ function WalletPageContent() {
             </div>
           ) : (
             <form onSubmit={handleWithdraw}>
-              <div className="bg-brand-50 rounded-xl px-4 py-3 mb-5">
-                <p className="text-xs text-brand-600 font-medium">Available to withdraw</p>
-                <p className="font-display text-2xl font-semibold text-brand-500 mt-0.5 break-words">
+              <div className="solid-3d-balance mb-5 px-4 py-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-white/65">Available to withdraw</p>
+                <p className="mt-1 break-words font-display text-2xl font-bold text-white">
                   {formatCurrency(wallet?.availableBalance ?? 0)}
                 </p>
               </div>
@@ -626,7 +632,7 @@ function WalletPageContent() {
       )}
 
       {activeTab === 'bank' && isArtisan && (
-        <div className="card max-w-xl">
+        <div className="solid-3d-card max-w-xl p-5 sm:p-6">
           <h2 className="font-medium text-base mb-1">Bank Account</h2>
           <p className="text-sm text-slate-500 mb-5">
             Add the bank account where you want to receive withdrawals.
