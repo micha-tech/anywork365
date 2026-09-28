@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { getVerifiedSession } from '@/lib/auth'
 import { getOrCreateWallet, requestWithdrawal, rollbackWithdrawal } from '@/lib/wallet'
 import { getPaystackBalance, initiateTransfer } from '@/lib/paystack'
+import { paystackNigeriaProviderDebit } from '@/lib/financial/paystack-fees'
 import { checkRateLimit } from '@/lib/wallet'
 import type { ApiResponse } from '@/types'
 import { getUserRowByUid, getWithdrawalAccounts } from '@/lib/queries'
@@ -84,17 +85,21 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         )
       }
+      const payoutMinor = majorToMinor(String(amountNGN))
+      const providerCost = paystackNigeriaProviderDebit(payoutMinor, {
+        payrollExempt: process.env.PAYSTACK_PAYROLL_STAMP_DUTY_EXEMPT === 'true',
+      })
       const providerBalances = await getPaystackBalance()
       const ngnTransferBalance = providerBalances.data.find((item) => item.currency === 'NGN')?.balance ?? 0
-      if (BigInt(ngnTransferBalance) < majorToMinor(String(amountNGN))) {
+      if (BigInt(ngnTransferBalance) < providerCost.providerDebitMinor) {
         return NextResponse.json<ApiResponse<null>>(
-          { success: false, error: 'Withdrawals are temporarily unavailable. Please try again after the payout account is funded.' },
+          { success: false, error: 'We cannot complete this withdrawal right now. Your balance is safe—please try again shortly.' },
           { status: 503 }
         )
       }
       const reserved = await requestMarketplaceWithdrawal({
         artisanUid: session.id,
-        amountMinor: majorToMinor(String(amountNGN)),
+        amountMinor: payoutMinor,
         idempotencyKey,
         actor: { type: 'user', id: session.id },
       })
