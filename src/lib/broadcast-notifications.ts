@@ -9,6 +9,7 @@ interface CampaignRow extends RowDataPacket {
   body: string
   image_url: string | null
   action_url: string | null
+  audience_type: 'all' | 'selected'
   token_cursor: number
 }
 
@@ -19,7 +20,7 @@ interface TokenRow extends RowDataPacket {
 
 export async function processBroadcastNotifications(maxCampaigns = 1) {
   const campaigns = await query<CampaignRow[]>(
-    `SELECT id, title, body, image_url, action_url, token_cursor
+    `SELECT id, title, body, image_url, action_url, audience_type, token_cursor
      FROM broadcast_notifications
      WHERE status IN ('queued', 'sending')
      ORDER BY id ASC
@@ -40,12 +41,14 @@ async function processCampaign(campaign: CampaignRow) {
   )
 
   const tokens = await query<TokenRow[]>(
-    `SELECT t.id, t.token
-     FROM user_fcm_tokens t
-     INNER JOIN users u ON u.uid = t.uid
-     WHERE t.is_active = 1 AND u.deleted = 0 AND t.id > ?
-     ORDER BY t.id ASC
-     LIMIT ${FCM_BATCH_SIZE}`,
+    campaign.audience_type === 'selected'
+      ? `SELECT t.id, t.token FROM user_fcm_tokens t
+         INNER JOIN users u ON u.uid = t.uid
+         INNER JOIN broadcast_notification_recipients r ON r.uid = t.uid AND r.campaign_id = ${Number(campaign.id)}
+         WHERE t.is_active = 1 AND u.deleted = 0 AND t.id > ? ORDER BY t.id ASC LIMIT ${FCM_BATCH_SIZE}`
+      : `SELECT t.id, t.token FROM user_fcm_tokens t
+         INNER JOIN users u ON u.uid = t.uid
+         WHERE t.is_active = 1 AND u.deleted = 0 AND t.id > ? ORDER BY t.id ASC LIMIT ${FCM_BATCH_SIZE}`,
     [campaign.token_cursor]
   )
 

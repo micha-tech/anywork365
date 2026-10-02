@@ -50,22 +50,40 @@ export async function POST(req: NextRequest) {
     const body = stringField(payload.body, 1000)
     const imageUrl = stringField(payload.imageUrl, 2048)
     const actionUrl = stringField(payload.actionUrl, 1024)
+    const rawRecipientUids: unknown[] = Array.isArray(payload.recipientUids) ? payload.recipientUids : []
+    const recipientUids: string[] = [...new Set(rawRecipientUids.filter((uid: unknown): uid is string => typeof uid === 'string' && uid.length <= 128))].slice(0, 200)
+    const audienceType = recipientUids.length ? 'selected' : 'all'
     if (!title || !body) return NextResponse.json({ success: false, error: 'A title and message are required' }, { status: 400 })
     if (!validImageUrl(imageUrl)) return NextResponse.json({ success: false, error: 'Image URL must use HTTPS' }, { status: 400 })
     if (!validActionUrl(actionUrl)) return NextResponse.json({ success: false, error: 'Destination must be a page within Anywork365' }, { status: 400 })
 
     const result = await execute(
-      `INSERT INTO broadcast_notifications (admin_uid, title, body, image_url, action_url)
-       VALUES (?, ?, ?, ?, ?)`,
-      [session.id, title, body, imageUrl || null, actionUrl || null]
+      `INSERT INTO broadcast_notifications (admin_uid, title, body, image_url, action_url, audience_type)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [session.id, title, body, imageUrl || null, actionUrl || null, audienceType]
     )
-    await execute(
-      `INSERT INTO users_notifications (senderUid, senderEmail, recieverUid, recieverEmail, body, dateCreated, seenByReciever)
-       SELECT ?, ?, u.uid, u.email, ?, NOW(), 0 FROM users u WHERE u.deleted = 0`,
-      [session.id, session.email, `${title}: ${body}`]
-    )
+    if (audienceType === 'selected') {
+      const placeholders = recipientUids.map(() => '?').join(', ')
+      await execute(
+        `INSERT IGNORE INTO broadcast_notification_recipients (campaign_id, uid)
+         SELECT ?, u.uid FROM users u WHERE u.deleted = 0 AND u.role NOT IN ('admin', 'support') AND u.uid IN (${placeholders})`,
+        [result.insertId, ...recipientUids]
+      )
+      await execute(
+        `INSERT INTO users_notifications (senderUid, senderEmail, recieverUid, recieverEmail, body, dateCreated, seenByReciever)
+         SELECT ?, ?, u.uid, u.email, ?, NOW() , 0 FROM users u
+         WHERE u.deleted = 0 AND u.role NOT IN ('admin', 'support') AND u.uid IN (${placeholders})`,
+        [session.id, session.email, `${title}: ${body}`, ...recipientUids]
+      )
+    } else {
+      await execute(
+        `INSERT INTO users_notifications (senderUid, senderEmail, recieverUid, recieverEmail, body, dateCreated, seenByReciever)
+         SELECT ?, ?, u.uid, u.email, ?, NOW(), 0 FROM users u WHERE u.deleted = 0`,
+        [session.id, session.email, `${title}: ${body}`]
+      )
+    }
     await logAdminAction(session.id, 'publish_broadcast_notification', 'broadcast_notification', String(result.insertId), {
-      title, hasImage: Boolean(imageUrl), actionUrl: actionUrl || null,
+      title, hasImage: Boolean(imageUrl), actionUrl: actionUrl || null, audienceType, selectedRecipients: recipientUids.length,
     })
 
     // Start the first safe delivery batch immediately; the VPS worker completes the rest.
