@@ -18,6 +18,7 @@ const NAV_ITEMS = [
       { href: '/admin/reconciliation', label: 'Reconciliation', icon: WalletIcon },
       { href: '/admin/disputes', label: 'Disputes', icon: AlertIcon },
       { href: '/support', label: 'Support Console', icon: SupportIcon },
+      { href: '/admin/notifications', label: 'Notifications', icon: BellIcon },
     ],
   },
   {
@@ -139,6 +140,15 @@ function WalletIcon({ className }: { className?: string }) {
       <rect x="2" y="5" width="20" height="14" rx="2" />
       <path d="M16 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0" />
       <path d="M2 10h20" />
+    </svg>
+  )
+}
+
+function BellIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+      <path d="M10 21h4" />
     </svg>
   )
 }
