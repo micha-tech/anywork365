@@ -4,6 +4,7 @@ import { getVacanciesByRecruiter } from '@/lib/queries'
 import { getVerifiedSession } from '@/lib/auth'
 import { vacancyRowToJob } from '@/lib/jobs'
 import { JobCard } from '@/components/forms/JobCard'
+import { RecruiterJobActions } from '@/components/jobs/RecruiterJobActions'
 
 export const dynamic = 'force-dynamic'
 
@@ -84,11 +85,7 @@ export default async function MyJobsPage({
         ) : filtered.map((job) => (
           <div key={job.id}>
             <JobCard job={job} showApply={false} />
-            <div className="-mt-2 flex justify-end rounded-b-xl border border-t-0 border-slate-200 bg-white px-4 pb-3">
-              <Link href={`/dashboard/applications?job=${job.id}`} className="text-sm font-semibold text-brand-600">
-                View applications ({job.applicationCount})
-              </Link>
-            </div>
+            <RecruiterJobActions jobId={job.id} applicationCount={job.applicationCount} />
           </div>
         ))}
       </div>

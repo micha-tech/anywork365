@@ -794,6 +794,45 @@ export async function getVacanciesByRecruiter(uid: string): Promise<VacancyRow[]
   return query<VacancyRow[]>(`${VACANCY_SELECT} WHERE v.posted_by_uid = ? ORDER BY v.date_created DESC LIMIT 200`, [uid])
 }
 
+export async function updateVacancyByRecruiter(id: number, recruiterUid: string, data: {
+  company_name: string
+  company_address: string
+  vacancy_title: string
+  category: string
+  budgetMin: number
+  budgetMax: number
+  timeline: string
+  vacancy_location: string
+  job_type: string
+  jobLevel: string
+  work_type: string
+  required_skills: string
+  short_description: string
+  job_description: string
+  closing_date: string
+}): Promise<boolean> {
+  const result = await execute(
+    `UPDATE vacancies SET company_name = ?, company_address = ?, vacancy_title = ?, category = ?,
+       budget = ?, budget_min = ?, budget_max = ?, timeline = ?, vacancy_location = ?, job_type = ?,
+       job_level = ?, work_type = ?, required_skills = ?, short_description = ?, job_description = ?, closing_date = ?
+     WHERE vacancy_id = ? AND posted_by_uid = ?`,
+    [data.company_name, data.company_address, data.vacancy_title, data.category, data.budgetMin,
+      data.budgetMin, data.budgetMax, data.timeline, data.vacancy_location, data.job_type,
+      data.jobLevel, data.work_type, data.required_skills, data.short_description,
+      data.job_description, data.closing_date, id, recruiterUid]
+  )
+  return result.affectedRows === 1
+}
+
+export async function deleteVacancyByRecruiter(id: number, recruiterUid: string): Promise<'deleted' | 'has_applications' | 'not_found'> {
+  const vacancy = await getVacancyById(id)
+  if (!vacancy || vacancy.posted_by_uid !== recruiterUid) return 'not_found'
+  const applications = await query<(RowDataPacket & { count: number })[]>('SELECT COUNT(*) AS count FROM vacancy_applications WHERE vacancy_id = ?', [id])
+  if (Number(applications[0]?.count || 0) > 0) return 'has_applications'
+  const result = await execute('DELETE FROM vacancies WHERE vacancy_id = ? AND posted_by_uid = ?', [id, recruiterUid])
+  return result.affectedRows === 1 ? 'deleted' : 'not_found'
+}
+
 // ─── Bookings ─────────────────────────────────────────────────────────────
 
 export async function getBookingById(id: number): Promise<BookingRow | null> {

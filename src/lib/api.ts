@@ -53,6 +53,11 @@ export const jobsApi = {
 
   create: (payload: object) =>
     request('/api/jobs', { method: 'POST', body: JSON.stringify(payload) }),
+
+  update: (id: string, payload: object) =>
+    request(`/api/jobs/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+
+  delete: (id: string) => request(`/api/jobs/${id}`, { method: 'DELETE' }),
 }
 
 // ─── Users API ────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRef, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
@@ -11,11 +11,15 @@ import { jobsApi } from '@/lib/api'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { INDUSTRY_CATEGORIES, JOB_LEVELS } from '@/lib/registration-options'
 import { NIGERIAN_STATE_NAMES } from '@/types'
+import type { Job } from '@/types'
 
 export default function PostJobPage() {
   const { user, loading } = useCurrentUser()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const editId = searchParams.get('edit')
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [loadingJob, setLoadingJob] = useState(Boolean(editId))
 
   useEffect(() => {
     return () => clearTimeout(timerRef.current)
@@ -34,18 +38,45 @@ export default function PostJobPage() {
   const shortDescriptionLength = watch('shortDescription', '').length
   const detailedDescriptionLength = watch('description', '').length
 
+  useEffect(() => {
+    if (!editId) return
+    let active = true
+    jobsApi.get(editId).then((response) => {
+      if (!active) return
+      const job = response.data as Job | undefined
+      if (!response.success || !job || job.posterId !== user?.id) {
+        toast.error('This job cannot be edited')
+        router.replace('/dashboard/jobs')
+        return
+      }
+      reset({
+        title: job.title, shortDescription: job.shortDescription, description: job.description,
+        category: job.category as JobPostInput['category'], budgetMin: Number(job.budgetMin), budgetMax: Number(job.budgetMax),
+        city: job.city, timeline: job.timeline, businessName: job.businessName, businessAddress: job.businessAddress,
+        jobType: job.jobType, workArrangement: job.workArrangement, jobLevel: job.jobLevel,
+        closingDate: job.closingDate.slice(0, 10),
+      })
+      setLoadingJob(false)
+    }).catch(() => {
+      if (!active) return
+      toast.error('Could not load this job')
+      router.replace('/dashboard/jobs')
+    })
+    return () => { active = false }
+  }, [editId, reset, router, user?.id])
+
   async function onSubmit(data: JobPostInput) {
-    const res = await jobsApi.create(data)
+    const res = editId ? await jobsApi.update(editId, data) : await jobsApi.create(data)
     if (res.success) {
-      toast.success('Job posted')
+      toast.success(editId ? 'Job updated' : 'Job posted')
       reset()
       timerRef.current = setTimeout(() => router.push('/dashboard/jobs'), 1500)
     } else {
-      toast.error(res.error || 'Failed to post job')
+      toast.error(res.error || `Failed to ${editId ? 'update' : 'post'} job`)
     }
   }
 
-  if (loading) {
+  if (loading || loadingJob) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="animate-pulse text-sm text-slate-400">Loading...</div>
@@ -67,8 +98,8 @@ export default function PostJobPage() {
   return (
     <>
       <div className="mb-8">
-        <h1 className="page-heading">Post a Job</h1>
-        <p className="mt-1 text-sm text-slate-600">Create a clear brief so the right applicants know what you need.</p>
+        <h1 className="page-heading">{editId ? 'Edit Job' : 'Post a Job'}</h1>
+        <p className="mt-1 text-sm text-slate-600">{editId ? 'Update the details candidates see for this role.' : 'Create a clear brief so the right applicants know what you need.'}</p>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_18rem]">
@@ -253,7 +284,7 @@ export default function PostJobPage() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6 pt-4 border-t border-slate-200">
             <button type="submit" disabled={isSubmitting} className="btn-primary px-8 py-3 w-full sm:w-auto justify-center">
-              {isSubmitting ? 'Posting...' : 'Post Job'}
+              {isSubmitting ? (editId ? 'Saving...' : 'Posting...') : (editId ? 'Save changes' : 'Post Job')}
             </button>
             <button type="button" onClick={() => router.back()} className="btn-ghost px-6 py-3 w-full sm:w-auto justify-center">
               Cancel
