@@ -39,12 +39,16 @@ export default function PostJobPage() {
   const detailedDescriptionLength = watch('description', '').length
 
   useEffect(() => {
-    if (!editId) return
+    // Wait for the account request before checking ownership. Without this guard,
+    // the first render has no user ID and incorrectly rejects the job.
+    if (!editId || loading) return
     let active = true
     jobsApi.get(editId).then((response) => {
       if (!active) return
-      const job = response.data as Job | undefined
-      if (!response.success || !job || job.posterId !== user?.id) {
+      // The client helper returns the route's JSON body inside response.data.
+      const payload = response.data as { success?: boolean; data?: Job } | undefined
+      const job = payload?.data
+      if (!response.success || !payload?.success || !job || job.posterId !== user?.id) {
         toast.error('This job cannot be edited')
         router.replace('/dashboard/jobs')
         return
@@ -63,7 +67,7 @@ export default function PostJobPage() {
       router.replace('/dashboard/jobs')
     })
     return () => { active = false }
-  }, [editId, reset, router, user?.id])
+  }, [editId, loading, reset, router, user?.id])
 
   async function onSubmit(data: JobPostInput) {
     const res = editId ? await jobsApi.update(editId, data) : await jobsApi.create(data)
