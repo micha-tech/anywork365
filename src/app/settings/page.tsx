@@ -136,7 +136,7 @@ export default function SettingsPage() {
     <div className="mx-auto w-full max-w-5xl space-y-5 px-4 pb-8 pt-4 sm:space-y-7 sm:px-6 sm:py-8 lg:px-8">
       <header className="friendly-hero grid min-h-[176px] grid-cols-[minmax(0,1fr)_104px] items-center gap-2 p-5 sm:min-h-[220px] sm:grid-cols-[minmax(0,1fr)_190px] sm:p-8">
         <div className="relative z-10 min-w-0">
-          <span className="friendly-pill border border-white/15 bg-white/10 text-white/80">Your account</span>
+          <span className="friendly-pill text-white/80">Your account</span>
           <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Settings</h1>
           <p className="mt-2 max-w-lg text-sm leading-6 text-white/75 sm:text-base">Keep your profile, alerts, and support options in one simple place.</p>
         </div>
@@ -206,7 +206,7 @@ function TierSection({ role }: { role: 'artisan' | 'professional' }) {
     <section aria-labelledby="tier-heading" className="overflow-hidden rounded-[2rem] bg-[linear-gradient(145deg,#0f4f4a_0%,#073b38_100%)] text-white shadow-[0_8px_0_#062d2a,0_22px_45px_rgba(7,59,56,0.2)]">
       <div className="px-4 pb-6 pt-6 sm:px-7 sm:pb-8 sm:pt-8">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="friendly-pill border border-white/15 bg-white/10 text-[#d8ffad]">Vendor and professional tiers</span>
+          <span className="friendly-pill text-[#d8ffad]">Vendor and professional tiers</span>
           <h2 id="tier-heading" className="mt-3 font-display text-2xl font-extrabold sm:text-3xl">Choose your path to greater visibility</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-white/70">Explore the requirements and benefits for each Anywork365 tier.</p>
         </div>

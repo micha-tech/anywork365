@@ -29,7 +29,7 @@ export function RegistrationShell({
 }: RegistrationShellProps) {
   const marketingCopy = (
     <>
-      <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md lg:mb-4">
+      <div className="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-white lg:mb-4">
         <span className="flex h-6 w-6 items-center justify-center text-amber-300 [&>svg]:h-5 [&>svg]:w-5">{icon}</span>
         Register as {role}
       </div>

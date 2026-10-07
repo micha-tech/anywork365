@@ -51,7 +51,7 @@ export default function WeeklyReportPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-7">
       <header className="friendly-hero grid min-h-[184px] grid-cols-[minmax(0,1fr)_106px] items-center gap-1 p-5 sm:min-h-[224px] sm:grid-cols-[minmax(0,1fr)_210px] sm:p-8">
         <div className="relative z-10 min-w-0">
-          <span className="friendly-pill border border-white/15 bg-white/10 text-white/80">{start} – {end}</span>
+          <span className="friendly-pill text-white/80">{start} – {end}</span>
           <h1 className="mt-3 text-balance font-display text-2xl font-extrabold tracking-tight text-white sm:text-4xl">Your week on Anywork365</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-white/70 sm:text-base">A simple view of your booking activity and progress.</p>
         </div>
