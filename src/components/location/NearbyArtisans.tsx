@@ -60,22 +60,19 @@ export function NearbyArtisans() {
   const [hasSearched, setHasSearched] = useState(false)
   const [view, setView] = useState<'map' | 'list'>(process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ? 'map' : 'list')
   const [searchCenter, setSearchCenter] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [manualLocation, setManualLocation] = useState('')
+  const [manualLoading, setManualLoading] = useState(false)
 
-  async function searchNearby() {
+  async function loadNearby(latitude: number, longitude: number) {
     setLoading(true)
     setError('')
     try {
-      const position = await getCurrentLocation({
-        enableHighAccuracy: true,
-        timeout: 15_000,
-        maximumAge: 30_000,
-      })
       const params = new URLSearchParams({
-        lat: String(position.coords.latitude),
-        lng: String(position.coords.longitude),
+        lat: String(latitude),
+        lng: String(longitude),
         radius: '50',
       })
-      setSearchCenter({ latitude: position.coords.latitude, longitude: position.coords.longitude })
+      setSearchCenter({ latitude, longitude })
       if (category) params.set('category', category)
 
       const response = await fetch(`/api/artisans/nearby?${params}`)
@@ -91,6 +88,56 @@ export function NearbyArtisans() {
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function searchNearby() {
+    setLoading(true)
+    setError('')
+    try {
+      const position = await getCurrentLocation({
+        enableHighAccuracy: true,
+        timeout: 15_000,
+        maximumAge: 30_000,
+      })
+      await loadNearby(position.coords.latitude, position.coords.longitude)
+    } catch (searchError) {
+      if (searchError instanceof LocationAccessError || searchError instanceof NearbyRequestError) {
+        setError(searchError.message)
+      } else {
+        setError('We could not connect to nearby search. Check your connection and try again.')
+      }
+      setLoading(false)
+    }
+  }
+
+  async function searchManualLocation(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const query = manualLocation.trim()
+    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    if (!query || !token) return
+
+    setManualLoading(true)
+    setError('')
+    try {
+      const params = new URLSearchParams({
+        q: query,
+        country: 'ng',
+        types: 'address,place,locality,neighborhood',
+        limit: '1',
+        access_token: token,
+      })
+      const response = await fetch(`https://api.mapbox.com/search/geocode/v6/forward?${params}`)
+      const body = await response.json() as { features?: Array<{ geometry?: { coordinates?: [number, number] } }> }
+      const coordinates = body.features?.[0]?.geometry?.coordinates
+      if (!response.ok || !coordinates) {
+        throw new Error('Location not found')
+      }
+      await loadNearby(coordinates[1], coordinates[0])
+    } catch {
+      setError('We could not find that area. Try a nearby town, estate, or city name.')
+    } finally {
+      setManualLoading(false)
     }
   }
 
@@ -128,7 +175,34 @@ export function NearbyArtisans() {
         {hasSearched && !loading && !error && <p className="text-right text-xs font-bold text-slate-500">{artisans.length} nearby</p>}
       </div>
 
-      {error && <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">{error}</div>}
+      {error && (
+        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <span className="solid-3d-icon h-10 w-10 flex-none bg-amber-100 text-amber-700"><LocationIcon /></span>
+            <div className="min-w-0">
+              <p className="text-sm font-extrabold text-amber-900">We couldn’t use your current location</p>
+              <p className="mt-1 text-sm leading-6 text-amber-800">{error} Enable location access and retry, or search an area manually.</p>
+            </div>
+          </div>
+          {process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN && (
+            <form onSubmit={searchManualLocation} className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <label className="sr-only" htmlFor="nearby-manual-location">Search an area instead</label>
+              <input
+                id="nearby-manual-location"
+                value={manualLocation}
+                onChange={event => setManualLocation(event.target.value)}
+                className="input-field min-w-0"
+                placeholder="Try Lekki, Lagos"
+                autoComplete="street-address"
+              />
+              <button type="submit" disabled={manualLoading || !manualLocation.trim()} className="btn-outline min-h-12 justify-center px-5 disabled:cursor-not-allowed disabled:opacity-60">
+                {manualLoading ? 'Finding area…' : 'Search this area'}
+              </button>
+            </form>
+          )}
+          <button type="button" onClick={() => void searchNearby()} disabled={loading} className="mt-3 text-sm font-extrabold text-amber-900 underline decoration-amber-400 underline-offset-4 disabled:opacity-60">Try my location again</button>
+        </div>
+      )}
 
       {!loading && hasSearched && !error && (
         <div className="mt-6">
