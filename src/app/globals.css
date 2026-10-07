@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+.anywork-map-user-marker {
+  width: 22px;
+  height: 22px;
+  border: 4px solid #fff;
+  border-radius: 9999px;
+  background: #147d73;
+  box-shadow: 0 0 0 7px rgb(20 125 115 / 18%), 0 5px 12px rgb(15 79 74 / 28%);
+}
+
+.mapboxgl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 75%);
+  border-radius: 14px !important;
+  box-shadow: 0 8px 20px rgb(15 79 74 / 16%) !important;
+}
+
+.mapboxgl-ctrl-group button {
+  width: 38px !important;
+  height: 38px !important;
+}
+
 /* Anywork365: warm surfaces, quiet information, tactile actions.
    See docs/visual-system.md for usage and reference audit. */
 @layer base {

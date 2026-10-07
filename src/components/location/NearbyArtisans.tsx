@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { Avatar, VerifiedBusinessBadge, EmptyState } from '@/components/ui'
 import { BUSINESS_CATEGORY_GROUPS } from '@/types'
@@ -20,7 +21,17 @@ type NearbyArtisan = {
   yearsOfExperience?: number
   distanceKm: number
   updatedAt: string
+  approximateLatitude: number
+  approximateLongitude: number
 }
+
+const NearbyArtisanMap = dynamic(
+  () => import('@/components/location/NearbyArtisanMap').then(module => module.NearbyArtisanMap),
+  {
+    ssr: false,
+    loading: () => <div className="h-[62dvh] min-h-[430px] animate-pulse rounded-[1.75rem] bg-brand-50 sm:h-[560px]" />,
+  },
+)
 
 class NearbyRequestError extends Error {}
 
@@ -47,6 +58,8 @@ export function NearbyArtisans() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
+  const [view, setView] = useState<'map' | 'list'>(process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ? 'map' : 'list')
+  const [searchCenter, setSearchCenter] = useState<{ latitude: number; longitude: number } | null>(null)
 
   async function searchNearby() {
     setLoading(true)
@@ -62,6 +75,7 @@ export function NearbyArtisans() {
         lng: String(position.coords.longitude),
         radius: '50',
       })
+      setSearchCenter({ latitude: position.coords.latitude, longitude: position.coords.longitude })
       if (category) params.set('category', category)
 
       const response = await fetch(`/api/artisans/nearby?${params}`)
@@ -102,13 +116,29 @@ export function NearbyArtisans() {
         <p className="mt-2 text-xs text-slate-500">Shows artisans sharing a location within 50 km, ordered nearest first.</p>
       </div>
 
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <div className="inline-grid grid-cols-2 rounded-2xl bg-slate-100 p-1" aria-label="Nearby results view">
+          <button type="button" onClick={() => setView('map')} disabled={!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN} className={`min-h-10 rounded-xl px-4 text-sm font-extrabold transition ${view === 'map' ? 'bg-brand-700 text-white shadow-sm' : 'text-slate-500 hover:text-brand-700'} disabled:cursor-not-allowed disabled:opacity-40`} aria-pressed={view === 'map'} title={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ? 'Show map' : 'Map is not configured'}>
+            <span className="inline-flex items-center gap-2"><MapIcon /> Map</span>
+          </button>
+          <button type="button" onClick={() => setView('list')} className={`min-h-10 rounded-xl px-4 text-sm font-extrabold transition ${view === 'list' ? 'bg-white text-brand-800 shadow-sm' : 'text-slate-500 hover:text-brand-700'}`} aria-pressed={view === 'list'}>
+            <span className="inline-flex items-center gap-2"><ListIcon /> List</span>
+          </button>
+        </div>
+        {hasSearched && !loading && !error && <p className="text-right text-xs font-bold text-slate-500">{artisans.length} nearby</p>}
+      </div>
+
       {error && <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">{error}</div>}
 
       {!loading && hasSearched && !error && (
         <div className="mt-6">
-          {artisans.length ? (
+          {view === 'map' && searchCenter && process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ? (
             <>
-              <p className="mb-4 text-sm font-medium text-slate-600">{artisans.length} artisan{artisans.length === 1 ? '' : 's'} within 50 km</p>
+              <NearbyArtisanMap artisans={artisans} center={searchCenter} />
+              <p className="mx-auto mt-4 max-w-2xl text-center text-xs leading-5 text-slate-500">For privacy, map pins show an approximate area. Exact live coordinates are never displayed publicly.</p>
+            </>
+          ) : artisans.length ? (
+            <>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {artisans.map((artisan) => <NearbyCard key={artisan.id} artisan={artisan} />)}
               </div>
@@ -120,6 +150,14 @@ export function NearbyArtisans() {
       )}
     </div>
   )
+}
+
+function MapIcon() {
+  return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>
+}
+
+function ListIcon() {
+  return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
 }
 
 function NearbyCard({ artisan }: { artisan: NearbyArtisan }) {

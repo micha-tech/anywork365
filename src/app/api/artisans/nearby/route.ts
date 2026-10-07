@@ -20,6 +20,8 @@ interface NearbyArtisanRow extends RowDataPacket {
   yearsOfExperience: number | null
   updatedAt: Date
   distanceKm: number
+  approximateLatitude: number
+  approximateLongitude: number
 }
 
 export async function GET(request: NextRequest) {
@@ -50,7 +52,9 @@ export async function GET(request: NextRequest) {
     const rows = await query<NearbyArtisanRow[]>(
       `SELECT b.uid, b.businessName, u.fullName, b.category, b.rating, b.reviews,
          b.verified, u.profileImage, b.businessLogo, l.location_label AS locationLabel,
-         b.yearsOfExperience, l.updated_at AS updatedAt, ${distanceSql} AS distanceKm
+         b.yearsOfExperience, l.updated_at AS updatedAt, ${distanceSql} AS distanceKm,
+         ROUND(l.latitude, 3) AS approximateLatitude,
+         ROUND(l.longitude, 3) AS approximateLongitude
        FROM artisan_live_locations l
        INNER JOIN businesses b ON b.uid = l.uid AND b.deleted = 0 AND b.suspended = 0
        LEFT JOIN users u ON u.uid = b.uid AND u.deleted = 0 AND u.suspended = 0
@@ -76,6 +80,8 @@ export async function GET(request: NextRequest) {
         yearsOfExperience: row.yearsOfExperience ?? undefined,
         distanceKm: Math.round(Number(row.distanceKm) * 10) / 10,
         updatedAt: row.updatedAt,
+        approximateLatitude: Number(row.approximateLatitude),
+        approximateLongitude: Number(row.approximateLongitude),
       })),
     })
   } catch (error) {
