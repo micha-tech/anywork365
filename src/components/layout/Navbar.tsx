@@ -87,6 +87,7 @@ export function Navbar() {
   const isIntern = user?.role === 'intern'
   const navLinks   = isAdmin ? ADMIN_NAV : isSupport ? SUPPORT_NAV : isLoggedIn ? (isVendor ? VENDOR_AUTH_NAV : isRecruiter ? RECRUITER_AUTH_NAV : AUTH_NAV) : PUBLIC_NAV
   const initials   = getInitialsFromUser(user)
+  const showBackButton = pathname !== '/'
 
   const handleConversationOpen = useCallback((conversationId: string) => {
     router.push(`/messages?id=${conversationId}`)
@@ -121,6 +122,29 @@ export function Navbar() {
 
   if (hideNavbar) return null
 
+  function fallbackBackHref() {
+    if (pathname.startsWith('/artisans/')) return '/artisans'
+    if (pathname.startsWith('/professionals/')) return '/professionals'
+    if (pathname.startsWith('/jobs/')) return '/jobs'
+    if (pathname.startsWith('/wallet/')) return '/wallet'
+    if (pathname.startsWith('/dashboard/')) return '/dashboard'
+    if (pathname.startsWith('/admin/')) return '/admin'
+    if (pathname.startsWith('/support/')) return '/support'
+    if (pathname === '/settings' || pathname === '/notifications' || pathname === '/messages') {
+      return isVendor ? '/dashboard' : '/'
+    }
+    return '/'
+  }
+
+  function handleBack() {
+    setMenuOpen(false)
+    if (window.history.length > 1) {
+      router.back()
+      return
+    }
+    router.push(fallbackBackHref())
+  }
+
   async function handleLogout() {
     setDropOpen(false)
     setMenuOpen(false)
@@ -135,7 +159,22 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 h-16">
 
-            <BrandLogo size="md" priority imageClassName="object-contain" />
+            <div className="flex min-w-0 items-center gap-2">
+              {showBackButton && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="icon-button md:hidden"
+                  aria-label="Go back"
+                  title="Go back"
+                >
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+              )}
+              <BrandLogo size="md" priority imageClassName="object-contain" />
+            </div>
 
             <nav className="hidden items-center gap-1 p-1 md:flex">
               {navLinks.map((link) => (
