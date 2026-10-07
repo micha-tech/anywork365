@@ -188,8 +188,6 @@ export function Navbar() {
                         { href: '/professionals', label: 'Professionals' },
                         { href: '/messages', label: 'Messages' },
                         { href: '/dashboard/wallet', label: 'Wallet' },
-                        { href: '/dashboard/weekly-report', label: 'Weekly report' },
-                        { href: '/dashboard/profile', label: 'My Profile' },
                         { href: '/settings', label: 'Settings' },
                       ] : isRecruiter ? [
                         { href: '/artisans', label: 'Artisans' },
@@ -198,18 +196,18 @@ export function Navbar() {
                         { href: '/dashboard/post-job', label: 'Post Job' },
                         { href: '/dashboard/jobs', label: 'Posted Jobs' },
                         { href: '/dashboard/applications', label: 'Applications' },
-                        { href: '/profile', label: 'My Profile' },
+                        { href: '/settings', label: 'Settings' },
                       ] : isProfessional ? [
                         { href: '/artisans', label: 'Artisans' },
                         { href: '/jobs', label: 'Jobs' },
                         { href: '/professionals', label: 'Professionals' },
                         { href: '/messages', label: 'Messages' },
-                        { href: '/profile', label: 'My Profile' },
+                        { href: '/settings', label: 'Settings' },
                       ] : isIntern ? [
                         { href: '/intern', label: 'Intern home' },
                         { href: '/jobs', label: 'Opportunities' },
                         { href: '/messages', label: 'Messages' },
-                        { href: '/profile', label: 'My Profile' },
+                        { href: '/settings', label: 'Settings' },
                       ] : [
                         { href: '/artisans', label: 'Artisans' },
                         { href: '/jobs', label: 'Jobs' },
@@ -217,8 +215,6 @@ export function Navbar() {
                         { href: '/bookings', label: 'Bookings' },
                         { href: '/messages', label: 'Messages' },
                         { href: '/wallet', label: 'Wallet' },
-                        { href: '/profile', label: 'My Profile' },
-                        { href: '/dashboard/weekly-report', label: 'Weekly report' },
                         { href: '/settings', label: 'Settings' },
                       ]).map((item) => (
                         <Link
@@ -320,19 +316,14 @@ export function Navbar() {
                       ...(isVendor
                         ? [
                             { href: '/dashboard/wallet', label: 'Wallet' },
-                            { href: '/dashboard/weekly-report', label: 'Weekly report' },
-                            { href: '/dashboard/profile', label: 'My Profile' },
                             { href: '/settings', label: 'Settings' },
                           ]
                         : isProfessional || isRecruiter
                           ? [
-                              { href: '/profile', label: 'My Profile' },
                               { href: '/settings', label: 'Settings' },
                             ]
                           : [
                             { href: '/wallet', label: 'Wallet' },
-                            { href: '/dashboard/weekly-report', label: 'Weekly report' },
-                            { href: '/profile', label: 'My Profile' },
                             { href: '/settings', label: 'Settings' },
                             ]),
                     ].map((item) => (
