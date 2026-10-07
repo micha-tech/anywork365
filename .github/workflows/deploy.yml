@@ -32,4 +32,5 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           ssh -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=30 -o ServerAliveCountMax=40 \
             anyworkdeploy@"$VPS_HOST" "deploy $GITHUB_SHA"
