@@ -188,7 +188,9 @@ export function Navbar() {
                         { href: '/professionals', label: 'Professionals' },
                         { href: '/messages', label: 'Messages' },
                         { href: '/dashboard/wallet', label: 'Wallet' },
+                        { href: '/dashboard/weekly-report', label: 'Weekly report' },
                         { href: '/dashboard/profile', label: 'My Profile' },
+                        { href: '/settings', label: 'Settings' },
                       ] : isRecruiter ? [
                         { href: '/artisans', label: 'Artisans' },
                         { href: '/jobs', label: 'Jobs' },
@@ -216,6 +218,8 @@ export function Navbar() {
                         { href: '/messages', label: 'Messages' },
                         { href: '/wallet', label: 'Wallet' },
                         { href: '/profile', label: 'My Profile' },
+                        { href: '/dashboard/weekly-report', label: 'Weekly report' },
+                        { href: '/settings', label: 'Settings' },
                       ]).map((item) => (
                         <Link
                           key={item.href}
@@ -316,15 +320,20 @@ export function Navbar() {
                       ...(isVendor
                         ? [
                             { href: '/dashboard/wallet', label: 'Wallet' },
+                            { href: '/dashboard/weekly-report', label: 'Weekly report' },
                             { href: '/dashboard/profile', label: 'My Profile' },
+                            { href: '/settings', label: 'Settings' },
                           ]
                         : isProfessional || isRecruiter
                           ? [
                               { href: '/profile', label: 'My Profile' },
+                              { href: '/settings', label: 'Settings' },
                             ]
                           : [
                             { href: '/wallet', label: 'Wallet' },
+                            { href: '/dashboard/weekly-report', label: 'Weekly report' },
                             { href: '/profile', label: 'My Profile' },
+                            { href: '/settings', label: 'Settings' },
                             ]),
                     ].map((item) => (
                       <Link
