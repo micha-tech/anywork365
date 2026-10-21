@@ -16,6 +16,7 @@ import {
   approveMarketplaceWithdrawal,
   cancelUnsubmittedMarketplaceWithdrawal,
   reconcileMarketplaceWithdrawal,
+  returnConfirmedUnpaidMarketplaceWithdrawal,
   retryConfirmedUnpaidMarketplaceWithdrawal,
   submitMarketplaceWithdrawal,
 } from '@/lib/financial/withdrawal-service'
@@ -41,6 +42,11 @@ const marketplaceActionSchema = z.discriminatedUnion('action', [
   }),
   z.object({
     action: z.literal('retry_confirmed_unpaid'),
+    reason: z.string().min(20).max(500),
+    ticketReference: z.string().min(3).max(160),
+  }),
+  z.object({
+    action: z.literal('return_confirmed_unpaid'),
     reason: z.string().min(20).max(500),
     ticketReference: z.string().min(3).max(160),
   }),
@@ -140,6 +146,21 @@ export async function POST(
           ticketReference: body.ticketReference,
         })
         return NextResponse.json({ success: true, data: retried })
+      }
+      if (body.action === 'return_confirmed_unpaid') {
+        await requireFinancialPermission(session.id, 'withdrawal.approve')
+        const returned = await returnConfirmedUnpaidMarketplaceWithdrawal(
+          withdrawal.internal_reference,
+          { type: 'admin', id: session.id },
+          `${body.reason} [${body.ticketReference}]`
+        )
+        await logAdminAction(session.id, 'return_confirmed_unpaid_marketplace_withdrawal', 'withdrawal', id, {
+          reference: withdrawal.internal_reference,
+          reason: body.reason,
+          ticketReference: body.ticketReference,
+          ledgerReference: returned.ledgerReference,
+        })
+        return NextResponse.json({ success: true, data: returned })
       }
       return NextResponse.json({ success: false, error: 'Unsupported action' }, { status: 400 })
     }
