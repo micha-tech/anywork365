@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'crypto'
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise'
-import { execute, getConnection } from '@/lib/db'
+import { execute, getConnection, query } from '@/lib/db'
 import { accounts } from './account-types'
 import { getFinancialConfig } from './config'
 import { FinancialError } from './errors'
@@ -338,6 +338,13 @@ export async function approveMarketplaceWithdrawal(
     if (!['requested', 'under_review', 'failed'].includes(withdrawal.status)) {
       throw new FinancialError('INVALID_STATE', `Withdrawal cannot be approved from ${withdrawal.status}`, 409)
     }
+    if (withdrawal.submission_attempts > 0) {
+      throw new FinancialError(
+        'INVALID_STATE',
+        'This withdrawal already has a provider submission attempt. Reconcile it, or use the confirmed-unpaid recovery flow after Paystack verifies that no transfer exists.',
+        409
+      )
+    }
     await conn.execute(
       `UPDATE marketplace_withdrawal_requests
        SET status = 'approved', risk_status = 'passed', approved_at = NOW(),
@@ -362,6 +369,59 @@ export async function cancelUnsubmittedMarketplaceWithdrawal(
   reference: string,
   actor: LedgerActor,
   reason: string
+): Promise<{ changed: boolean; ledgerReference: string }> {
+  return cancelMarketplaceWithdrawalBeforeProviderCreation(reference, actor, reason, false)
+}
+
+/**
+ * Use only when Paystack has confirmed that the internal withdrawal reference
+ * has no matching transfer. It protects customers from a duplicate payout
+ * after an ambiguous provider submission attempt.
+ */
+export async function returnConfirmedUnpaidMarketplaceWithdrawal(
+  reference: string,
+  actor: LedgerActor,
+  reason: string,
+  rail: PaymentRail = paymentRail
+): Promise<{ changed: boolean; ledgerReference: string }> {
+  await assertProviderTransferIsAbsent(reference, rail)
+  return cancelMarketplaceWithdrawalBeforeProviderCreation(reference, actor, reason, true)
+}
+
+export async function retryConfirmedUnpaidMarketplaceWithdrawal(
+  reference: string,
+  actor: LedgerActor,
+  reason: string,
+  rail: PaymentRail = paymentRail
+): Promise<{ returned: boolean; returnLedgerReference: string; reference: string; status: string; transferCode: string | null }> {
+  const original = await withdrawalByReference(reference)
+  if (!original) throw new FinancialError('NOT_FOUND', 'Withdrawal was not found', 404)
+
+  const returned = await returnConfirmedUnpaidMarketplaceWithdrawal(reference, actor, reason, rail)
+  const replacement = await requestMarketplaceWithdrawal({
+    artisanUid: original.artisan_uid,
+    amountMinor: minorFromDatabase(original.amount_kobo),
+    idempotencyKey: `recovery-retry:${reference}`,
+    actor,
+  })
+  const submitted = replacement.status === 'approved'
+    ? await submitMarketplaceWithdrawal(replacement.reference, actor, rail)
+    : { status: replacement.status, transferCode: null }
+
+  return {
+    returned: returned.changed,
+    returnLedgerReference: returned.ledgerReference,
+    reference: replacement.reference,
+    status: submitted.status,
+    transferCode: submitted.transferCode,
+  }
+}
+
+async function cancelMarketplaceWithdrawalBeforeProviderCreation(
+  reference: string,
+  actor: LedgerActor,
+  reason: string,
+  providerTransferConfirmedAbsent: boolean
 ): Promise<{ changed: boolean; ledgerReference: string }> {
   const conn = await getConnection()
   try {
@@ -396,7 +456,7 @@ export async function cancelUnsubmittedMarketplaceWithdrawal(
         409
       )
     }
-    if (!isConclusivePreTransferRejection(withdrawal.failure_reason)) {
+    if (!providerTransferConfirmedAbsent && !isConclusivePreTransferRejection(withdrawal.failure_reason)) {
       throw new FinancialError(
         'INVALID_STATE',
         'The provider response is not conclusive enough to return reserved funds',
@@ -418,7 +478,9 @@ export async function cancelUnsubmittedMarketplaceWithdrawal(
       ],
       metadata: {
         withdrawalId: withdrawal.id,
-        providerFailure: withdrawal.failure_reason,
+        providerFailure: providerTransferConfirmedAbsent
+          ? 'Paystack confirmed that no transfer was created'
+          : withdrawal.failure_reason,
         cancellationReason: reason,
         providerTransferCreated: false,
       },
@@ -439,20 +501,23 @@ export async function cancelUnsubmittedMarketplaceWithdrawal(
        WHERE id = ?`,
       [
         posted.id,
-        `${withdrawal.failure_reason} | ${reason}`.slice(0, 500),
+        `${providerTransferConfirmedAbsent ? 'Paystack confirmed that no transfer was created' : withdrawal.failure_reason} | ${reason}`.slice(0, 500),
         withdrawal.id,
       ]
     )
     await audit(
       conn,
       actor,
-      'withdrawal.cancelled_before_provider_creation',
+      providerTransferConfirmedAbsent
+        ? 'withdrawal.returned_after_provider_absence_confirmation'
+        : 'withdrawal.cancelled_before_provider_creation',
       'withdrawal',
       String(withdrawal.id),
       {
         reference,
         reason,
         providerFailure: withdrawal.failure_reason,
+        providerTransferConfirmedAbsent,
         ledgerReference: posted.reference,
       }
     )
@@ -464,6 +529,33 @@ export async function cancelUnsubmittedMarketplaceWithdrawal(
   } finally {
     conn.release()
   }
+}
+
+async function withdrawalByReference(reference: string): Promise<WithdrawalRow | null> {
+  const rows = await query<WithdrawalRow[]>(
+    'SELECT * FROM marketplace_withdrawal_requests WHERE internal_reference = ? LIMIT 1',
+    [reference]
+  )
+  return rows[0] ?? null
+}
+
+async function assertProviderTransferIsAbsent(reference: string, rail: PaymentRail): Promise<void> {
+  try {
+    await rail.verifyTransfer(reference)
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : ''
+    if (message.includes('transfer not found')) return
+    throw new FinancialError(
+      'PROVIDER_UNAVAILABLE',
+      'Unable to confirm whether Paystack created the transfer. The withdrawal remains protected.',
+      502
+    )
+  }
+  throw new FinancialError(
+    'INVALID_STATE',
+    'Paystack reports a transfer for this withdrawal; reconcile it instead of returning or retrying it.',
+    409
+  )
 }
 
 export async function submitMarketplaceWithdrawal(
