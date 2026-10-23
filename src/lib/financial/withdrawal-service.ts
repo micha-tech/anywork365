@@ -630,10 +630,11 @@ export async function reconcileProcessingWithdrawals(
      FROM marketplace_withdrawal_requests
      WHERE status IN ('processing', 'under_review')
        AND provider_reference IS NOT NULL
-       AND COALESCE(processing_at, updated_at) <= DATE_SUB(NOW(), INTERVAL ? MINUTE)
+       AND COALESCE(processing_at, updated_at) <= DATE_SUB(
+         NOW(), INTERVAL ${WITHDRAWAL_RECONCILIATION_DELAY_MINUTES} MINUTE
+       )
      ORDER BY COALESCE(processing_at, updated_at), id
-     LIMIT ?`,
-    [WITHDRAWAL_RECONCILIATION_DELAY_MINUTES, boundedLimit]
+     LIMIT ${boundedLimit}`
   )
 
   for (const withdrawal of withdrawals) {
