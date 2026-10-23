@@ -617,6 +617,46 @@ export async function reconcileMarketplaceWithdrawal(
   return finalizeWithdrawal(reference, verified, actor)
 }
 
+const WITHDRAWAL_RECONCILIATION_DELAY_MINUTES = 10
+
+export async function reconcileProcessingWithdrawals(
+  limit = 25,
+  rail: PaymentRail = paymentRail
+): Promise<{ checked: number; finalized: number; failed: number }> {
+  const summary = { checked: 0, finalized: 0, failed: 0 }
+  const boundedLimit = Math.max(1, Math.min(100, Math.trunc(limit)))
+  const withdrawals = await query<(RowDataPacket & { internal_reference: string })[]>(
+    `SELECT internal_reference
+     FROM marketplace_withdrawal_requests
+     WHERE status IN ('processing', 'under_review')
+       AND provider_reference IS NOT NULL
+       AND COALESCE(processing_at, updated_at) <= DATE_SUB(NOW(), INTERVAL ? MINUTE)
+     ORDER BY COALESCE(processing_at, updated_at), id
+     LIMIT ?`,
+    [WITHDRAWAL_RECONCILIATION_DELAY_MINUTES, boundedLimit]
+  )
+
+  for (const withdrawal of withdrawals) {
+    try {
+      const reconciled = await reconcileMarketplaceWithdrawal(
+        withdrawal.internal_reference,
+        { type: 'system', id: 'withdrawal-reconciler' },
+        rail
+      )
+      summary.checked += 1
+      if (reconciled.changed) summary.finalized += 1
+    } catch (error) {
+      summary.failed += 1
+      console.error(
+        '[WITHDRAWAL RECONCILIATION]',
+        withdrawal.internal_reference,
+        safeError(error)
+      )
+    }
+  }
+  return summary
+}
+
 async function finalizeWithdrawal(
   reference: string,
   verified: TransferVerificationResult,
